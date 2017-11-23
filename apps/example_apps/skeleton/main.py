@@ -1,9 +1,11 @@
 from subprocess import call
+
+from input.input import InputListener
 from ui.menu import Menu
 from ui.printer import Printer
 
 menu_name = "Skeleton app"  # App name as seen in main menu while using the system
-
+InputListener()
 
 def call_internal():
     Printer(["Calling internal", "command"], i, o, 1)
@@ -22,7 +24,7 @@ i = None  # Input device
 o = None  # Output device
 
 
-def init_app(input, output):
+def init_app(input: InputListener, output: float) -> None:
     global callback, i, o
     i, o = input, output  # Getting references to output and input device objects and saving them as globals
     main_menu_contents = [
