@@ -2,6 +2,8 @@ import smbus
 from time import sleep
 
 from hd44780 import HD44780
+from output.output import OutputDevice
+
 
 def delay(time):
     sleep(time/1000.0)
@@ -10,7 +12,7 @@ def delayMicroseconds(time):
     sleep(time/1000000.0)
 
 
-class Screen(HD44780):
+class Screen(HD44780, OutputDevice):
     """A driver for PCF8574-based I2C LCD backpacks."""
 
     enable_mask = 1<<2

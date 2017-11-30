@@ -1,6 +1,9 @@
 import smbus
 from time import sleep
 
+from output.output import OutputDevice
+
+
 def delay(time):
     sleep(time/1000.0)
 
@@ -10,7 +13,7 @@ def delayMicroseconds(time):
 from hd44780 import HD44780
 from backlight import *
 
-class Screen(HD44780, BacklightManager):
+class Screen(HD44780, BacklightManager, OutputDevice):
     """A driver for Adafruit-developed Raspberry Pi character LCD&button shields based on MCP23017, either Adafruit-made or Chinese-made.
        Has workarounds for Chinese plates with LED instead of RGB backlight and LCD backlight on a separate I2C GPIO expander pin.
        

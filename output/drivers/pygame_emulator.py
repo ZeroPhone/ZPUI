@@ -11,9 +11,10 @@ from time import sleep
 from luma.core.render import canvas
 
 import emulator
+from output.output import OutputDevice
 
 
-class Screen():
+class Screen(OutputDevice):
     """
     Screen is an important class; all display is done by this class.
     On program start main.py invokes output.py which looks up
