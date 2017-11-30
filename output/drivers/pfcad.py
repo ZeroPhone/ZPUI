@@ -1,7 +1,10 @@
 import pifacecad
 from time import sleep
 
-class Screen():
+from output.output import OutputDevice
+
+
+class Screen(OutputDevice):
     """ A driver for PiFace Control and Display Raspberry Pi shields. It has a simple 16x2 LCD on it, controlled by a MCP23S17 over SPI.
 
     Doesn't yet conform to HD44780 library specs, many functions are not transferred from the ``pifacecad`` library.

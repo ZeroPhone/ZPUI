@@ -9,6 +9,9 @@
 
 from time import sleep
 
+from output.output import OutputDevice
+
+
 def delayMicroseconds(microseconds):
     seconds = microseconds / float(1000000)  # divide microseconds by 1 million for seconds
     sleep(seconds)
@@ -21,7 +24,7 @@ except:
 
 from hd44780 import HD44780
 
-class Screen(HD44780):
+class Screen(HD44780, OutputDevice):
     """Driver for using HD44780 displays connected to Raspberry Pi GPIO. Presumes the R/W line is tied to ground. Also, doesn't yet control backlight. """
 
     def __init__(self, pins = [], rs_pin = None, en_pin = None, debug = False, **kwargs):

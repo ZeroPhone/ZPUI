@@ -2,6 +2,8 @@ from serial import Serial
 from time import sleep
 
 #Firmware: TODO
+from output.output import OutputDevice
+
 
 def delay(time):
     sleep(time/1000.0)
@@ -11,7 +13,7 @@ def delayMicroseconds(time):
 
 from hd44780 import HD44780
 
-class Screen(HD44780):
+class Screen(HD44780, OutputDevice):
     """A driver for MCP23008-based I2C LCD backpacks. The one tested had "WIDE.HK" written on it."""
 
     def __init__(self, port=None, speed=9600, debug=False **kwargs):

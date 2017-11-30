@@ -1,3 +1,6 @@
+from input.input import InputListener
+from output.output import OutputDevice
+
 menu_name = "Skeleton app"  # App name as seen in main menu while using the system
 
 from subprocess import call
@@ -23,6 +26,7 @@ o = None  # Output device
 
 
 def init_app(input, output):
+    # type: (InputListener, OutputDevice) -> None
     global callback, i, o
     i = input;
     o = output  # Getting references to output and input device objects and saving them as globals
