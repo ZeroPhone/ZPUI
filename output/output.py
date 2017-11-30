@@ -5,9 +5,9 @@ screen = None
 
 class OutputDevice(object):
     def __init__(self):
-        self.rows = None
-        self.cols = None
-        self.debug = False  # todo : most screen have a debug function, is it sensible to have it here too ?
+        """Common class for all OutputDevices, such as Screens and emulator"""
+        self.rows = None  # number of columns
+        self.cols = None  # number of rows
 
 
 def init(output_config):
