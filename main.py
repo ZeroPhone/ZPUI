@@ -41,8 +41,8 @@ from helpers import read_config
 is_emulator = emulator_flag_filename in os.listdir(".")
 
 if not is_emulator:
+    error_file = open(config_error_file, "w+")
     try:
-        error_file = open(config_error_file, "w+")
         config = read_config(main_config_path)
     except Exception as e:
         print(repr(e))
