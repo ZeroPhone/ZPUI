@@ -34,4 +34,9 @@ class KeyCodes(Enum):
     KEY_CAMERA = "KEY_CAMERA"
 
     # todo: discuss aliases
-    # example : KEY_VALIDATE = KEY_CALL
+    # todo: discuss usefulness
+    def confirm(self, key_code):
+        return key_code in [self.KEY_ANSWER, self.KEY_RIGHT, self.KEY_F1]
+
+    def cancel(self, key_code):
+        return key_code in [self.KEY_HANGUP, self.KEY_LEFT, self.KEY_F2]
