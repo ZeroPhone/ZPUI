@@ -41,7 +41,7 @@ def minus_volume():
     return amixer_sset(get_adjust_value()+'-')
 
 def toggle_mute():
-    return amixer_sset("toggle")
+    return call(['pactl', 'set-sink-mute', '@DEFAULT_SINK@', 'toggle'])
 
 def settings_menu():
     menu_contents = [
