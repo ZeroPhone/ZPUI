@@ -3,6 +3,8 @@ import pickle
 
 from helpers import Singleton, flatten
 from helpers import setup_logger
+from helpers.general import ZPUI_HOME
+
 logger = setup_logger(__name__, "warning")
 
 class AddressBook(Singleton):
@@ -252,4 +254,3 @@ class Contact(object):
 
 
 SAVE_FILENAME = "contacts.pickle"
-ZPUI_HOME = "~/.phone/"

@@ -1,6 +1,8 @@
 import os
 import sys
 
+ZPUI_INSTALL_DIR = "/opt/zpui/"
+ZPUI_HOME = "~/.phone/"
 
 def local_path_gen(_name_):
     """This function generates a ``local_path`` function you can use

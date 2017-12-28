@@ -3,9 +3,9 @@ import os
 import traceback
 
 from apps import zero_app
+from helpers import setup_logger
 from ui import Printer, Menu
 
-from helpers import setup_logger
 logger = setup_logger(__name__, "info")
 
 
@@ -200,10 +200,10 @@ def get_zeroapp_class_in_module(module_):
     for item in module_content:
         class_ = getattr(module_, item)
         try:
-            if issubclass(class_, zero_app.ZeroApp):
+            if issubclass(class_, zero_app.ZeroApp) and item != 'ZeroApp':
                 return class_
         except Exception as e:
-            pass  # todo : check why isinstance(class_, ClassType)==False in python2
+            pass  # not a class : ignore
     return None
 
 

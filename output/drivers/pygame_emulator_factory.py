@@ -6,11 +6,10 @@ returns it to caller
 """
 
 import luma.emulator.device
+
 from helpers import setup_logger
 
 # ignore PIL debug messages
-
-logging.getLogger("PIL").setLevel(logging.ERROR)
 
 logger = setup_logger(__name__)
 

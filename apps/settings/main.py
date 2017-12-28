@@ -1,236 +1,158 @@
+from __future__ import division
 
 import os
-import signal
-from subprocess import check_output
+import shlex
+import shutil
+import subprocess
+import tempfile
 from time import sleep
 
-try:
-    import httplib
-except:
-    import http.client as httplib
-
-# Using a TextProgressBar because only it shows a message on the screen for now
-from ui import Menu, PrettyPrinter, DialogBox, TextProgressBar, Listbox
+from apps import ZeroApp
+from helpers.general import ZPUI_INSTALL_DIR
 from helpers.logger import setup_logger
+from ui import Menu, DialogBox, Printer, ProgressBar
 
-menu_name = "Settings"
 logger = setup_logger(__name__, "info")
 
 
-class GitInterface():
+class ZpuiUpdaterApp(ZeroApp):
+    def __init__(self, i, o):
+        super(ZpuiUpdaterApp, self).__init__(i, o)
+        self.menu_name = "Update ZPUI"
+        self.menu = Menu(
+            [
+                ["Update ZPUI", self.update_zpui],
+                ["Update ZPUI(devel)", self.update_zpui_devel]
+            ],
+            i,
+            o,
+            "ZPUI settings menu"
+        )
+        self.steps = []
 
-    @classmethod
-    def git_available(cls):
-        try:
-            cls.command("--help")
-        except OSError:
-            return False
-        return True
+    def on_start(self):
+        super(ZpuiUpdaterApp, self).on_start()
+        self.menu.activate()
 
-    @staticmethod
-    def command(command):
-        commandline = "git {}".format(command)
-        logger.debug("Executing: {}".format(commandline))
-        return check_output(commandline, shell=True)
+    def update_zpui(self):
+        self.start_update(branch="master")
 
-    @classmethod
-    def get_head_for_branch(cls, branch):
-        output = cls.command("rev-parse {}".format(branch)).strip()
-        return output
-
-    @classmethod
-    def get_current_branch(cls):
-        return cls.get_head_for_branch("--abbrev-ref HEAD").strip()
-
-    @classmethod
-    def checkout(cls, reference):
-        return cls.command("checkout {}".format(reference))
-
-    @classmethod
-    def pull(cls, source = "origin", branch = "master", opts="--no-edit"):
-        return cls.command("pull {2} {0} {1}".format(source, branch, opts))
-
-
-class UpdateUnnecessary(Exception):
-    pass
-
-
-class GenericUpdater(object):
-    steps = []
-    progressbar_messages = {}
-    failed_messages = {}
-
-    def run_step(self, step_name):
-        logger.info("Running update step: '{}'".format(step_name))
-        getattr(self, "do_" + step_name)()
-        logger.debug("Update step '{}' completed!".format(step_name))
-
-    def revert_step(self, step_name):
-        if hasattr(self, "revert_" + step_name):
-            logger.info("Reverting update step: '{}'".format(step_name))
-            getattr(self, "revert_" + step_name)()
-            logger.debug("Update step '{}' reverted!".format(step_name))
+    def update_zpui_devel(self):
+        if DialogBox("yn", self.i, self.o, message="You sure ?").activate():
+            self.start_update(branch="devel")
         else:
-            logger.debug("Can't revert step {} - no reverter available.".format(step_name))
+            Printer("Update canceled", self.i, self.o)
 
-    def update(self):
-        logger.info("Starting update process")
-        pb = TextProgressBar(i, o, message="Updating ZPUI")
-        pb.run_in_background()
-        progress_per_step = 1.0 / len(self.steps)
-
-        completed_steps = []
-        try:
+    def start_update(self, branch):
+        self.create_steps(branch)
+        finished_steps = []
+        with ProgressBar(self.i, self.o) as bar:
             for step in self.steps:
-                pb.set_message(self.progressbar_messages.get(step, "Loading..."))
-                sleep(0.5)  # The user needs some time to read the message
-                self.run_step(step)
-                completed_steps.append(step)
-                pb.progress += progress_per_step
-        except UpdateUnnecessary:
-            logger.info("Update is unnecessary!")
-            pb.stop()
-            PrettyPrinter("ZPUI already up-to-date!", i, o, 2)
-        except:
-            # Name of the failed step is contained in `step` variable
-            failed_step = step
-            logger.exception("Failed on step {}".format(failed_step))
-            failed_message = self.failed_messages.get(failed_step, "Failed on step '{}'".format(failed_step))
-            pb.stop()
-            PrettyPrinter(failed_message, i, o, 2)
-            pb.set_message("Reverting update")
-            pb.run_in_background()
-            try:
-                logger.info("Reverting the failed step: {}".format(failed_step))
-                self.revert_step(failed_step)
-            except:
-                logger.exception("Can't revert failed step {}".format(failed_step))
-                pb.stop()
-                PrettyPrinter("Can't revert failed step '{}'".format(step), i, o, 2)
-                pb.run_in_background()
-            logger.info("Reverting the previous steps")
-            for step in completed_steps:
                 try:
-                    self.revert_step(step)
-                except:
-                    logger.exception("Failed to revert step {}".format(failed_step))
-                    pb.stop()
-                    PrettyPrinter("Failed to revert step '{}'".format(step), i, o, 2)
-                    pb.run_in_background()
-                pb.progress -= progress_per_step
-            sleep(1) # Needed here so that 1) the progressbar goes to 0 2) run_in_background launches the thread before the final stop() call
-            #TODO: add a way to pause the Refresher
-            pb.stop()
-            logger.info("Update failed")
-            PrettyPrinter("Update failed, try again later?", i, o, 3)
+                    bar.message = step.name
+                    step.do()
+                    finished_steps.append(step)
+                    bar.progress = len(finished_steps) / len(self.steps)
+                    bar.refresh()
+                    sleep(0.5)  # so the user has time to read what happens
+                except Exception as e:
+                    if DialogBox("yn", self.i, self.o,
+                                 message="'{}'failed\ncancel update?".format(step.name)).activate():
+                        self.rollback_update(bar, e, finished_steps, step)
+                        return -1
+                    else:
+                        pass
+
+    def rollback_update(self, bar, e, finished_steps, step):
+        logger.error("Error updating step '{}'".format(step.name))
+        logger.exception(e)
+        Printer([step.name, 'update failed'], self.i, self.o)
+        bar.message = "reverting"
+        for i, passed in enumerate(finished_steps):
+            passed.undo()
+            bar.progress = (len(finished_steps) - i) / len(self.steps)
+            bar.refresh()
+            sleep(0.5)
+
+    def create_steps(self, branch="master"):
+        tmp_dir = tempfile.mkdtemp(prefix='zpui')
+        os.chmod(tmp_dir, 0o777)
+        old_cwd = os.getcwd()
+        change_cwd = UpdateStep("opening tmp dir", lambda: os.chdir(tmp_dir), lambda: os.chdir(old_cwd))
+        self.steps.append(change_cwd)
+
+        git_copy = UpdateStep(
+            "copying repo",
+            "git clone {src_dir} {dir}/".format(src_dir=ZPUI_INSTALL_DIR, dir=tmp_dir, branch=branch)
+        )
+        self.steps.append(git_copy)
+
+        git_pull = UpdateStep(
+            "pulling git",
+            "git pull origin {branch} --ff-only".format(dir=tmp_dir, branch=branch)
+        )
+        self.steps.append(git_pull)
+
+        pip_install = UpdateStep("installing deps",
+                                 "pip2 install -r requirements.txt",
+                                 "pip2 install -r {src_dir}requirements.txt".format(src_dir=ZPUI_INSTALL_DIR)
+                                 )
+        self.steps.append(pip_install)
+
+        run_tests = UpdateStep(
+            "running tests",
+            "python2 -B -m pytest --doctest-modules -v --doctest-ignore-import-errors --ignore=output/drivers "
+            "--ignore=input/drivers --ignore=apps/hardware_apps/status/ --ignore=apps/example_apps/fire_detector "
+            "--ignore=apps/test_hardware",
+            accepted_return_code=0
+        )
+        self.steps.append(run_tests)
+
+        change_cwd_back = UpdateStep("change cwd back", lambda: os.chdir(old_cwd))
+        self.steps.append(change_cwd_back)
+
+        copy_update_files = UpdateStep(
+            "patching ZPUI",
+            "rsync -av --delete {tmp_dir} --exclude='*.pyc' {dst_dir}".format(tmp_dir=tmp_dir, dst_dir=ZPUI_INSTALL_DIR)
+        )
+        self.steps.append(copy_update_files)
+
+        restart_service = UpdateStep(
+            "restarting zpui",
+            "systemctl restart zpui.service"
+        )
+        self.steps.append(restart_service)
+
+        clean_tmp_dir = UpdateStep("cleaning tmp dir", lambda: shutil.rmtree(tmp_dir))
+        self.steps.append(clean_tmp_dir)
+
+
+class UpdateStep(object):
+    def __init__(self, name, do=None, undo=None, accepted_return_code=None):
+        self.accepted_return_code = accepted_return_code
+        self.name = name
+        self._do = do
+        self._undo = undo
+        self.return_value = None
+
+    def do(self):
+        if not self._do:
+            return
+        logger.debug("running '{}'".format(self.name))
+        if isinstance(self._do, basestring):
+            print(shlex.split(self._do))
+            self.return_value = subprocess.call(shlex.split(self._do))
         else:
-            logger.info("Update successful!")
-            sleep(0.5)  # showing the completed progressbar
-            pb.stop()
-            PrettyPrinter("Update successful!", i, o, 3)
-            self.suggest_restart()
+            self.return_value = self._do()
+        logger.debug("ran '{}' with return value '{}'".format(self.name, self.return_value))
+        if self.accepted_return_code is not None:
+            if not self.return_value == self.accepted_return_code:
+                raise Exception("'{}' failed".format(self.name))
+        return self.return_value
 
-    def suggest_restart(self):
-        needs_restart = DialogBox('yn', i, o, message="Restart ZPUI?").activate()
-        if needs_restart:
-            os.kill(os.getpid(), signal.SIGTERM)
-
-
-class GitUpdater(GenericUpdater):
-    branch = "master"
-
-    steps = ["check_connection", "check_git", "check_revisions", "pull", "install_requirements", "tests"]
-    progressbar_messages = {
-        "check_connection": "Connection check",
-        "check_git": "Running git",
-        "check_revisions": "Comparing code",
-        "pull": "Fetching code",
-        "install_requirements": "Installing packages",
-        "tests": "Running tests",
-    }
-    failed_messages = {
-        "check_connection": "No Internet connection!",
-        "check_git": "Git binary not found!",
-        "check_revisions": "Exception while comparing revisions!",
-        "pull": "Couldn't get new code!",
-        "install_requirements": "Failed to install new packages!",
-        "tests": "Tests failed!"
-    }
-
-    def do_check_git(self):
-        if not GitInterface.git_available():
-            logger.exception("Couldn't execute git - not found?")
-            raise OSError()
-
-    def do_check_revisions(self):
-        GitInterface.command("fetch")
-        current_branch_name = GitInterface.get_current_branch()
-        current_revision = GitInterface.get_head_for_branch(current_branch_name)
-        remote_revision = GitInterface.get_head_for_branch("origin/"+current_branch_name)
-        if current_revision == remote_revision:
-            raise UpdateUnnecessary
+    def undo(self):
+        if not self._undo:
+            logger.warning("no undo method for '{}'".format(self.name))
         else:
-            self.previous_revision = current_revision
-
-    def do_check_connection(self):
-        conn = httplib.HTTPConnection("github.com", timeout=10)
-        try:
-            conn.request("HEAD", "/")
-        except:
-            raise
-        finally:
-            conn.close()
-
-    def do_install_requirements(self):
-        output = check_output(["pip", "install", "-r", "requirements.txt"])
-        logger.debug("pip output:")
-        logger.debug(output)
-
-    def do_pull(self):
-        current_branch_name = GitInterface.get_current_branch()
-        GitInterface.pull(branch = current_branch_name)
-
-    def do_tests(self):
-        commandline = "python -B -m pytest --doctest-modules -v --doctest-ignore-import-errors --ignore=output/drivers --ignore=input/drivers --ignore=apps/hardware_apps/status/ --ignore=apps/test_hardware"
-        output = check_output(commandline.split(" "))
-        logger.debug("pytest output:")
-        logger.debug(output)
-
-    def revert_pull(self):
-        # do_check_revisions already ran, we now have the previous revision's
-        # commit hash in self.previous_revision
-        GitInterface.command("reset --mixed {}".format(self.previous_revision))
-        # requirements.txt now contains old requirements, let's install them back
-        self.do_install_requirements()
-
-    def pick_branch(self):
-        #TODO: add branches dynamically instead of having a whitelist
-        available_branches = [["master"], ["devel"]]
-        branch = Listbox(available_branches, i, o, name="Git updater listbox").activate()
-        if branch:
-            try:
-                GitInterface.checkout(branch)
-            except:
-                PrettyPrinter("Couldn't check out the {} branch! Try resolving the conflict through the command-line.".format(branch), i, o, 3)
-            else:
-                PrettyPrinter("Now on {} branch!".format(branch), i, o, 2)
-                self.suggest_restart()
-                #TODO: run tests?
-
-
-def settings():
-    git_updater = GitUpdater()
-    c = [["Update ZPUI", git_updater.update],
-         ["Select branch", git_updater.pick_branch]]
-    Menu(c, i, o, "ZPUI settings menu").activate()
-
-
-callback = settings
-i = None  # Input device
-o = None  # Output device
-
-
-def init_app(input, output):
-    global i, o
-    i = input
-    o = output
+            logger.debug("Undoing '{}'".format(self.name))
+            self._undo()

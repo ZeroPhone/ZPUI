@@ -250,6 +250,7 @@ class GraphicalProgressBar(ProgressIndicator, CenteredTextRenderer):
     Allows to adjust padding and margin for a little bit of customization,
     as well as to show or hide the progress percentage."""
     def __init__(self, i, o, *args, **kwargs):
+        self.message = kwargs.pop("message") if "message" in kwargs else None
         self.show_percentage = kwargs.pop("show_percentage") if "show_percentage" in kwargs else True
         self.margin = kwargs.pop("margin") if "margin" in kwargs else 15
         self.padding = kwargs.pop("padding") if "padding" in kwargs else 2
@@ -269,7 +270,16 @@ class GraphicalProgressBar(ProgressIndicator, CenteredTextRenderer):
 
         self.draw_bar(draw, bar_top)
 
+        if self.message:
+            self.draw_message(draw)
+
         self.o.display_image(c.image)
+
+    def draw_message(self, draw):
+        # type: (ImageDraw) -> None
+        bounds = self.get_centered_text_bounds(draw, self.message, self.o.device.size)
+
+        draw.text((bounds.left, 0), self.message, fill=True)  # Drawn top-centered (with margin)
 
     def draw_bar(self, draw, top_y):
         # type: (ImageDraw, float) -> None
@@ -306,4 +316,4 @@ def ProgressBar(i, o, *args, **kwargs):
     elif "char" in o.type:
         return TextProgressBar(i, o, *args, **kwargs)
     else:
-        raise ValueError("Unsupported display type: {}".format(repr(self.o.type)))
+        raise ValueError("Unsupported display type: {}".format(repr(o.type)))
