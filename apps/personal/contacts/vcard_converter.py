@@ -2,9 +2,7 @@ from helpers import setup_logger
 logger = setup_logger(__name__, "warning")
 
 import vobject
-
-from address_book import Contact
-
+from contact import Contact
 
 class VCardContactConverter(object):
     vcard_mapping = {
@@ -28,6 +26,10 @@ class VCardContactConverter(object):
             attr = getattr(contact, VCardContactConverter.vcard_mapping[key])
             assert type(attr) == list
             attr += [v.value for v in v_contact.contents[key]]
+
+        # Remove duplicated attributes due to 'fn' and 'n' both mapping to 'name'
+        contact.consolidate()
+
         return contact
 
     @staticmethod
