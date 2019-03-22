@@ -24,7 +24,7 @@ class DatePicker(BaseUIElement):
 
 		# Attributes to store the current values
 		self.current_month = 1
-		self.current_year = 2018
+		self.current_year = 2019
 		self.starting_weekday = 0
 
 		# Store values of optional parameters
