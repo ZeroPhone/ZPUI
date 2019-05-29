@@ -7,6 +7,7 @@ from helpers import setup_logger, remove_left_failsafe, cb_needs_key_state, \
                     KEY_PRESSED, KEY_RELEASED, KEY_HELD
 from utils import to_be_foreground, check_value_lock
 from base_ui import BaseUIElement
+from base_view_ui import BaseViewMixin, BaseView
 
 logger = setup_logger(__name__, "warning")
 
@@ -35,7 +36,7 @@ def check_position_overflow(condition):
     return decorator
 
 
-class NumpadCharInput(BaseUIElement):
+class NumpadCharInput(BaseViewMixin, BaseUIElement):
     """Implements a character input UI element for a numeric keypad, allowing to translate numbers into characters.
 
     Attributes:
@@ -62,11 +63,11 @@ class NumpadCharInput(BaseUIElement):
     held_mapping = {str(i):str(i) for i in range(10)}
 
     action_keys = {
-               "KEY_ENTER":"accept_value",
                "KEY_F1":"deactivate",
-               "KEY_LEFT":"deactivate_if_first",
-               "KEY_RIGHT":"skip",
                "KEY_F2":"backspace",
+               "KEY_ENTER":"accept_value",
+               "KEY_LEFT":"deactivate_if_first",
+               "KEY_RIGHT":"skip"
               }
 
     bottom_row_buttons = ["Cancel", "OK", "Erase"]
@@ -81,7 +82,10 @@ class NumpadCharInput(BaseUIElement):
     current_letter_num = 0
     __locked_name__ = None
 
-    def __init__(self, i, o, message="Value:", value="", name="NumpadCharInput", mapping=None):
+    config_key = "dialog"
+    default_char_view = "TextView"
+
+    def __init__(self, i, o, message="Value:", value="", name="NumpadCharInput", mapping=None, config={}):
         """Initialises the NumpadCharInput object.
 
         Args:
@@ -92,17 +96,21 @@ class NumpadCharInput(BaseUIElement):
             * ``mapping``: alternative key-to-characters mapping to use
 
         """
+        self.action_keys = copy(self.action_keys)
         BaseUIElement.__init__(self, i, o, name)
         self.message = message
         self.value = value
         self.position = len(self.value)
-        self.action_keys = copy(self.action_keys)
         if mapping is not None:
             self.mapping = copy(mapping)
         else:
             self.mapping = copy(self.default_mapping)
         self.value_lock = Lock()
         self.value_accepted = False
+        BaseViewMixin.__init__(self, config=config)
+
+    def generate_views_dict(self):
+        return {"TextView": TextView}
 
     def before_foreground(self):
         self.value_accepted = False
@@ -110,10 +118,6 @@ class NumpadCharInput(BaseUIElement):
 
     def before_activate(self):
         self.o.cursor()
-
-    @property
-    def is_active(self):
-        return self.in_foreground
 
     def after_activate(self):
         self.o.noCursor()
@@ -320,36 +324,6 @@ class NumpadCharInput(BaseUIElement):
         """
         return self.value
 
-    def get_displayed_data(self):
-        """Experimental: not meant for 2x16 displays
-
-        Formats the value and the message to show it on the screen, then returns a list that can be directly used by o.display_data"""
-        displayed_data = [self.message]
-        screen_rows = self.o.rows
-        screen_cols = self.o.cols
-        static_line_count = 2 #One for message, another for context key labels
-        value = self.get_displayed_value()
-        lines_taken_by_value = (len(value) / (screen_cols)) + 1
-        for line_i in range(lines_taken_by_value):
-            displayed_data.append(value[(line_i*screen_cols):][:screen_cols])
-        empty_line_count = screen_rows - (static_line_count + lines_taken_by_value)
-        for _ in range(empty_line_count):
-            displayed_data.append("") #Just empty line
-        third_line_length = screen_cols/3
-        button_labels = [button.center(third_line_length) for button in self.bottom_row_buttons]
-        last_line = "".join(button_labels)
-        displayed_data.append(last_line)
-        return displayed_data
-
-    @to_be_foreground
-    def refresh(self):
-        """Function that is called each time data has to be output on display"""
-        cursor_y, cursor_x = divmod(self.position, self.o.cols)
-        cursor_y += 1
-        self.o.setCursor(cursor_y, cursor_x)
-        self.o.display_data(*self.get_displayed_data())
-        logger.debug("{}: refreshed data on display".format(self.name))
-
     #Debug-related functions.
 
     def print_value(self):
@@ -449,3 +423,36 @@ class NumpadKeyboardInput(NumpadCharInput):
         default_mapping[c] += c
 
     default_mapping["SPACE"] = " "
+
+# Views
+
+class TextView(BaseView):
+    def get_displayed_data(self):
+        """Experimental: not meant for 2x16 displays
+
+        Formats the value and the message to show it on the screen, then returns a list that can be directly used by o.display_data"""
+        displayed_data = [self.el.message]
+        screen_rows = self.o.rows
+        screen_cols = self.o.cols
+        static_line_count = 2 #One for message, another for context key labels
+        value = self.el.get_displayed_value()
+        lines_taken_by_value = (len(value) / (screen_cols)) + 1
+        for line_i in range(lines_taken_by_value):
+            displayed_data.append(value[(line_i*screen_cols):][:screen_cols])
+        empty_line_count = screen_rows - (static_line_count + lines_taken_by_value)
+        for _ in range(empty_line_count):
+            displayed_data.append("") #Just empty line
+        third_line_length = screen_cols/3
+        button_labels = [button.center(third_line_length) for button in self.el.bottom_row_buttons]
+        last_line = "".join(button_labels)
+        displayed_data.append(last_line)
+        return displayed_data
+
+    def get_cursor_pos(self):
+        cursor_y, cursor_x = divmod(self.el.position, self.o.cols)
+        cursor_y += 1
+        return (cursor_y, cursor_x)
+
+    def refresh(self):
+        """Function that is called each time data has to be output on display"""
+        return self.character_refresh()

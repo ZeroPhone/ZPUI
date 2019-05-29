@@ -51,18 +51,6 @@ class TestCanvas(unittest.TestCase):
         assert(c.image == i)
         assert(c.size == (w, h))
 
-    def test_coords_filtering(self):
-        """tests whether the coordinate filtering works"""
-        w = 128
-        h = 64
-        c = Canvas(get_mock_output(width=w, height=h), name=c_name)
-        assert (c.check_coordinates((0, 1)) == (0, 1))
-        assert (c.check_coordinates(("-2", "-3")) == (w-2, h-3))
-        assert (c.check_coordinates((0, 1, 2, 3)) == (0, 1, 2, 3))
-        assert (c.check_coordinates((0, 1, "-2", "-3")) == (0, 1, w-2, h-3))
-        assert (c.check_coordinates(("-0", "-1", "-2", "-3")) == (w, h-1, w-2, h-3))
-        assert (c.check_coordinates(("-0", "1", "-2", "-3")) == (w, h+1, w-2, h-3))
-
     def test_howto_example_drawing_basics(self):
         """tests the first canvas example from howto"""
         test_image = get_image("canvas_1.png")

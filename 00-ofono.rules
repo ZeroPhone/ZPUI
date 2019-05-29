@@ -1,0 +1,2 @@
+KERNEL=="ttyAMA0", ENV{OFONO_DRIVER}="sim900"
+

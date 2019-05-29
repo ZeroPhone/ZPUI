@@ -2,7 +2,9 @@ import os
 
 from PIL import Image, ImageDraw, ImageOps, ImageFont
 
-from ui.utils import is_sequence_not_string as issequence, Rect
+from ui.utils import Rect
+
+from coords import check_coordinates, check_coordinate_pairs, convert_flat_list_into_pairs
 
 fonts_dir = "ui/fonts/"
 font_cache = {}
@@ -128,7 +130,7 @@ class Canvas(object):
 
           * ``fill``: point color (default: white, as default canvas color)
         """
-        coord_pairs = self.check_coordinate_pairs(coord_pairs)
+        coord_pairs = check_coordinate_pairs(self, coord_pairs)
         fill = kwargs.pop("fill", self.default_color)
         self.draw.point(coord_pairs, fill=fill, **kwargs)
         self.display_if_interactive()
@@ -145,7 +147,7 @@ class Canvas(object):
           * ``width``: line width (default: 0, which results in a single-pixel-wide line)
         """
         fill = kwargs.pop("fill", self.default_color)
-        coords = self.check_coordinates(coords)
+        coords = check_coordinates(self, coords)
         self.draw.line(coords, fill=fill, **kwargs)
         self.display_if_interactive()
 
@@ -169,7 +171,7 @@ class Canvas(object):
         fill = kwargs.pop("fill", self.default_color)
         font = kwargs.pop("font", self.default_font)
         font = self.decypher_font_reference(font)
-        coords = self.check_coordinates(coords)
+        coords = check_coordinates(self, coords)
         if text: # Errors out on empty text
             self.draw.text(coords, text, fill=fill, font=font, **kwargs)
             self.display_if_interactive()
@@ -195,7 +197,7 @@ class Canvas(object):
         font = kwargs.pop("font", self.default_font)
         charheight = kwargs.pop("charheight", None)
         font = self.decypher_font_reference(font)
-        coords = self.check_coordinates(coords)
+        coords = check_coordinates(self, coords)
         char_coords = list(coords)
         if not charheight: # Auto-determining charheight if not available
             _, charheight = self.draw.textsize("H", font=font)
@@ -229,7 +231,7 @@ class Canvas(object):
         font = self.decypher_font_reference(font)
         for i, char in enumerate(text):
             coords = coords_cb(i, char)
-            coords = self.check_coordinates(coords)
+            coords = check_coordinates(self, coords)
             self.draw.text(coords, char, fill=fill, font=font, **kwargs)
         self.display_if_interactive()
 
@@ -245,7 +247,7 @@ class Canvas(object):
           * ``outline``: outline color (default: white, as default canvas color)
           * ``fill``: fill color (default: None, as in, transparent)
         """
-        coords = self.check_coordinates(coords)
+        coords = check_coordinates(self, coords)
         outline = kwargs.pop("outline", self.default_color)
         fill = kwargs.pop("fill", None)
         self.draw.rectangle(coords, outline=outline, fill=fill, **kwargs)
@@ -262,7 +264,7 @@ class Canvas(object):
           * ``outline``: outline color (default: white, as default canvas color)
           * ``fill``: fill color (default: None, as in, transparent)
         """
-        coord_pairs = self.check_coordinate_pairs(coord_pairs)
+        coord_pairs = check_coordinate_pairs(self, coord_pairs)
         outline = kwargs.pop("outline", self.default_color)
         fill = kwargs.pop("fill", None)
         self.draw.polygon(coord_pairs, outline=outline, fill=fill, **kwargs)
@@ -282,7 +284,7 @@ class Canvas(object):
         assert(len(coords) == 3), "Expects three arguments - x center, y center and radius!"
         radius = coords[2]
         coords = coords[:2]
-        coords = self.check_coordinates(coords)
+        coords = check_coordinates(self, coords)
         outline = kwargs.pop("outline", self.default_color)
         fill = kwargs.pop("fill", None)
         ellipse_coords = (coords[0]-radius, coords[1]-radius, coords[0]+radius, coords[1]+radius)
@@ -301,7 +303,7 @@ class Canvas(object):
           * ``outline``: outline color (default: white, as default canvas color)
           * ``fill``: fill color (default: None, as in, transparent)
         """
-        coords = self.check_coordinates(coords)
+        coords = check_coordinates(self, coords)
         outline = kwargs.pop("outline", self.default_color)
         fill = kwargs.pop("fill", None)
         self.draw.ellipse(coords, outline=outline, fill=fill, **kwargs)
@@ -354,72 +356,9 @@ class Canvas(object):
             coords = (0, 0, self.width, self.height)
         if fill is None:
             fill = self.background_color
-        coords = self.check_coordinates(coords)
+        coords = check_coordinates(self, coords)
         self.rectangle(coords, fill=fill, outline=fill)  # paint the background black first
         self.display_if_interactive()
-
-    def check_coordinates(self, coords, check_count=True):
-        # type: tuple -> tuple
-        """
-        A helper function to check and reformat coordinates supplied to
-        functions. Currently, accepts integer coordinates, as well as strings
-        - denoting offsets from opposite sides of the screen.
-        """
-        # Checking for string offset coordinates
-        # First, we need to make coords into a mutable sequence - thus, a list
-        coords = list(coords)
-        for i, c in enumerate(coords):
-            sign = "+"
-            if isinstance(c, basestring):
-                if c.startswith("-"):
-                    sign = "-"
-                    c = c[1:]
-                assert c.isdigit(), "A numeric string expected, received: {}".format(coords[i])
-                offset = int(c)
-                dim = self.size[i % 2]
-                if sign == "+":
-                    coords[i] = dim + offset
-                elif sign == "-":
-                    coords[i] = dim - offset
-            elif isinstance(c, float):
-                logger.warning("Received {} as a coordinate - pixel offsets can't be float, converting to int".format(c))
-                coords[i] = int(c)
-        # Restoring the status-quo
-        coords = tuple(coords)
-        # Now all the coordinates should be integers - if something slipped by the checks,
-        # it's of type we don't process and we should raise an exception now
-        for c in coords:
-            assert isinstance(c, int), "{} not an integer or 'x' string!".format(c)
-        if len(coords) == 2:
-            return coords
-        elif len(coords) == 4:
-            x1, y1, x2, y2 = coords
-            # Not sure those checks make sense
-            #assert (x2 >= x1), "x2 ({}) is smaller than x1 ({}), rearrange?".format(x2, x1)
-            #assert (y2 >= y1), "y2 ({}) is smaller than y1 ({}), rearrange?".format(y2, y1)
-            return coords
-        else:
-            if check_count:
-                raise ValueError("Invalid number of coordinates!")
-            else:
-                return coords
-
-    def check_coordinate_pairs(self, coord_pairs):
-        # type: tuple -> tuple
-        """
-        A helper function to check and reformat coordinate pairs supplied to
-        functions. Each pair is checked by ``check_coordinates``.
-        """
-        if not all([issequence(c) for c in coord_pairs]):
-            # Didn't get pairs of coordinates - converting into pairs
-            # But first, sanity checks
-            assert (len(coord_pairs) % 2 == 0), "Odd number of coordinates supplied! ({})".format(coord_pairs)
-            assert all([isinstance(c, (int, basestring)) for i in coord_pairs]), "Coordinates are non-uniform! ({})".format(coord_pairs)
-            coord_pairs = convert_flat_list_into_pairs(coord_pairs)
-        coord_pairs = list(coord_pairs)
-        for i, coord_pair in enumerate(coord_pairs):
-            coord_pairs[i] = self.check_coordinates(coord_pair)
-        return tuple(coord_pairs)
 
     def centered_text(self, text, cw=None, ch=None, font=None):
         # type: str -> None
@@ -436,7 +375,7 @@ class Canvas(object):
         self.display_if_interactive()
 
     def get_text_bounds(self, text, font=None):
-        # type: str -> Rect
+        # type: str -> tuple
         """
         Returns the dimensions for a given text. If you use a
         non-default font, pass it as ``font``.
@@ -474,7 +413,7 @@ class Canvas(object):
         highlighting a part of the image, for example.
         """
 
-        coords = self.check_coordinates(coords)
+        coords = check_coordinates(self, coords)
         image_subset = self.image.crop(coords)
 
         if image_subset.mode == "1":
@@ -553,9 +492,3 @@ class MockOutput(object):
 
     def display_image(self, *args):
         return True
-
-def convert_flat_list_into_pairs(l):
-    pl = []
-    for i in range(len(l)/2):
-        pl.append((l[i*2], l[i*2+1]))
-    return pl

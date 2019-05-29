@@ -1,3 +1,4 @@
+pydbus
 luma.oled
 luma.lcd
 python-nmap

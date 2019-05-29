@@ -5,8 +5,9 @@ logger = setup_logger(__name__, "warning")
 
 from utils import to_be_foreground
 from base_ui import BaseUIElement
+from base_view_ui import BaseViewMixin, BaseView
 
-class IntegerAdjustInput(BaseUIElement):
+class IntegerAdjustInput(BaseViewMixin, BaseUIElement):
     """Implements a simple number input dialog which allows you to increment/decrement a number using  which can be used to navigate through your application, output a list of values or select actions to perform. Is one of the most used elements, used both in system core and in most of the applications.
 
     Attributes:
@@ -23,6 +24,8 @@ class IntegerAdjustInput(BaseUIElement):
     initial_number = 0
     number = 0
     selected_number = None
+    config_key = "integer_adjust"
+    default_char_view = "TextView"
 
     def __init__(self, number, i, o, message="Pick a number:", interval=1, name="IntegerAdjustInput", mode="normal", max=None, min=None):
         """Initialises the IntegerAdjustInput object.
@@ -53,16 +56,27 @@ class IntegerAdjustInput(BaseUIElement):
         self.message = message
         self.mode = mode
         self.interval = interval
+        BaseViewMixin.__init__(self)
 
     def get_return_value(self):
         return self.selected_number
 
+    def generate_views_dict(self):
+        return {
+            "TextView": TextView}
+
     def idle_loop(self):
         sleep(0.1)
 
+    def get_displayed_number(self):
+        if self.mode == "hex":
+            return hex(self.number)
+        else:
+            return str(self.number)
+
     def print_number(self):
         """ A debug method. Useful for hooking up to an input event so that you can see current number value. """
-        logger.info(self.number)
+        logger.info(self.get_displayed_number())
 
     def decrement(self, multiplier=1):
         """Decrements the number by selected ``interval``"""
@@ -117,15 +131,13 @@ class IntegerAdjustInput(BaseUIElement):
         if self.max is not None and self.number > self.max:
             self.number = self.max
 
-    def get_displayed_data(self):
-        if self.mode == "hex":
-            number_str = hex(self.number)
-        else:
-            number_str = str(self.number)
-        number_str = number_str.rjust(self.o.cols)
-        return [self.message, number_str]
 
-    @to_be_foreground
+class TextView(BaseView):
+
+    def get_displayed_data(self):
+        number_str = self.el.get_displayed_number()
+        number_str = number_str.rjust(self.o.cols)
+        return [self.el.message, number_str]
+
     def refresh(self):
-        logger.debug("{0}: refreshed data on display".format(self.name))
-        self.o.display_data(*self.get_displayed_data())
+        return self.character_refresh()

@@ -20,7 +20,8 @@ from refresher import Refresher, RefresherExitException
 from scrollable_element import TextReader
 from loading_indicators import ProgressBar, LoadingBar, TextProgressBar, GraphicalProgressBar, CircularProgressBar, IdleDottedMessage, Throbber
 from numbered_menu import NumberedMenu
-from canvas import Canvas, MockOutput
+from canvas import Canvas, MockOutput, Rect, Image, ImageOps
+from coords import check_coordinates, check_coordinate_pairs, offset_points, get_bounds_for_points, expand_coords, convert_flat_list_into_pairs, multiply_points, convert_flat_list_into_pairs
 from date_picker import DatePicker
 from time_picker import TimePicker
 from grid_menu import GridMenu

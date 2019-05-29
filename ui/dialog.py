@@ -3,11 +3,12 @@ from helpers import setup_logger
 from funcs import format_for_screen as ffs
 
 from base_ui import BaseUIElement
+from base_view_ui import BaseViewMixin, BaseView
 from canvas import Canvas
 
 logger = setup_logger(__name__, "info")
 
-class DialogBox(BaseUIElement):
+class DialogBox(BaseViewMixin, BaseUIElement):
     """Implements a dialog box with given values (or some default ones if chosen)."""
 
     value_selected = False
@@ -15,7 +16,11 @@ class DialogBox(BaseUIElement):
     default_options = {"y":["Yes", True], 'n':["No", False], 'c':["Cancel", None]}
     start_option = 0
 
-    def __init__(self, values, i, o, message="Are you sure?", name="DialogBox"):
+    config_key = "dialog"
+    default_pixel_view = "GraphicalView"
+    default_char_view = "TextView"
+
+    def __init__(self, values, i, o, message="Are you sure?", name="DialogBox", config={}):
         """Initialises the DialogBox object.
 
         Args:
@@ -51,16 +56,12 @@ class DialogBox(BaseUIElement):
                     values[i] = self.default_options[value]
             self.values = values
         self.message = message
-        self.set_view()
+        BaseViewMixin.__init__(self, config=config)
 
-    def set_view(self):
-        if "b&w-pixel" in self.o.type:
-            view_class = GraphicalView
-        elif "char" in self.o.type:
-            view_class = TextView
-        else:
-            raise ValueError("Unsupported display type: {}".format(repr(self.o.type)))
-        self.view = view_class(self.o, self)
+    def generate_views_dict(self):
+        return {
+            "TextView": TextView,
+            "GraphicalView": GraphicalView}
 
     def set_start_option(self, option_number):
         """
@@ -109,15 +110,11 @@ class DialogBox(BaseUIElement):
         self.value_selected = True
         self.deactivate()
 
-    def refresh(self):
-        self.view.refresh()
 
-
-class TextView(object):
+class TextView(BaseView):
 
     def __init__(self, o, el):
-        self.o = o
-        self.el = el
+        BaseView.__init__(self, o, el)
         self.process_values()
 
     def process_values(self):
@@ -134,15 +131,18 @@ class TextView(object):
             self.positions.append(current_position)
             current_position += len(label) + 1
 
+    def get_cursor_pos(self):
+        return (1, self.positions[self.el.selected_option])
+
+    def get_displayed_data(self):
+        return [self.el.message, self.displayed_label]
+
     def refresh(self):
-        self.o.noCursor()
-        self.o.setCursor(1, self.positions[self.el.selected_option])
-        self.o.display_data(self.el.message, self.displayed_label)
-        self.o.cursor()
+        return self.character_refresh()
 
 class GraphicalView(TextView):
 
-    def get_image(self):
+    def get_displayed_image(self):
         c = Canvas(self.o)
         #Drawing text
         chunk_y = 0
@@ -169,4 +169,4 @@ class GraphicalView(TextView):
         return c.get_image()
 
     def refresh(self):
-        self.o.display_image(self.get_image())
+        return self.graphical_refresh()
