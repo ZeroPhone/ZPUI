@@ -57,7 +57,7 @@ class TestMenu(unittest.TestCase):
         """tests keymap"""
         menu = Menu([["Option", "option"]], get_mock_input(), get_mock_output(), name=mu_name, config={})
         self.assertIsNotNone(menu.keymap)
-        for key_name, callback in menu.keymap.iteritems():
+        for key_name, callback in menu.keymap.items():
             self.assertIsNotNone(callback)
 
     @unittest.skip("expected to fail since menu doesn't handle exit label replacement yet")

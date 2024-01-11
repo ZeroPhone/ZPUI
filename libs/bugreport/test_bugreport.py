@@ -3,7 +3,7 @@ import zipfile
 import unittest
 from mock import Mock
 
-from bugreport import BugReport
+from libs.bugreport.bugreport import BugReport
 
 
 class TestBugReport(unittest.TestCase):

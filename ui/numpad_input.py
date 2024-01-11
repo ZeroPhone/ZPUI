@@ -329,13 +329,13 @@ class NumpadCharInput(BaseUIElement):
         screen_cols = self.o.cols
         static_line_count = 2 #One for message, another for context key labels
         value = self.get_displayed_value()
-        lines_taken_by_value = (len(value) / (screen_cols)) + 1
+        lines_taken_by_value = (len(value) // (screen_cols)) + 1
         for line_i in range(lines_taken_by_value):
             displayed_data.append(value[(line_i*screen_cols):][:screen_cols])
         empty_line_count = screen_rows - (static_line_count + lines_taken_by_value)
         for _ in range(empty_line_count):
             displayed_data.append("") #Just empty line
-        third_line_length = screen_cols/3
+        third_line_length = screen_cols//3
         button_labels = [button.center(third_line_length) for button in self.bottom_row_buttons]
         last_line = "".join(button_labels)
         displayed_data.append(last_line)

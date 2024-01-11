@@ -145,7 +145,7 @@ class CheckboxRenderingMixin(object):
         checked = self.entry_is_checked(entry_num)
         display_columns = self.get_fow_width_in_chars()
         avail_display_chars = (display_columns * self.entry_height) - 1  # 1 char for "*"/" "
-        if type(text) in [str, unicode]:
+        if isinstance(text, basestring):
             if active:
                 self.el.scrolling["current_scrollable"] = len(text) > avail_display_chars
                 self.el.scrolling["current_finished"] = len(text) - self.el.scrolling["pointer"] < avail_display_chars

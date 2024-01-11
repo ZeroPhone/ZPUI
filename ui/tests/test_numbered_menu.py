@@ -51,7 +51,7 @@ class TestNumberedMenu(unittest.TestCase):
         """tests keymap"""
         nm = NumberedMenu(build_contents(), get_mock_input(), get_mock_output(), name=nm_name, config={})
         self.assertIsNotNone(nm.keymap)
-        for key_name, callback in nm.keymap.iteritems():
+        for key_name, callback in nm.keymap.items():
             self.assertIsNotNone(callback)
 
     @unittest.skip("need to implement the corresponding mechanism")

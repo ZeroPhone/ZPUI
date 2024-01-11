@@ -56,7 +56,7 @@ class TestListbox(unittest.TestCase):
         """tests keymap"""
         lb = Listbox([["Option", "option"]], get_mock_input(), get_mock_output(), name=lb_name, config={})
         self.assertIsNotNone(lb.keymap)
-        for key_name, callback in lb.keymap.iteritems():
+        for key_name, callback in lb.keymap.items():
             self.assertIsNotNone(callback)
 
     def test_contents(self):

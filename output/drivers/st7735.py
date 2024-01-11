@@ -1,8 +1,8 @@
-from luma_driver import LumaScreen
 from luma.lcd.device import st7735
 
 from output.output import OutputDevice
-from backlight import BacklightManager
+from output.drivers.backlight import BacklightManager
+from output.drivers.luma_driver import LumaScreen
 
 class Screen(LumaScreen, OutputDevice):
 

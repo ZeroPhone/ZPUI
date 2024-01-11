@@ -40,7 +40,7 @@ class UIConfigManager(object):
         #Taken from https://stackoverflow.com/a/18394648/1250228
         #TODO: add some logging here, to show when base config 
         #items are being replaced
-        for key, val in new_config.iteritems():
+        for key, val in new_config.items():
             if isinstance(val, collections.Mapping):
                 tmp = self.update_config(base_config.get(key, { }), val)
                 base_config[key] = tmp

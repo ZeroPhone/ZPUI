@@ -14,8 +14,11 @@ from luma.core.render import canvas
 from PIL import ImageChops
 
 
-from backlight import *
-from ..output import GraphicalOutputDevice, CharacterOutputDevice
+from output.drivers.backlight import *
+try:
+    from ..output import GraphicalOutputDevice, CharacterOutputDevice
+except ModuleNotFoundError:
+    from output import GraphicalOutputDevice, CharacterOutputDevice
 
 
 class LumaScreen(GraphicalOutputDevice, CharacterOutputDevice, BacklightManager):

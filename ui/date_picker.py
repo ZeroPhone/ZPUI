@@ -82,7 +82,7 @@ class DatePicker(BaseUIElement):
 		"""Set the currently selected day"""
 		index = self.calendar_grid.index(day)
 		x = int(index % self.GRID_WIDTH)
-		y = int(index / self.GRID_WIDTH)
+		y = int(index // self.GRID_WIDTH)
 		self.selected_option = {'x': x, 'y': y}
 
 	def get_return_value(self, check_accepted = True):
@@ -219,8 +219,8 @@ class DatePicker(BaseUIElement):
 
 		# Draw calendar grid
 		# Calculate margin between vertical/horizontal lines
-		step_width = self.c.width / self.GRID_WIDTH
-		step_height = (self.c.height - month_year_text_bounds[1]) / self.GRID_HEIGHT
+		step_width = self.c.width // self.GRID_WIDTH
+		step_height = (self.c.height - month_year_text_bounds[1]) // self.GRID_HEIGHT
 
 		# Draw lines
 		for x in range(step_width, self.c.width-step_width, step_width):
@@ -244,10 +244,10 @@ class DatePicker(BaseUIElement):
 			date_text_bounds = self.c.get_text_bounds(str(date))
 			# Calculate the coordinates for the date string
 			x_cord = ( i%self.GRID_WIDTH)*step_width + \
-					( (step_width-date_text_bounds[0])/2 )
+					( (step_width-date_text_bounds[0])//2 )
 			y_cord = ( i//self.GRID_WIDTH)*step_height + \
 					step_height+ \
-					( (step_height-date_text_bounds[1])/2 )
+					( (step_height-date_text_bounds[1])//2 )
 			self.c.text(str(date), (x_cord+1, y_cord+1))
 
 			# Increase the counter and continue to the next date, import for positioning

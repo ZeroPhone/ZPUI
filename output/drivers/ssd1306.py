@@ -1,8 +1,8 @@
 #!/usr/bin/python
 
-from luma_driver import LumaScreen
 from luma.oled.device import ssd1306
 
+from output.drivers.luma_driver import LumaScreen
 from output.output import OutputDevice
 
 

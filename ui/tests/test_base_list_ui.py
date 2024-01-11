@@ -55,7 +55,7 @@ class TestBaseListUIElement(unittest.TestCase):
         """tests keymap"""
         element = BaseListUIElement([["Option", "option"]], get_mock_input(), get_mock_output(), name=el_name, config={})
         self.assertIsNotNone(element.keymap)
-        for key_name, callback in element.keymap.iteritems():
+        for key_name, callback in element.keymap.items():
             self.assertIsNotNone(callback)
 
     def test_properties(self):

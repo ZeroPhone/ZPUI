@@ -44,7 +44,7 @@ class TestDatePicker(unittest.TestCase):
 		"""Tests keymap"""
 		dp = DatePicker(get_mock_input(), get_mock_output(), name=dp_name)
 		self.assertIsNotNone(dp)
-		for key_name, callback in dp.keymap.iteritems():
+		for key_name, callback in dp.keymap.items():
 			self.assertIsNotNone(callback)
 
 	# Test whether it returns None when deactivating it

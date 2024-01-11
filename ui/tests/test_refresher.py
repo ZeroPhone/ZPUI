@@ -35,7 +35,7 @@ def get_mock_output(rows=8, cols=21):
     return m
 
 def get_mock_graphical_output(width=128, height=64, mode="1", cw=6, ch=8):
-    m = get_mock_output(rows=width/cw, cols=height/ch)
+    m = get_mock_output(rows=width//cw, cols=height//ch)
     m.configure_mock(width=width, height=height, device_mode=mode, char_height=ch, char_width=cw, type=["b&w"])
     return m
 
@@ -54,14 +54,14 @@ class TestRefresher(unittest.TestCase):
         """Tests the keymap entries"""
         r = Refresher(lambda: "Hello", get_mock_input(), get_mock_output(), name=r_name)
         self.assertIsNotNone(r.keymap)
-        for key_name, callback in r.keymap.iteritems():
+        for key_name, callback in r.keymap.items():
             self.assertIsNotNone(callback)
 
     def test_string_keymap(self):
         """Tests the keymap entries"""
         k = {"KEY_LEFT":'refresh', "KEY_RIGHT":'deactivate'}
         r = Refresher(lambda: "Hello", get_mock_input(), get_mock_output(), keymap=k, name=r_name)
-        for key_name, callback in r.keymap.iteritems():
+        for key_name, callback in r.keymap.items():
             self.assertIsNotNone(callback)
         assert (r.keymap["KEY_LEFT"] == r.refresh)
         assert (r.keymap["KEY_RIGHT"] == r.deactivate)

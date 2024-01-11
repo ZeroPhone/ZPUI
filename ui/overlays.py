@@ -193,7 +193,7 @@ class FunctionOverlay(HelpOverlay):
         ui_el.set_default_keymap()
 
     def draw_icon(self, c):
-        half_line_length = c.o.cols/self.num_keys
+        half_line_length = c.o.cols//self.num_keys
         last_line = "".join([label.center(half_line_length) for label in self.labels])
         c.clear((self.right_offset, str(-self.bottom_offset), c.width-self.right_offset, c.height))
         c.text(last_line, (self.right_offset, str(-self.bottom_offset)), font=self.font)
@@ -327,13 +327,13 @@ class GridMenuLabelOverlay(HelpOverlay):
         grid_rows = ui_el.rows
         text_bounds = c.get_text_bounds(text, font=self.font)
         # Calculating offset from left screen edge to the clear coord start
-        left_offset = max(0, c.width/2-text_bounds[0])
+        left_offset = max(0, c.width//2-text_bounds[0])
         # GridMenu-specific calculations for the left offset
         entry_width = getattr(ui_el.view, "entry_width", 0)
         if entry_width is None: entry_width = 0
         cols = getattr(ui_el, "cols", 0)
         if entry_width*cols > 0:
-            left_offset = (entry_width*cols)/2 - text_bounds[0]/2
+            left_offset = (entry_width*cols)//2 - text_bounds[0]//2
             left_offset = max(0, left_offset)
         # Generic calculations again
         # Calculating whether the label is show at the top or the bottom

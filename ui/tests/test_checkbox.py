@@ -56,7 +56,7 @@ class TestCheckbox(unittest.TestCase):
         """tests keymap"""
         checkbox = Checkbox([["Option", "option"]], get_mock_input(), get_mock_output(), name=cb_name, config={})
         self.assertIsNotNone(checkbox.keymap)
-        for key_name, callback in checkbox.keymap.iteritems():
+        for key_name, callback in checkbox.keymap.items():
             self.assertIsNotNone(callback)
 
     def test_exit_label_leakage(self):
