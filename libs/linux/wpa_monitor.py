@@ -107,7 +107,10 @@ class WpaMonitor():
         # processing info_str = something like "CTRL-EVENT-CONNECTED - Connection to 64:66:b3:54:5a:d8 completed "
         # using a regex to find the bssid
         # from https://stackoverflow.com/questions/26891833/python-regex-extract-mac-addresses-from-string/26892371
-        p = re.compile(ur'(?:[0-9a-fA-F]:?){12}')
+        try:
+            p = re.compile(r'(?:[0-9a-fA-F]:?){12}')
+        except SyntaxError:
+            p = re.compile(r'(?:[0-9a-fA-F]:?){12}')
         results = re.findall(p, info_str)
         # let's be a bit paranoid - what if the regex doesn't actually find the bssid>?
         if not results:
