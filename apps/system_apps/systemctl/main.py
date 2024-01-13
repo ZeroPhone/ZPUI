@@ -16,7 +16,8 @@ try:
 except ImportError as e:
     try: # Are we missing gi.repository?
         import gi.repository
-    except ImportError: # Yep, that's the case - let's disable the library so we can notify the user
+    except (ImportError, ModuleNotFoundError): # Yep, that's the case - let's disable the library so we can notify the user
+        print("gi module not found!")
         systemctl = None
     else: # Nope, it's something else - re-raising
         raise e

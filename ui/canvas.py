@@ -198,7 +198,8 @@ class Canvas(object):
         coords = self.check_coordinates(coords)
         char_coords = list(coords)
         if not charheight: # Auto-determining charheight if not available
-            _, charheight = self.draw.textsize("H", font=font)
+            _, t, _, b = self.draw.textbbox((0, 0), "H", font=font)
+            charheight = b-t
         for char in text:
             self.draw.text(char_coords, char, fill=fill, font=font, **kwargs)
             char_coords[1] += charheight
@@ -475,7 +476,8 @@ class Canvas(object):
         if text == "":
             return (0, 0)
         font = self.decypher_font_reference(font)
-        w, h = self.draw.textsize(text, font=font)
+        l, t, r, b = self.draw.textbbox((0, 0), text, font=font)
+        w, h = r-l, b-t
         return w, h
 
     def get_centered_text_bounds(self, text, cw=None, ch=None, font=None):

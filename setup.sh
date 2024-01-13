@@ -11,8 +11,8 @@ then
 fi
 
 [ -f config.json ] || cp default_config.json config.json
-apt-get install python python-pip python-smbus python-dev python-pygame libjpeg-dev python-serial nmap python-gi
-pip2 install -r requirements.txt
+apt-get install python3 python3-pip python3-smbus python3-dev python3-pygame libjpeg-dev python3-serial nmap python3-gi
+pip3 install -r requirements.txt
 mkdir -p ${INSTALL_DIR}
 cp ./. ${INSTALL_DIR} -R
 cd ${INSTALL_DIR}

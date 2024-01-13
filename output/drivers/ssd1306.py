@@ -10,6 +10,7 @@ class Screen(LumaScreen, OutputDevice):
     """An object that provides high-level functions for interaction with display. It contains all the high-level logic and exposes an interface for system and applications to use."""
 
     default_rotate = 0
+    default_i2c_address = 0x3c
 
     def init_display(self, **kwargs):
         """Initializes SSD1306 controller. """
