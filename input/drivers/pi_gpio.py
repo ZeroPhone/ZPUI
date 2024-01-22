@@ -23,17 +23,19 @@ class InputDevice(InputSkeleton):
     "KEY_F4",
     "KEY_PROG1"]
 
-    def __init__(self, button_pins=[], pullups=True, **kwargs):
+    def __init__(self, button_pins=[], pullups=True, active_high=False, **kwargs):
         """Initialises the ``InputDevice`` object.
 
         Kwargs:
 
         * ``button_pins``: GPIO numbers which to treat as buttons (GPIO.BCM numbering)
         * ``pullups``: if True, enables pullups on all pins, if False, doesn't. Default: True
+        * ``inverted``: if True, enables pullups on all pins, if False, doesn't. Default: True
         * ``debug``: enables printing button press and release events when set to True
         """
         self.button_pins = button_pins
         self.pullups = pullups
+        self.active_high = active_high
         InputSkeleton.__init__(self, **kwargs)
 
     def init_hw(self):
@@ -52,13 +54,14 @@ class InputDevice(InputSkeleton):
 
     def runner(self):
         """Polling loop. Stops when ``stop_flag`` is set to True."""
+        pressed_state = True if self.active_high else False
         while not self.stop_flag:
             for i, pin_num in enumerate(self.button_pins):
                 button_state = self.GPIO.input(pin_num)
                 if button_state != self.button_states[i]:
                     if self.enabled:
                         key = self.mapping[i]
-                        state = KEY_RELEASED if button_state else KEY_PRESSED
+                        state = KEY_PRESSED if button_state == pressed_state else KEY_RELEASED
                         self.map_and_send_key(key, state=state)
                     self.button_states[i] = button_state
             sleep(0.01)

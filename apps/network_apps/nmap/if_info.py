@@ -2,11 +2,12 @@ import subprocess
 #Description used for all interfaces
 from copy import copy
 
-if_description = { 
+if_description = {
+ 
    'state':'down',
    'addr':None,
    'addr6':None,
-   'ph_addr':None    
+   'ph_addr':None
 }
 
 def parse_params(param_string):
@@ -74,7 +75,6 @@ def sort_ips(ips):
     int_reprs.sort()
     #Now returning the IPs associated with integer representations - by order of elements the sorted list
     return [ip_to_int_repr[int_repr] for int_repr in int_reprs]
-        
 
 if __name__ == "__main__":
     print(get_ip_addr())

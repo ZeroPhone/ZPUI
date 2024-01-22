@@ -17,7 +17,7 @@ import tvservice
 def show_status():
     try:
         status = tvservice.status()
-    except IndexError, KeyError:
+    except (IndexError, KeyError):
         Printer(["Unknown mode", "open GH issue"], i, o)
         return False
     mode = status['mode']
@@ -46,7 +46,7 @@ def select_hdmi_mode():
     menu_contents = []
     try:
         current_group = tvservice.status()['gmd'][0]
-    except KeyError, IndexError:
+    except (KeyError, IndexError):
         Printer(["Error, is HDMI", "enabled?"], i, o)
         return False
     modes = tvservice.get_modes(current_group)
@@ -70,7 +70,7 @@ def set_mode(mode_desc):
         Printer(["Can't get", "resolution!"], i, o, skippable=True)
     else:
         try:
-            check_output(["fbset", "-depth", "8"])        
+            check_output(["fbset", "-depth", "8"])
             check_output(["fbset", "-g", x, y, x, y, "16"])
             check_output(["chvt", "1"]) #HAAAAAAAAAX - we need to switch VTs for changes to appear
             check_output(["chvt", "7"]) #This relies on the fact that GUI is mostly on VT7 and most people will want GUI resolutionto change.
@@ -79,11 +79,11 @@ def set_mode(mode_desc):
             Printer(["Refresh failed!", "Try Ctrl-Alt-F1", "and Ctrl-Alt-F7"], i, o, skippable=True)
         else:
             raise MenuExitException #Alright, post-resolution-change triggers executed, nothing to do here
-        
+
 def display_off():
     tvservice.display_off()
     Printer(['Disabled display'], i, o, skippable=True)
-        
+
 def display_on():
     tvservice.display_on()
     Printer(['Enabled display', 'with defaults'], i, o, skippable=True)
@@ -94,7 +94,7 @@ def display_on():
         Printer(["Can't get", "resolution!"], i, o, skippable=True)
     else:
         try:
-            check_output(["fbset", "-depth", "8"])        
+            check_output(["fbset", "-depth", "8"])
             check_output(["fbset", "-g", x, y, x, y, "16"])
             check_output(["chvt", "1"]) #HAAAAAAAAAX - we need to switch VTs for changes to appear
             check_output(["chvt", "7"]) #This relies on the fact that GUI is mostly on VT7
