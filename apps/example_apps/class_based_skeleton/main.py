@@ -10,9 +10,8 @@ logger = setup_logger(__name__, "info")
 
 
 class SkeletonApp(ZeroApp):
-    def __init__(self, i, o):
+    def init_app(self):
         """gets called when ZPUI is starting"""
-        super(SkeletonApp, self).__init__(i, o)  # call to base class constructor so input and outputs are saved
         self.menu_name = "Class Based Skeleton"  # App name as seen in main menu while using the system
         self.main_menu_contents = [
             ["Internal command", self.call_internal],
