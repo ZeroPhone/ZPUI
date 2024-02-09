@@ -100,7 +100,10 @@ class Context(object):
         """
         Tells whether there's a currently-running thread associated with the context.
         """
-        return self.thread and self.thread.isAlive()
+        try:
+            return self.thread and self.thread.isAlive()
+        except AttributeError: # py3
+            return self.thread and self.thread.is_alive()
 
     def start_thread(self):
         """
