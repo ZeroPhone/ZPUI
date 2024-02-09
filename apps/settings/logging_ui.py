@@ -46,7 +46,10 @@ def prettify_logger_names(names):
     return name_mapping
 
 def get_available_levels():
-    return [ key.lower() for key in logging._levelNames.keys() if isinstance(key, basestring) ]
+    try:
+        return [ value.lower() for value in logging._levelToName.values() if isinstance(value, str) ]
+    except:
+        return [ key.lower() for key in logging._levelNames.keys() if isinstance(key, basestring) ]
 
 def select_loglevel(current):
     available_levels = get_available_levels()
