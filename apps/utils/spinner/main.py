@@ -11,7 +11,7 @@ def init_app(input, output):
     i = input; o = output
 
 class InputlessThrobber(Throbber):
-    def activate_keymap(self):
+    def configure_input(self):
         pass
 
 def callback():
