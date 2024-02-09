@@ -29,7 +29,7 @@ class VerticalScrollbar(object):
     def get_coords(self, c):
         height_px = c.height * self.size
         height_px = max(height_px, self.min_size)  # so we always have something to show
-        y_pos = self.progress * c.height
+        y_pos = int(self.progress * c.height)
         rect = (
             self.margin, y_pos,
             self.margin + self._width, y_pos + height_px
@@ -55,7 +55,7 @@ class HorizontalScrollbar(VerticalScrollbar):
     def get_coords(self, c):
         width_px = c.width * self.size
         width_px = max(width_px, self.min_size)
-        x_pos = self.progress * c.width
+        x_pos = int(self.progress * c.width)
         rect = (
             x_pos, c.height - self._width - self.margin,
             x_pos + width_px, c.height - self.margin
@@ -243,8 +243,8 @@ class TextReader(object):
         self.after_move()
 
     def after_move(self):
-        self.v_scrollbar.size = self.o.rows / self._content_height
-        self.h_scrollbar.size = self.o.cols / self._content_width
+        self.v_scrollbar.size = self.o.rows // self._content_height
+        self.h_scrollbar.size = self.o.cols // self._content_width
         self.h_scroll_index = clamp(self.h_scroll_index, 0, self._content_height - self.o.rows + 1)
         self.v_scroll_index = clamp(self.v_scroll_index, 0, self._content_width - self.o.cols + 1)
         self.v_scrollbar.progress = self.h_scroll_index / self._content_height

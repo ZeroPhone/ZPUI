@@ -145,14 +145,14 @@ class Throbber(BaseLoadingIndicator):
 
     def draw_throbber(self, c):
         x, y = c.size
-        radius = min(x, y) / 4
+        radius = min(x, y) // 4
         c.arc(
             (
-                x / 2 - radius, y / 2 - radius,
-                x / 2 + 1 + radius, y / 2 + radius
+                x // 2 - radius, y // 2 - radius,
+                x // 2 + 1 + radius, y // 2 + radius
             ),
-            start=(self._current_angle - self._current_range / 2) % 360,
-            end=(self._current_angle + self._current_range / 2) % 360,
+            start=(self._current_angle - self._current_range // 2) % 360,
+            end=(self._current_angle + self._current_range // 2) % 360,
             fill=True
         )
 
@@ -195,8 +195,8 @@ class CircularProgressBar(ProgressIndicator):
     def refresh(self):
         c = Canvas(self.o)
         x, y = c.size
-        radius = min(x, y) / 4
-        center_coordinates = (x / 2 - radius, y / 2 - radius, x / 2 + radius, y / 2 + radius)
+        radius = min(x, y) // 4
+        center_coordinates = (x // 2 - radius, y // 2 - radius, x // 2 + radius, y // 2 + radius)
         c.arc(center_coordinates, start=0, end=360 * (self.progress / 100.0), fill=True)
         if self.show_percentage:
             c.centered_text(str(self.progress)+"%")
@@ -279,7 +279,7 @@ class GraphicalProgressBar(ProgressIndicator):
             bar_top_min = self.margin + (coords.bottom - coords.top)
             bar_top = bar_top_min if self.margin < bar_top_min else self.margin
         else:
-            bar_top = self.o.width / 2
+            bar_top = self.o.width // 2
 
         self.draw_message(c)
         self.draw_bar(c, bar_top)
@@ -302,6 +302,7 @@ class GraphicalProgressBar(ProgressIndicator):
 
         bar_width = outline_coords.right - outline_coords.left - self.padding * 2
         bar_width *= (self.progress / 100.0)
+        bar_width = int(bar_width)
 
         bar_coords = Rect(
             outline_coords.left + self.padding,

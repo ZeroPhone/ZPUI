@@ -200,7 +200,6 @@ class MenuRenderingMixin(object):
         # for entry_height=2, indices 0-1 will be used for the first menu entry
         # and 2-3 will be used for the second menu entry
         # hence, the /self.entry_height part
-        print(self.first_displayed_entry, index, self.entry_height)
         contents_entry = self.el.contents[self.first_displayed_entry + index//self.entry_height]
         if self.has_second_callback(contents_entry):
             tw, th = self.charwidth // 2, self.charheight // 2

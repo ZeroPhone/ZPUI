@@ -615,7 +615,6 @@ def expand_coords(coords, expand_by):
 
 def crop(image, min_width=None, min_height=None, align=None):
     bbox = image.getbbox()
-    print(bbox)
     if bbox is None:
         return Image.new(image.mode, (0, 0))
     image = image.crop(bbox)
@@ -624,7 +623,6 @@ def crop(image, min_width=None, min_height=None, align=None):
         border[0 if align == "right" else 2]=min_width-image.width
     if min_height and image.height<min_height:
         border[1 if align == "bottom" else 3]=min_height-image.height
-    print(border)
     if border != [0, 0, 0, 0]:
         image = ImageOps.expand(image, border=tuple(border), fill=Canvas.background_color)
     return image
