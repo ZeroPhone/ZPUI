@@ -27,6 +27,7 @@ def get_dkms_status_info():
     except subprocess.CalledProcessError:
         return []
     answer = []
+    if isinstance(output, bytes): output = output.decode("ascii")
     lines = output.split('\n')
     lines = filter(None, lines)
     for line in lines:

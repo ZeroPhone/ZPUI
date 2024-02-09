@@ -7,6 +7,8 @@ from ui import Menu, Printer, PrettyPrinter, DialogBox, PathPicker, UniversalInp
 
 menu_name = "Scripts"  # App name as seen in main menu while using the system
 
+# TODO: add no-nonsense string script handling
+
 scripts_dir = "s/"
 config_filename = "config.json"
 default_config = """{
@@ -64,6 +66,7 @@ def call_external(script_list, shell=False):
     finally:
         if not output:
             return
+        if isinstance(output, bytes): output = output.decode("ascii")
         answer = DialogBox("yn", i, o, message="Show output?").activate()
         if answer:
             TextReader(output, i, o, autohide_scrollbars=True, h_scroll=True).activate()

@@ -25,11 +25,12 @@ def amixer_command(command):
 def amixer_get_channels():
     controls = []
     output = check_output(['amixer', '-c', str(config["card"])])
+    if isinstance(output, bytes): output = output.decode("ascii")
     for line in output.split('\n'):
         if 'mixer control' in line:
             controls.append(line.split("'")[1])
     return controls
-        
+
 def amixer_sset(sset_value):
     return amixer_command(["-c", str(config["card"]), "--", "sset", config["channel"], sset_value])
 

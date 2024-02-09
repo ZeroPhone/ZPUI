@@ -18,6 +18,7 @@ def command(*args, **kwargs):
         print("vcgencmd command not found?")
         return None
     else:
+        if isinstance(output, bytes): output = output.decode("ascii")
         return output
 
 def otp_dump(bin_path = None):

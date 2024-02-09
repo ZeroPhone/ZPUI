@@ -38,7 +38,7 @@ class ClockApp(ZeroApp, Refresher):
         try:
             output = check_output(["sntp", "-S", "pool.ntp.org"])
         except CalledProcessError:
-            logger.exception("Failed to sync time!")
+            logger.exception("Failed to sync time! {}".format(output))
             Printer("Failed to sync time!", self.i, self.o, 1)
             return False
         except OSError:

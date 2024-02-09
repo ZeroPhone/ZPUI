@@ -450,6 +450,7 @@ def get_parts():
         output = subprocess.check_output(["avrdude", "-p", "?"], stderr = subprocess.STDOUT)
     except subprocess.CalledProcessError as e:
         output = e.output
+    if isinstance(output, bytes): output = output.decode("ascii")
     lines = filter(None, [line.strip() for line in  output.split(os.linesep)])
     entries = OrderedDict()
     for line in lines:
@@ -464,6 +465,7 @@ def get_programmers():
         output = subprocess.check_output(["avrdude", "-c", "?"], stderr = subprocess.STDOUT)
     except subprocess.CalledProcessError as e:
         output = e.output
+    if isinstance(output, bytes): output = output.decode("ascii")
     lines = filter(None, [line.strip() for line in  output.split(os.linesep)])
     entries = OrderedDict()
     for line in lines:
@@ -504,6 +506,7 @@ def detect_chip(part_name, programmer_name, *args):
         output = e.output
         status["result"] = "failed"
         status["exitcode"] = e.returncode
+    if isinstance(output, bytes): output = output.decode("ascii")
     status["full_output"] = output
     status = parse_output_into_status(status)
     return status            

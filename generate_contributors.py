@@ -21,6 +21,7 @@ replace_contributors =   {"CRImier": "CRImier (Arsenijs)",
 add_contributors = [[10, "Serge Spraiter"], [5, "piajesse"]]
 
 output = check_output(["git", "shortlog", "--numbered", "--summary", "--all"])
+if isinstance(output, bytes): output = output.decode("ascii")
 lines = filter(None, [line.strip() for line in output.split('\n')])
 contributors = [line.split("\t", 1) for line in lines]
 contributors = [[int(n), name.strip()] for n, name in contributors]

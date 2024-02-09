@@ -12,6 +12,7 @@ def get_dmesg(bin_path='dmesg'):
         print("Dmesg command not found?")
         return []
     else:
+        if isinstance(output, bytes): output = output.decode("ascii")
         return parse_dmesg_output(output)
 
 def parse_dmesg_output(output):

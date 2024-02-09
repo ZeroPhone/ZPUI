@@ -22,9 +22,10 @@ def parse_params(param_string):
 def parse_ip_addr():
     interfaces = {}
     current_if = None
-    ip_output = subprocess.check_output(['ip', 'addr'])
-    ip_output = [line for line in ip_output.split('\n') if line != ""]
-    for line in ip_output:
+    output = subprocess.check_output(['ip', 'addr'])
+    if isinstance(output, bytes): output = output.decode("ascii")
+    output = [line for line in output.split('\n') if line != ""]
+    for line in output:
         if line[0].isdigit(): #First line for interface
             num, if_name, params = line.split(':', 2)
             if_name = if_name.strip(" ")

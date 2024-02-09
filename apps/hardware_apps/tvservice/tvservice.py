@@ -14,9 +14,12 @@ logger = setup_logger(__name__, "info")
 
 def tvservice_command(*command):
     try:
-        return check_output(['tvservice'] + list(command))
+        output = check_output(['tvservice'] + list(command))
     except CalledProcessError as e:
         raise
+    else:
+        if isinstance(output, bytes): output = output.decode("ascii")
+        return output
 
 def get_modes(group):
     """-m, --modes=GROUP                 Get supported modes for GROUP (CEA, DMT)"""

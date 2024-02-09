@@ -22,6 +22,7 @@ Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
 def lsusb():
     lsusb_entries = []
     output = check_output(["lsusb"])
+    if isinstance(output, bytes): output = output.decode("ascii")
     for line in [line.strip(' ') for line in output.split('\n') if line.strip(' ')]:
         location, description = line.split(':', 1)
         id_str, vid_pid_name = description.strip(' ').split(' ', 1)

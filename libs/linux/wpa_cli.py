@@ -14,9 +14,13 @@ def wpa_cli_command(*command):
     if current_interface:
         run += ["-i"+current_interface]
     try:
-        return check_output(run + list(command))
+        output = check_output(run + list(command))
+        if isinstance(output, bytes): output = output.decode("ascii")
+        return output
     except CalledProcessError as e:
-        raise WPAException(command[0], e.returncode, output=e.output, args=command[1:])
+        output = e.output
+        if isinstance(output, bytes): output = output.decode("ascii")
+        raise WPAException(command[0], e.returncode, output=output, args=command[1:])
 
 class WPAException(Exception):
     def __init__(self, command, exit_code, args=None, output=None):

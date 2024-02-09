@@ -36,7 +36,9 @@ class GitInterface(object):
     def command(command):
         commandline = "git {}".format(command)
         logger.debug("Executing: {}".format(commandline))
-        return check_output(commandline, shell=True, stderr=STDOUT)
+        output = check_output(commandline, shell=True, stderr=STDOUT)
+        if isinstance(output, bytes): output = output.decode("ascii")
+        return output
 
     @classmethod
     def get_head_for_branch(cls, branch):
@@ -252,6 +254,7 @@ class GitUpdater(GenericUpdater):
 
     def do_install_requirements(self):
         output = check_output(["pip", "install", "-r", "requirements.txt"])
+        if isinstance(output, bytes): output = output.decode("ascii")
         logger.debug("pip output:")
         logger.debug(output)
 
@@ -287,11 +290,14 @@ class GitUpdater(GenericUpdater):
             commandline = f.readline().strip()
         try:
             output = check_output(commandline.split(" "))
+            if isinstance(output, bytes): output = output.decode("ascii")
             logger.debug("pytest output:")
             logger.debug(output)
         except CalledProcessError as e:
+            output = e.output
+            if isinstance(output, bytes): output = output.decode("ascii")
             logger.warning("pytest output:")
-            logger.warning(e.output)
+            logger.warning(output)
             raise
 
     def revert_pull(self):

@@ -12,6 +12,7 @@ o = None
 def init_app(input, output):
     global callback, i, o
     i = input; o = output
-    lsusb_output = check_output(['lsusb'])
-    callback = lambda: Printer(ffs(lsusb_output, o.cols), i, o, sleep_time=5, skippable=True)
+    output = check_output(['lsusb'])
+    if isinstance(output, bytes): output = output.decode("ascii")
+    callback = lambda: Printer(ffs(output, o.cols), i, o, sleep_time=5, skippable=True)
 
