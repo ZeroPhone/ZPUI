@@ -1,12 +1,19 @@
 Welcome to ZPUI documentation!
 =================================
 
-ZPUI stands for ZeroPhone UI, it's the official user interface for ZeroPhone (installed on ZeroPhone official SD card images). It allows you to interact with your ZeroPhone, using the 1.3" OLED and the 30-button numpad.
+ZPUI (ZeroPhone UI, pronounced *zippy ui*) is a powerful user interface and app framework for small screens. It was designed for the ZeroPhone project,
+but it's usable on a wide variety of single-board computers.
 
-ZPUI is based on pyLCI, a general-purpose UI for embedded devices. However, unlike pyLCI, 
-ZPUI is tailored for the ZeroPhone hardware, namely, the 1.3" monochrome OLED 
-and 30-key numpad (though it still retains input&output drivers from pyLCI), and 
-it also ships with ZeroPhone-specific applications.
+Minimum requirements:
+    - monochrome 128x64 or larger screen (OLED/LCD)
+    - 5 buttons
+
+ZPUI is based on pyLCI, a general-purpose UI for embedded devices, an interface that supports 16x2 and larger character displays.
+Currently. ZPUI is tailored for the ZeroPhone hardware, namely, the 1.3" monochrome 128x64 OLED 
+and 30-key numpad (though it still retains input&output drivers from pyLCI), and it also ships with ZeroPhone-specific applications.
+
+At the moment, ZPUI is being made more generic and tested across many different single-board computers, and the documentatin is being improved
+along with the effort.
 
 Guides:
 =======
