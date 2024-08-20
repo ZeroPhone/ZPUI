@@ -12,7 +12,7 @@ ZPUI is based on pyLCI, a general-purpose UI for embedded devices, an interface 
 Currently. ZPUI is tailored for the ZeroPhone hardware, namely, the 1.3" monochrome 128x64 OLED 
 and 30-key numpad (though it still retains input&output drivers from pyLCI), and it also ships with ZeroPhone-specific applications.
 
-At the moment, ZPUI is being made more generic and tested across many different single-board computers, and the documentatin is being improved
+At the moment, ZPUI is being made more generic and tested across many different single-board computers, and the documentation is being improved
 along with the effort.
 
 Guides:
