@@ -20,3 +20,4 @@ kmodpy
 psutil
 PyRIC
 wpasupplicantconf==0.1.0
+zpui_lib
