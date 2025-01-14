@@ -1,8 +1,8 @@
 from ftplib import FTP_TLS as FTP
 try:
-    from io import StringIO
+    from io import BytesIO
 except ImportError:
-    from StringIO import StringIO
+    from BytesIO import BytesIO
 from mock import Mock
 import traceback
 import zipfile
@@ -14,7 +14,7 @@ class BugReport(object):
     ftp_destination = "ftp.zerophone.org"
 
     def __init__(self, filename):
-        self.zip_contents = StringIO()
+        self.zip_contents = BytesIO()
         self.zip_contents.name = filename
         self.zip = zipfile.ZipFile(self.zip_contents, mode="w", compression=zipfile.ZIP_DEFLATED)
 
@@ -53,7 +53,7 @@ class BugReport(object):
         full_path = os.path.join(path, self.zip_contents.name)
         self.zip.close()
         self.zip_contents.seek(0)
-        with open(full_path, 'w') as f:
+        with open(full_path, 'wb') as f:
             f.write(self.zip_contents.read())
         return full_path
 

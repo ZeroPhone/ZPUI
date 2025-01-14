@@ -22,12 +22,13 @@ class TestBugReport(unittest.TestCase):
         del br.zip
 
     def test_save_in(self):
-        br = BugReport("test.zip")
+        br = BugReport("zpui_bugreport_test.zip")
         br.add_dir_or_file("__init__.py")
         br.store_in("/tmp")
-        assert(os.path.isfile("/tmp/test.zip"))
+        assert(os.path.isfile("/tmp/zpui_bugreport_test.zip"))
         # Test if the resulting file is a ZIP file
-        assert(zipfile.is_zipfile("/tmp/test.zip"))
+        assert(zipfile.is_zipfile("/tmp/zpui_bugreport_test.zip"))
+        os.remove("/tmp/zpui_bugreport_test.zip")
 
 if __name__ == "__main__":
     unittest.main()
