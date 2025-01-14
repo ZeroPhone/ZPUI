@@ -119,21 +119,21 @@ class Chronometer(object):
     True
     >>> sleep(1)
     >>> cron.update()
-    >>> round(cron.elapsed)
+    >>> round(cron.elapsed, 1)
     1.0
     >>> cron.pause()
     >>> sleep(1)
-    >>> round(cron.elapsed)
+    >>> round(cron.elapsed, 1)
     1.0
     >>> cron.toggle()  # or cron.resume()
     >>> sleep(1)
     >>> cron.update()
-    >>> round(cron.elapsed)
+    >>> round(cron.elapsed, 1)
     2.0
     >>> cron.restart()
     >>> sleep(1)
     >>> cron.update()
-    >>> round(cron.elapsed)
+    >>> round(cron.elapsed, 1)
     1.0
     """
     def __init__(self):
@@ -201,7 +201,7 @@ class Ticker(object):
     >>> ticker = Ticker()
     >>> sleep(1)
     >>> elapsed = ticker.tick()
-    >>> round(elapsed)  #rounded because time.sleep() is not that precise
+    >>> round(elapsed, 1)  #rounded because time.sleep() is not that precise
     1.0
     """
     def __init__(self):
