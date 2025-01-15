@@ -2,7 +2,7 @@ import importlib
 import os
 import traceback
 
-import apps.zero_app
+from apps import ZeroApp
 from helpers import setup_logger
 from ui import Printer, Menu, HelpOverlay, GridMenu, Entry, \
                GridMenuLabelOverlay, GridMenuSidebarOverlay, GridMenuNavOverlay
@@ -62,7 +62,7 @@ class AppManager(object):
                     continue
             else:
                 pass
-        print([x for x, y, in icon_paths if x not in used_icons])
+        #print([x for x, y, in icon_paths if x not in used_icons])
         font = ("Fixedsys62.ttf", 16)
         menu = GridMenu(contents, self.i, self.o, font=font, entry_width=32, name="Main menu", draw_lines=False,  exitable=False)
         menu.exit_entry = ["Exit", "exit"]
@@ -334,9 +334,10 @@ def get_zeroapp_class_in_module(module_):
     for item in module_content:
         class_ = getattr(module_, item)
         try:
-            if issubclass(class_, zero_app.ZeroApp) and item != 'ZeroApp':
-                return class_
-        except Exception as e:
+            if issubclass(class_, ZeroApp):
+                if item != 'ZeroApp':
+                    return class_
+        except TypeError:
             pass  # not a class : ignore
     return None
 
