@@ -3,7 +3,7 @@ from libs.matrix_client.matrix_client.api import MatrixRequestError
 from libs.matrix_client.matrix_client.user import User
 from requests.exceptions import MissingSchema
 
-from helpers import setup_logger
+from zpui_lib.helpers import setup_logger
 
 logger = setup_logger(__name__, 'info')
 

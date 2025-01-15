@@ -3,7 +3,7 @@ from time import sleep
 
 from apps import ZeroApp
 from ui import DialogBox, ffs
-from helpers import ExitHelper, local_path_gen
+from zpui_lib.helpers import ExitHelper, local_path_gen
 
 from logic import GameOf2048
 

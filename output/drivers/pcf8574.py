@@ -4,7 +4,7 @@ import smbus
 from time import sleep
 
 from hd44780 import HD44780
-from helpers import setup_logger
+from zpui_lib.helpers import setup_logger
 from output.output import OutputDevice
 
 

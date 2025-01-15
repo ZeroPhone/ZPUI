@@ -4,7 +4,7 @@ from serial import Serial
 from time import sleep
 
 #Firmware: TODO
-from helpers import setup_logger
+from zpui_lib.helpers import setup_logger
 from output.output import OutputDevice
 
 logger = setup_logger(__name__, "warning")

@@ -4,7 +4,7 @@ o = None
 from collections import OrderedDict
 import logging
 
-import helpers.logger as log_system
+import zpui_lib.helpers.logger as log_system
 
 logger_alias_map = (("root","Main launcher"),
                     ("input.input","Input system"),

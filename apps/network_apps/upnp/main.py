@@ -1,12 +1,12 @@
 #Code taken from here: https://habrahabr.ru/post/332812/ and, consequently, from here: https://www.electricmonk.nl/log/2016/07/05/exploring-upnp-with-python/
 
 
-from helpers import setup_logger
+from zpui_lib.helpers import setup_logger
 
 menu_name = "UPnP/SSDP scan"
 
 from ui import Menu, Printer, IntegerAdjustInput, PrettyPrinter
-from helpers import read_or_create_config, write_config, local_path_gen
+from zpui_lib.helpers import read_or_create_config, write_config, local_path_gen
 
 from collections import OrderedDict
 from traceback import format_exc

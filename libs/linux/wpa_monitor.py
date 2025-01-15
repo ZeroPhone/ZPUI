@@ -3,7 +3,7 @@ import traceback
 import shlex
 import re
 
-from helpers import ProHelper, setup_logger
+from zpui_lib.helpers import ProHelper, setup_logger
 
 from wpa_cli import WPAException
 

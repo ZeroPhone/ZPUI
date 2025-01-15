@@ -5,7 +5,7 @@ from collections import OrderedDict
 from ui import Canvas, Listbox, PrettyPrinter, FunctionOverlay, HelpOverlay
 from ui.base_ui import BaseUIElement
 from ui.utils import to_be_foreground
-from helpers import flatten, Singleton, is_emulator
+from zpui_lib.helpers import flatten, Singleton, is_emulator
 from apps import ZeroApp
 
 

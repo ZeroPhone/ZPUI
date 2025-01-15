@@ -7,7 +7,7 @@ from copy import deepcopy
 from uuid import uuid4 as gen_uuid
 
 from ui import Menu, DialogBox, TextReader, LoadingIndicator, PrettyPrinter, PathPicker, Checkbox
-from helpers import read_or_create_config, local_path_gen, save_config_gen, setup_logger
+from zpui_lib.helpers import read_or_create_config, local_path_gen, save_config_gen, setup_logger
 from actions import FirstBootAction as FBA
 
 from libs import dmesg

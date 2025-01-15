@@ -7,7 +7,7 @@ from inspect import getframeinfo, stack
 
 import PIL
 
-from helpers import setup_logger
+from zpui_lib.helpers import setup_logger
 from ui.utils import to_be_foreground
 
 logger = setup_logger(__name__, "info")

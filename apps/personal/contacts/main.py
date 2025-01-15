@@ -6,7 +6,7 @@ import os
 
 from address_book import AddressBook, ZPUI_HOME, Contact
 from apps import ZeroApp
-from helpers import setup_logger
+from zpui_lib.helpers import setup_logger
 from ui import NumberedMenu, Listbox
 from vcard_converter import VCardContactConverter
 

@@ -1,8 +1,8 @@
 import os
 import pickle
 
-from helpers import Singleton, flatten
-from helpers import setup_logger
+from zpui_lib.helpers import Singleton, flatten
+from zpui_lib.helpers import setup_logger
 
 logger = setup_logger(__name__, "warning")
 

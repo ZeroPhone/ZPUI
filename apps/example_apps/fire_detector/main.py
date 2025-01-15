@@ -4,7 +4,7 @@ from RPi import GPIO
 import sys
 import os
 
-from helpers import ExitHelper
+from zpui_lib.helpers import ExitHelper
 from ui import GraphicsPrinter
 
 local_path = lambda x: os.path.join( os.path.dirname(sys.modules[__name__].__file__), x )

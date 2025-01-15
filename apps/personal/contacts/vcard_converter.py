@@ -1,4 +1,4 @@
-from helpers import setup_logger
+from zpui_lib.helpers import setup_logger
 logger = setup_logger(__name__, "warning")
 
 import vobject

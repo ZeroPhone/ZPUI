@@ -1,7 +1,7 @@
 import json
 from subprocess import check_output, CalledProcessError
 from time import sleep
-from helpers import setup_logger
+from zpui_lib.helpers import setup_logger
 logger = setup_logger(__name__, "info")
 """
 #Not yet implemented:

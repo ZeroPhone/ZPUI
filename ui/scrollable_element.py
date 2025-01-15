@@ -6,7 +6,7 @@ from time import sleep, time
 from ui.canvas import Canvas
 from ui.funcs import format_for_screen
 from ui.utils import to_be_foreground, clamp
-from helpers import setup_logger
+from zpui_lib.helpers import setup_logger
 
 logger = setup_logger(__name__, "warning")
 

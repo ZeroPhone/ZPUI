@@ -3,7 +3,7 @@ import os
 import traceback
 
 from apps import ZeroApp
-from helpers import setup_logger
+from zpui_lib.helpers import setup_logger
 from ui import Printer, Menu, HelpOverlay, GridMenu, Entry, \
                GridMenuLabelOverlay, GridMenuSidebarOverlay, GridMenuNavOverlay
 

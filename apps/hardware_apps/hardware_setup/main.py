@@ -7,7 +7,7 @@ import traceback
 from time import sleep
 
 from ui import Menu, PrettyPrinter as Printer, DialogBox, LoadingIndicator, PathPicker, Listbox, ProgressBar, PurposeOverlay
-from helpers import setup_logger, read_or_create_config, local_path_gen, write_config, save_config_gen
+from zpui_lib.helpers import setup_logger, read_or_create_config, local_path_gen, write_config, save_config_gen
 from actions import FirstBootAction
 
 import smbus

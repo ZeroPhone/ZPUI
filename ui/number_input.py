@@ -3,7 +3,7 @@ from copy import copy
 
 from ui.utils import to_be_foreground
 from ui.base_ui import BaseUIElement
-from helpers import setup_logger
+from zpui_lib.helpers import setup_logger
 logger = setup_logger(__name__, "warning")
 
 class IntegerAdjustInput(BaseUIElement):

@@ -41,7 +41,7 @@ key events by using a decorator:
 
 .. code-block:: python
 
-    from helpers import cb_needs_key_state, KEY_HELD # Also has KEY_PRESSED and KEY_RELEASED
+    from zpui_lib.helpers import cb_needs_key_state, KEY_HELD # Also has KEY_PRESSED and KEY_RELEASED
 
     @cb_needs_key_state
     def up_held_cb(state):
@@ -57,7 +57,7 @@ Streaming callbacks also receive the key name:
 
 .. code-block:: python
 
-    from helpers import cb_needs_key_state, KEY_PRESSED, KEY_RELEASED, KEY_HELD
+    from zpui_lib.helpers import cb_needs_key_state, KEY_PRESSED, KEY_RELEASED, KEY_HELD
 
     @cb_needs_key_state
     def state_cb(key, state):

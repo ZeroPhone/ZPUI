@@ -5,7 +5,7 @@ from ui import Canvas
 from apps import ZeroApp
 from ui.base_ui import BaseUIElement
 from actions import ContextSwitchAction
-from helpers import ExitHelper, setup_logger, remove_left_failsafe, read_or_create_config, local_path_gen, save_config_method_gen
+from zpui_lib.helpers import ExitHelper, setup_logger, remove_left_failsafe, read_or_create_config, local_path_gen, save_config_method_gen
 
 local_path = local_path_gen(__name__)
 logger = setup_logger(__name__, "info")

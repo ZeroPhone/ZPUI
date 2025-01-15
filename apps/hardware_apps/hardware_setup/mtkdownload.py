@@ -1,6 +1,6 @@
 import os
 import sys
-from helpers import ProHelper, setup_logger
+from zpui_lib.helpers import ProHelper, setup_logger
 
 logger = setup_logger(__name__, "info")
 

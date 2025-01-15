@@ -6,7 +6,7 @@ from time import time
 from ui.canvas import Canvas
 from ui.refresher import Refresher
 from ui.utils import clamp, Chronometer, to_be_foreground, Rect
-from helpers import setup_logger
+from zpui_lib.helpers import setup_logger
 
 """
 These UI elements are used to show the user that something is happening in the background.

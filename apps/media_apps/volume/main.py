@@ -7,7 +7,7 @@ i = None
 o = None
 callback = None
 
-from helpers import read_or_create_config, write_config, local_path_gen
+from zpui_lib.helpers import read_or_create_config, write_config, local_path_gen
 local_path = local_path_gen(__name__)
 config_path = local_path(config_filename)
 config = read_or_create_config(config_path, default_config, menu_name+" app")

@@ -1,7 +1,7 @@
 menu_name = "Spinner"
 
 from ui import Throbber
-from helpers import ExitHelper
+from zpui_lib.helpers import ExitHelper
 
 i = None
 o = None

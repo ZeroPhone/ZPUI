@@ -5,7 +5,7 @@ import string
 printable_characters = set(string.printable)
 
 from ui import Menu, TextReader, replace_filter_ascii as rfa
-from helpers import setup_logger
+from zpui_lib.helpers import setup_logger
 
 i = None
 o = None

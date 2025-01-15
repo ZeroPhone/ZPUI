@@ -11,7 +11,7 @@ from logging.handlers import RotatingFileHandler
 
 from apps.app_manager import AppManager
 from context_manager import ContextManager
-from helpers import read_config, local_path_gen, logger, env, read_or_create_config, \
+from zpui_lib.helpers import read_config, local_path_gen, logger, env, read_or_create_config, \
                     zpui_running_as_service, is_emulator
 from input import input
 from output import output

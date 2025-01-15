@@ -6,12 +6,12 @@ from mock import patch, Mock
 
 try:
     from input.input import InputProcessor
-    from helpers import cb_needs_key_state, KEY_PRESSED, KEY_RELEASED, KEY_HELD
+    from zpui_lib.helpers import cb_needs_key_state, KEY_PRESSED, KEY_RELEASED, KEY_HELD
 except (ValueError, ImportError) as e:
     print("Absolute imports failed, trying relative imports")
     os.sys.path.append(os.path.dirname(os.path.abspath('.')))
     from input.input import InputProcessor
-    from helpers import cb_needs_key_state, KEY_PRESSED, KEY_RELEASED, KEY_HELD
+    from zpui_lib.helpers import cb_needs_key_state, KEY_PRESSED, KEY_RELEASED, KEY_HELD
 
 def get_mock_callback(**kwargs):
     m = Mock()

@@ -1,6 +1,6 @@
 
 
-from helpers import setup_logger
+from zpui_lib.helpers import setup_logger
 
 menu_name = "Phone"
 
@@ -10,7 +10,7 @@ import traceback
 
 from ui import Refresher, Menu, Printer, PrettyPrinter, DialogBox
 from ui.experimental import NumberKeypadInputLayer
-from helpers import BackgroundRunner, ExitHelper
+from zpui_lib.helpers import BackgroundRunner, ExitHelper
 
 from phone import Phone, Modem, ATError
 

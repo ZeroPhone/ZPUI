@@ -5,7 +5,7 @@ from threading import Thread, Event
 from traceback import format_exc
 
 from libs.linux import wpa_cli
-from helpers import setup_logger
+from zpui_lib.helpers import setup_logger
 from actions import FirstBootAction as FBA
 from libs.linux.wpa_monitor import WpaMonitor
 from ui import Menu, PrettyPrinter as Printer, MenuExitException, UniversalInput, \

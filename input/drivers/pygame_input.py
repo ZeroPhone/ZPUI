@@ -4,7 +4,7 @@ import string
 import pygame
 
 import emulator
-from helpers import setup_logger
+from zpui_lib.helpers import setup_logger
 from input.drivers.skeleton import InputSkeleton
 
 logger = setup_logger(__name__, "warning")

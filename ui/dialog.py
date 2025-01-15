@@ -3,7 +3,7 @@ from time import sleep
 from ui.base_ui import BaseUIElement
 from ui.canvas import Canvas
 from ui.funcs import format_for_screen as ffs
-from helpers import setup_logger
+from zpui_lib.helpers import setup_logger
 
 logger = setup_logger(__name__, "info")
 

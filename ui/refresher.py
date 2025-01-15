@@ -7,7 +7,7 @@ import PIL
 from ui.number_input import IntegerAdjustInput
 from ui.utils import to_be_foreground
 from ui.base_ui import BaseUIElement, internal_callback_in_background
-from helpers import setup_logger
+from zpui_lib.helpers import setup_logger
 
 logger = setup_logger(__name__, "info")
 

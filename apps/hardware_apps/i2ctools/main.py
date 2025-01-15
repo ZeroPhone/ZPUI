@@ -2,7 +2,7 @@ menu_name = "I2C tools"
 
 from subprocess import call
 from ui import Menu, Printer, DialogBox, LoadingIndicator, UniversalInput, Refresher, IntegerAdjustInput, fvitg
-from helpers import setup_logger, read_or_create_config, local_path_gen, write_config
+from zpui_lib.helpers import setup_logger, read_or_create_config, local_path_gen, write_config
 
 from collections import OrderedDict
 from time import sleep

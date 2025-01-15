@@ -5,7 +5,7 @@ from functools import wraps
 
 from ui.base_ui import BaseUIElement
 from ui.utils import to_be_foreground, check_value_lock
-from helpers import setup_logger, remove_left_failsafe, cb_needs_key_state, \
+from zpui_lib.helpers import setup_logger, remove_left_failsafe, cb_needs_key_state, \
                     KEY_PRESSED, KEY_RELEASED, KEY_HELD
 
 logger = setup_logger(__name__, "warning")

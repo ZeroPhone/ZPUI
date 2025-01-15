@@ -2,7 +2,7 @@
 
 import os
 
-from helpers import (read_config, write_config)
+from zpui_lib.helpers import (read_config, write_config)
 
 CONFIG_PATH = 'config.json'
 

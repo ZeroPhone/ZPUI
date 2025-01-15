@@ -1,4 +1,4 @@
-from helpers import setup_logger
+from zpui_lib.helpers import setup_logger
 
 menu_name = "OrderAdjust test" #App name as seen in main menu while using the system
 

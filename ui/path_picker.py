@@ -2,7 +2,7 @@ import os
 
 from ui.menu import Menu, MenuExitException, to_be_foreground
 from ui.printer import Printer
-from helpers import setup_logger
+from zpui_lib.helpers import setup_logger
 logger = setup_logger(__name__, "warning")
 
 class PathPicker(Menu):

@@ -11,7 +11,7 @@ except:
     import http.client as httplib
 
 from ui import Menu, PrettyPrinter, DialogBox, ProgressBar, Listbox, UniversalInput, HelpOverlay
-from helpers import setup_logger, read_or_create_config, save_config_method_gen, local_path_gen
+from zpui_lib.helpers import setup_logger, read_or_create_config, save_config_method_gen, local_path_gen
 
 local_path = local_path_gen(__name__)
 

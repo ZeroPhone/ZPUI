@@ -32,7 +32,7 @@ Usage:
 
 .. code-block:: python
 
-    from helpers import ExitHelper
+    from zpui_lib.helpers import ExitHelper
     ...
     eh = ExitHelper(i)
     eh.start()
@@ -58,7 +58,7 @@ Usage:
 
 .. code-block:: python
 
-    from helpers import Oneshot
+    from zpui_lib.helpers import Oneshot
     ...
     def init_hardware():
         #can only be run once
@@ -81,7 +81,7 @@ Usage:
 
 .. code-block:: python
 
-    from helpers import BackgroundRunner
+    from zpui_lib.helpers import BackgroundRunner
     ...
     def init_hardware():
         #takes a long time
@@ -107,7 +107,7 @@ Combining BackgroundRunner and Oneshot
 
 .. code-block:: python
 
-    from helpers import BackgroundRunner, Oneshot
+    from zpui_lib.helpers import BackgroundRunner, Oneshot
     ...
     def init_hardware():
         #takes a long time, *and* can only be run once

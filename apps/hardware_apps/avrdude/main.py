@@ -3,7 +3,7 @@ from copy import copy
 
 from apps import ZeroApp
 from ui import Menu, Refresher, Checkbox, Listbox, DialogBox, RefresherExitException, ProgressBar, LoadingIndicator, PrettyPrinter, Printer, Canvas, UniversalInput, PathPicker, GraphicsPrinter, IntegerAdjustInput
-from helpers import ExitHelper, read_or_create_config, local_path_gen, save_config_method_gen, read_config
+from zpui_lib.helpers import ExitHelper, read_or_create_config, local_path_gen, save_config_method_gen, read_config
 local_path = local_path_gen(__name__)
 
 from subprocess import call

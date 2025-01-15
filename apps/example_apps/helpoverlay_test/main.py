@@ -3,7 +3,7 @@ from __future__ import print_function
 menu_name = "Help overlay test"
 
 from ui import Listbox, HelpOverlay
-from helpers import setup_logger
+from zpui_lib.helpers import setup_logger
 
 logger = setup_logger(__name__, "info")
 i = None

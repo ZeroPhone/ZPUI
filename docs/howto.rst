@@ -307,7 +307,7 @@ Here's how to allow that:
 
 .. code-block:: python
 
-    from helpers import ExitHelper
+    from zpui_lib.helpers import ExitHelper
     ...
     eh = ExitHelper(i).start()
     while eh.do_run():
@@ -323,7 +323,7 @@ that would signal the task to stop.
 
 .. code-block:: python
 
-    from helpers import ExitHelper
+    from zpui_lib.helpers import ExitHelper
     ...
     task = ... # Can be run in foreground with ``task.run()``
     # Can also be stopped from another thread with ``task.stop()``
@@ -568,7 +568,7 @@ submit a bugreport to you!
 
 .. code-block:: python
 
-    from helpers import setup_logger # Importing the needed function
+    from zpui_lib.helpers import setup_logger # Importing the needed function
     logger = setup_logger(__name__, "warning") # Getting a logger for your app, 
     # default level is "warning" - this level controls logging statements that
     # will be displayed (and saved in the logfile) by default.
@@ -661,7 +661,7 @@ Here's the simplest way to read data from a config file located in an app's dire
 
 .. code-block:: python
 
-    from helpers import read_config, local_path_gen
+    from zpui_lib.helpers import read_config, local_path_gen
     config_filename = "config.json"
     
     local_path = local_path_gen(__name__)
@@ -684,7 +684,7 @@ fails for some reason and get a convenient ``save_config()`` method to save it.
 
 .. code-block:: python
 
-    from helpers import read_or_create_config, local_path_gen, save_config_gen
+    from zpui_lib.helpers import read_or_create_config, local_path_gen, save_config_gen
     default_config = '{"your":"default", "config":"to_use"}' #has to be a string
     config_filename = "config.json"
     
@@ -740,7 +740,7 @@ The resulting config received from ``read_or_create_config`` will look like this
 
 .. code-block:: python
 
-    from helpers import read_or_create_config, local_path_gen, save_config_method_gen
+    from zpui_lib.helpers import read_or_create_config, local_path_gen, save_config_method_gen
     local_path = local_path_gen(__name__)
 
     class YourApp(ZeroApp):
@@ -770,7 +770,7 @@ Here's how to get that path automatically, without hardcoding which folder your 
 
 .. code-block:: python
 
-    from helpers import local_path_gen
+    from zpui_lib.helpers import local_path_gen
     local_path = local_path_gen(__name__)
     mp3_file_path = local_path("my_song.mp3")
 
@@ -827,7 +827,7 @@ conflict with other apps, such as setting up GPIO or other interfaces).
 
 .. code-block:: python
 
-    from helpers import Oneshot
+    from zpui_lib.helpers import Oneshot
     ...
     def init_hardware():
         #can only be run once
@@ -849,7 +849,7 @@ to use ZPUI until your app has finished loading (which is pretty inconvenient fo
 
 .. code-block:: python
 
-    from helpers import BackgroundRunner
+    from zpui_lib.helpers import BackgroundRunner
     ...
     def init_hardware():
         #takes a long time

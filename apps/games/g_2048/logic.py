@@ -21,7 +21,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE."""
 
 from random import randint, choice, random
-from helpers import flatten
+from zpui_lib.helpers import flatten
 
 
 class GameOf2048(object):

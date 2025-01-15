@@ -1,7 +1,7 @@
 from threading import Thread
 from time import sleep
 
-from helpers import setup_logger
+from zpui_lib.helpers import setup_logger
 
 # If evdev is not available, mark it as 'None' so that it's known as unavailable
 try:

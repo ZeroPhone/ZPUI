@@ -2,7 +2,7 @@
 
 from subprocess import call
 from apps.zero_app import ZeroApp
-from helpers import setup_logger
+from zpui_lib.helpers import setup_logger
 from ui import Menu, Printer
 
 

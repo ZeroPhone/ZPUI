@@ -6,7 +6,7 @@ from action_manager import ActionManager
 from functools import wraps
 from threading import Thread, Lock
 
-from helpers import setup_logger
+from zpui_lib.helpers import setup_logger
 
 logger = setup_logger(__name__, "info")
 

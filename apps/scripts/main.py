@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 from subprocess import check_output, CalledProcessError, STDOUT
 
-from helpers import read_or_create_config, local_path_gen, save_config_gen
+from zpui_lib.helpers import read_or_create_config, local_path_gen, save_config_gen
 from ui import Menu, Printer, PrettyPrinter, DialogBox, PathPicker, UniversalInput, TextReader
 
 menu_name = "Scripts"  # App name as seen in main menu while using the system

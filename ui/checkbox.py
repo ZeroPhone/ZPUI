@@ -2,7 +2,7 @@ from copy import copy
 
 from ui.base_list_ui import BaseListUIElement, to_be_foreground
 from ui.entry import Entry
-from helpers import setup_logger
+from zpui_lib.helpers import setup_logger
 
 logger = setup_logger(__name__, "warning")
 

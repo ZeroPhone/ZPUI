@@ -8,7 +8,7 @@ import os
 
 from apps import ZeroApp
 from ui import Menu, Printer, PrettyPrinter, Canvas
-from helpers import ExitHelper, local_path_gen, setup_logger, remove_left_failsafe, BackgroundRunner
+from zpui_lib.helpers import ExitHelper, local_path_gen, setup_logger, remove_left_failsafe, BackgroundRunner
 
 from smbus import SMBus
 

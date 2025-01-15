@@ -22,7 +22,7 @@ import luma.emulator.device
 import pygame
 from luma.core.render import canvas
 
-from helpers import setup_logger, KEY_PRESSED, KEY_RELEASED, KEY_HELD
+from zpui_lib.helpers import setup_logger, KEY_PRESSED, KEY_RELEASED, KEY_HELD
 from output.output import GraphicalOutputDevice, CharacterOutputDevice
 
 logger = setup_logger(__name__, "warning")

@@ -1,4 +1,4 @@
-from helpers import setup_logger
+from zpui_lib.helpers import setup_logger
 from pydbus import SystemBus
 
 from operator import itemgetter

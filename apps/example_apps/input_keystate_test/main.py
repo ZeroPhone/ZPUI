@@ -1,7 +1,7 @@
 menu_name = "Input keystate test app"
 
 from ui import Refresher, PrettyPrinter
-from helpers import cb_needs_key_state, KEY_PRESSED, KEY_RELEASED, KEY_HELD
+from zpui_lib.helpers import cb_needs_key_state, KEY_PRESSED, KEY_RELEASED, KEY_HELD
 
 human_readable_state = {KEY_PRESSED:"down", KEY_HELD:"hold", KEY_RELEASED:"up"}
 

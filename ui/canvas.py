@@ -14,7 +14,7 @@ def get_default_font():
         default_font = ImageFont.load_default()
     return default_font
 
-from helpers import setup_logger
+from zpui_lib.helpers import setup_logger
 logger = setup_logger(__name__, "warning")
 
 class Canvas(object):

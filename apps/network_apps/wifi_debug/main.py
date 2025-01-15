@@ -3,7 +3,7 @@ menu_name = "WiFi repair"
 from time import sleep
 
 from ui import LoadingBar, PrettyPrinter as Printer, TextReader, Listbox, DialogBox
-from helpers import setup_logger
+from zpui_lib.helpers import setup_logger
 
 from libs import dmesg, dkms_debug
 from libs.rpi import vcgencmd, rpiinfo, config as rpi_config

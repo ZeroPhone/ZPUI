@@ -1,4 +1,4 @@
-from helpers import ProHelper, setup_logger
+from zpui_lib.helpers import ProHelper, setup_logger
 from time import sleep
 
 logger = setup_logger(__name__, "debug")

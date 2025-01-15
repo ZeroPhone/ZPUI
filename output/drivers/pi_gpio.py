@@ -9,7 +9,7 @@
 
 from time import sleep
 
-from helpers import setup_logger
+from zpui_lib.helpers import setup_logger
 from output.output import OutputDevice
 
 

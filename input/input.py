@@ -12,7 +12,7 @@ except ModuleNotFoundError:
     Empty = Queue.Empty
 
 from actions import Action
-from helpers import setup_logger, KEY_RELEASED, KEY_HELD, KEY_PRESSED
+from zpui_lib.helpers import setup_logger, KEY_RELEASED, KEY_HELD, KEY_PRESSED
 
 try:
     from input.hotplug import DeviceManager

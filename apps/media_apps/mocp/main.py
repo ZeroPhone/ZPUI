@@ -4,7 +4,7 @@ import shlex
 
 from subprocess import call, CalledProcessError
 from ui import Menu, Printer, DialogBox, IntegerAdjustInput, IntegerAdjustInputOverlay
-from helpers import read_or_create_config, local_path_gen, save_config_gen
+from zpui_lib.helpers import read_or_create_config, local_path_gen, save_config_gen
 
 i = None
 o = None

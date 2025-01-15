@@ -4,7 +4,7 @@ import os
 
 from actions import Action, ContextSwitchAction, FirstBootAction
 from ui import Menu, PrettyPrinter, Checkbox, Listbox
-from helpers import read_or_create_config, local_path_gen, save_config_gen, setup_logger
+from zpui_lib.helpers import read_or_create_config, local_path_gen, save_config_gen, setup_logger
 
 i = None
 o = None

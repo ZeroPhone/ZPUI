@@ -8,7 +8,7 @@ from ui.scrollable_element import TextReader
 from ui.canvas import Canvas, expand_coords
 from ui.utils import Rect, clamp
 from ui.entry import Entry
-from helpers import get_all_available_keys
+from zpui_lib.helpers import get_all_available_keys
 
 # Shorter code
 # from https://stackoverflow.com/questions/4984647/accessing-dict-keys-like-an-attribute/5021467#5021467

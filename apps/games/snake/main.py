@@ -3,7 +3,7 @@ from threading import Event, Lock
 from random import randint
 
 from ui import Canvas, DialogBox, Menu, Listbox, GraphicsPrinter
-from helpers import ExitHelper, local_path_gen
+from zpui_lib.helpers import ExitHelper, local_path_gen
 
 menu_name = "Snake"
 

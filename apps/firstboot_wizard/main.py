@@ -5,7 +5,7 @@ from collections import OrderedDict
 
 from apps import ZeroApp
 from actions import FirstBootAction as FBA
-from helpers import is_emulator, setup_logger, flatten, local_path_gen, cb_needs_key_state, KEY_HELD
+from zpui_lib.helpers import is_emulator, setup_logger, flatten, local_path_gen, cb_needs_key_state, KEY_HELD
 from ui import DialogBox, Canvas, HelpOverlay, Refresher, GraphicsPrinter, RefresherExitException, PrettyPrinter as Printer, GraphicsPrinter
 
 from __main__ import cm
