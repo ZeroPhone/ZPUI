@@ -50,7 +50,7 @@ class BaseListUIElement(BaseUIElement):
     view_mixin = None
 
     def __init__(self, contents, i, o, name=None, entry_height=1, append_exit=True, exitable=True, scrolling=True,
-                 config=None, keymap=None, override_left=True):
+                 config=None, keymap=None, navigation_wrap=True, override_left=True):
         self.exitable = exitable
         self.custom_keymap = keymap if keymap else {}
         BaseUIElement.__init__(self, i, o, name, input_necessary=True, override_left=override_left)
@@ -66,6 +66,7 @@ class BaseListUIElement(BaseUIElement):
             "counter": 0,
             "pointer": 0
         }
+        self.navigation_wrap = navigation_wrap
         self.reset_scrolling()
         self.config = config if config is not None else global_config
         self.set_view(self.config.get(self.config_key, {}))
@@ -189,6 +190,11 @@ class BaseListUIElement(BaseUIElement):
             self.refresh()
             return True
         else:
+            if self.navigation_wrap:
+                self.pointer = 0
+                self.refresh()
+                self.reset_scrolling()
+                return True
             return False
 
     @to_be_foreground
@@ -198,7 +204,7 @@ class BaseListUIElement(BaseUIElement):
         if not counter:
             counter = self.view.get_entry_count_per_screen()
         self.inhibit_refresh.set()
-        while counter != 0 and self.pointer < (len(self.contents) - 1):
+        while (counter > 0) if self.navigation_wrap else (counter > 0 and self.pointer < (len(self.contents) - 1)):
             counter -= 1
             self.move_down()
         self.inhibit_refresh.clear()
@@ -208,10 +214,10 @@ class BaseListUIElement(BaseUIElement):
 
     @to_be_foreground
     def move_up(self):
-        """ Moves the pointer one entry up, if possible.
+        """
+        Moves the pointer one entry up, if possible.
         |Is typically used as a callback from input event processing thread.
-        |TODO: support going from top to bottom when pressing "up" with
-        first entry selected."""
+        """
         if self.pointer != 0:
             logger.debug("moved up")
             self.pointer -= 1
@@ -219,6 +225,11 @@ class BaseListUIElement(BaseUIElement):
             self.reset_scrolling()
             return True
         else:
+            if self.navigation_wrap:
+                self.pointer = len(self.contents)-1
+                self.refresh()
+                self.reset_scrolling()
+                return True
             return False
 
     @to_be_foreground
@@ -228,7 +239,7 @@ class BaseListUIElement(BaseUIElement):
         if not counter:
             counter = self.view.get_entry_count_per_screen()
         self.inhibit_refresh.set()
-        while counter != 0 and self.pointer != 0:
+        while (counter != 0) if self.navigation_wrap else (counter != 0 and self.pointer != 0):
             counter -= 1
             self.move_up()
         self.inhibit_refresh.clear()

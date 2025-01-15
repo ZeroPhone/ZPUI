@@ -251,7 +251,7 @@ class TestBaseListUIElement(unittest.TestCase):
             el.move_up()
             for x in range(3):
                 el.move_down()
-            assert o.display_data.call_count == 6 + 2 # 1 in move_up, 3 in move_down but 2 didn't work
+            assert o.display_data.call_count == 6 + 4 # 1 in move_up, 3 in move_down
             assert o.display_data.call_args[0] == ('A0', 'A1', 'A2', 'Back')
 
             el.deactivate()
