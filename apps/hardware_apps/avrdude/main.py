@@ -8,7 +8,7 @@ local_path = local_path_gen(__name__)
 
 from subprocess import call
 
-from libs.pyavrdude import pyavrdude, heuristics
+from zpui_lib.libs.pyavrdude import pyavrdude, heuristics
 
 import graphics
 

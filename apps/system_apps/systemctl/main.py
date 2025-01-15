@@ -12,7 +12,7 @@ from time import sleep
 from ui import Menu, Printer, PrettyPrinter, Checkbox, MenuExitException
 
 try:
-    from libs import systemctl
+    from zpui_lib.libs import systemctl
 except ImportError as e:
     try: # Are we missing gi.repository?
         import gi.repository

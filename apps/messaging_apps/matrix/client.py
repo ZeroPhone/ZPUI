@@ -1,6 +1,6 @@
-from libs.matrix_client.matrix_client.client import MatrixClient
-from libs.matrix_client.matrix_client.api import MatrixRequestError
-from libs.matrix_client.matrix_client.user import User
+from zpui_lib.libs.matrix_client.matrix_client.client import MatrixClient
+from zpui_lib.libs.matrix_client.matrix_client.api import MatrixRequestError
+from zpui_lib.libs.matrix_client.matrix_client.user import User
 from requests.exceptions import MissingSchema
 
 from zpui_lib.helpers import setup_logger

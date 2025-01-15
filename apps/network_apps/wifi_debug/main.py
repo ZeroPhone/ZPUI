@@ -5,8 +5,8 @@ from time import sleep
 from ui import LoadingBar, PrettyPrinter as Printer, TextReader, Listbox, DialogBox
 from zpui_lib.helpers import setup_logger
 
-from libs import dmesg, dkms_debug
-from libs.rpi import vcgencmd, rpiinfo, config as rpi_config
+from zpui_lib.libs import dmesg, dkms_debug
+from zpui_lib.libs.rpi import vcgencmd, rpiinfo, config as rpi_config
 
 import sdio_debug
 

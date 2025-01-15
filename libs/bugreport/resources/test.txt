@@ -1,1 +1,0 @@
-Text for the bugreport tests

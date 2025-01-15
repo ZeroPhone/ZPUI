@@ -10,8 +10,8 @@ from ui import Menu, DialogBox, TextReader, LoadingIndicator, PrettyPrinter, Pat
 from zpui_lib.helpers import read_or_create_config, local_path_gen, save_config_gen, setup_logger
 from actions import FirstBootAction as FBA
 
-from libs import dmesg
-from libs.bugreport.bugreport import BugReport
+from zpui_lib.libs import dmesg
+from zpui_lib.libs.bugreport.bugreport import BugReport
 
 import psutil
 

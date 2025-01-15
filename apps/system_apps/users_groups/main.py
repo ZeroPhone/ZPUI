@@ -7,7 +7,7 @@ from ui import Menu, UniversalInput, PrettyPrinter as Printer, DialogBox
 from actions import FirstBootAction
 from zpui_lib.helpers import setup_logger
 
-from libs.linux.passwd import passwd
+from zpui_lib.libs.linux.passwd import passwd
 
 logger = setup_logger(__name__, "warning")
 

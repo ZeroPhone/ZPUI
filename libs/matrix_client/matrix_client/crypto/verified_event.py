@@ -1,2 +1,0 @@
-class VerifiedEvent(dict):
-    pass
