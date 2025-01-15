@@ -5,7 +5,7 @@ import subprocess
 from time import sleep
 from datetime import datetime
 
-from helpers import read_or_create_config, local_path_gen, save_config_gen, setup_logger
+from zpui_lib.helpers import read_or_create_config, local_path_gen, save_config_gen, setup_logger, safely_backup_file
 from ui import Menu, PrettyPrinter as Printer, LoadingIndicator, DialogBox
 from actions import FirstBootAction
 from libs import systemctl
@@ -59,12 +59,22 @@ def regenerate_ssh_keys(prompt=True):
         with LoadingIndicator(i, o, message="Regenerating SSH keys"):
             logger.info("Regenerating SSH keys")
             ssh_dir = config["ssh_key_dir"]
-            key_files = [os.path.join(ssh_dir, f) for f in os.listdir(ssh_dir) \
+            key_files = [f for f in os.listdir(ssh_dir) \
                            if os.path.isfile(os.path.join(ssh_dir, f)) \
                            and f.startswith("ssh_host") and "key" in f]
             for f in key_files:
-                logger.warning("Removing {}".format(f))
-                os.remove(f)
+                # moving files instead of old removal
+                # this reduces damage if the operation is done by accident
+                # logger.warning("Removing {}".format(f))
+                safely_backup_file(ssh_dir, f)
+                current_path = os.path.join(ssh_dir, f)
+                i = 0
+                name = "{}old{}".format(f, i)
+                while name in os.listdir(ssh_dir):
+                    i += 1
+                    name = "{}_old{}".format(f, i)
+                new_path = os.path.join(ssh_dir, name)
+                os.move(current_path, new_path)
             for command in config["key_regen_commands"]:
                 subprocess.call(command, shell=True)
     except:
