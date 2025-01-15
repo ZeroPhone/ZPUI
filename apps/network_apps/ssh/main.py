@@ -39,7 +39,7 @@ def set_context(c):
 def setup_ssh():
     choice = DialogBox("ync", i, o, message="Regenerate SSH keys?").activate()
     if choice:
-       regenerate_ssh_keys()
+        regenerate_ssh_keys(prompt=False)
     choice = DialogBox("ync", i, o, message="Enable SSH server?").activate()
     if choice is not None:
         if choice:
@@ -47,7 +47,14 @@ def setup_ssh():
         else:
             disable_ssh()
 
-def regenerate_ssh_keys():
+def regenerate_ssh_keys(prompt=True):
+    if prompt:
+        # if prompt is true, we're being called from a user-accessible menu
+        # and if that's the case, we need to add warnings
+        Printer("Regenerating keys may result in your system being inaccessible over network!", i, o)
+        choice = DialogBox("ncy", i, o, message="Regenerate SSH keys?").activate()
+        if not choice:
+            return
     try:
         with LoadingIndicator(i, o, message="Regenerating SSH keys"):
             logger.info("Regenerating SSH keys")
