@@ -1,4 +1,5 @@
-from collections import namedtuple, Sequence
+from collections import namedtuple
+from collections.abc import Sequence
 from functools import wraps
 from time import time, sleep
 
@@ -245,7 +246,7 @@ def fit_image_to_screen(image, o):
             smaller_image_side = image_height
         bigger_side_percent = (bigger_side/float(bigger_image_side))
         other_size = int((float(smaller_image_side)*float(bigger_side_percent))) # Working out smaller side length
-        image = image.resize((bigger_side,other_size), Image.ANTIALIAS) # Resizes the image to the calculated dimensions to fit the screen and stick to the aspect ratio using a $
+        image = image.resize((bigger_side,other_size), Image.LANCZOS) # Resizes the image to the calculated dimensions to fit the screen and stick to the aspect ratio using a $
     elif (o.width, o.height) == image.size: # Checks if screen dimensions and exactly the same as image dimensions
         logger.info("Exact same size - no changes needed")
     elif (o.width == image_width and o.height > image_height) or (o.height == image_height and o.width > image_width):
@@ -253,7 +254,7 @@ def fit_image_to_screen(image, o):
     else: # This should happen if the screen is smaller on one or both sides than the image
         logger.info("Using thumbnail script")
         size = o.width, o.height
-        image.thumbnail(size, Image.ANTIALIAS) # Resizes the image sticking to the aspect ratio using
+        image.thumbnail(size, Image.LANCZOS) # Resizes the image sticking to the aspect ratio using
     if (o.width, o.height) != image.size:
         logger.info("Adding borders")
         left = top = right = bottom = 0

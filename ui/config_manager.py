@@ -41,7 +41,7 @@ class UIConfigManager(object):
         #TODO: add some logging here, to show when base config 
         #items are being replaced
         for key, val in new_config.items():
-            if isinstance(val, collections.Mapping):
+            if isinstance(val, collections.abc.Mapping):
                 tmp = self.update_config(base_config.get(key, { }), val)
                 base_config[key] = tmp
             #Lists are not expected yet

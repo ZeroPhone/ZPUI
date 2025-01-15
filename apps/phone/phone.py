@@ -21,7 +21,7 @@ logger = setup_logger(__name__, "warning")
 #(though it could, of course, make the debugging harder.)
 
 def has_nonascii(s):
-    ascii_chars = string.ascii_letters+string.digits+"!@#$%^&*()_+\|{}[]-_=+'\",.<>?:; "
+    ascii_chars = string.ascii_letters+string.digits+"!@#$%^&*()_+\\|{}[]-_=+'\",.<>?:; "
     return any([char for char in ascii_chars if char not in ascii_chars])
 
 def is_csv(s):

@@ -65,19 +65,19 @@ def action_unit(action, unit, mode="fail", en_dis_runtime=False, en_force=False)
     job = False
 
     try:
-        if action is "start":
+        if action == "start":
             job = systemd.StartUnit(unit, mode)
-        elif action is "stop":
+        elif action == "stop":
             job = systemd.StopUnit(unit, mode)
-        elif action is "restart":
+        elif action == "restart":
             job = systemd.RestartUnit(unit, mode)
-        elif action is "reload":
+        elif action == "reload":
             job = systemd.ReloadUnit(unit, mode)
-        elif action is "enable":
+        elif action == "enable":
             job = systemd.EnableUnitFiles([unit], en_dis_runtime, en_force)
-        elif action is "disable":
+        elif action == "disable":
             job = systemd.DisableUnitFiles([unit], en_dis_runtime)
-        elif action is "reload-or-restart":
+        elif action == "reload-or-restart":
             job = systemd.ReloadOrRestartUnit(unit, mode)
         else:
             raise ValueError("Unknown action '{}' attempted on unit '{}'".format(action, unit))

@@ -45,7 +45,7 @@ class TestUIConfigManager(unittest.TestCase):
             "d": {"this": "is_new"}
         }
         new_config = cm.update_config(config_a, config_b)
-        self.assertEquals(new_config, {
+        self.assertEqual(new_config, {
             'a': {'this1': 'is original', 'this2': 'is_new'},
             'b': {'value': 'was_replaced'},
             'c': 'new_element_value',
