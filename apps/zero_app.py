@@ -5,8 +5,11 @@ class ZeroApp(object):
     """
 
     def __init__(self, i, o):
-        """Constructor : called when the ZPUI boots. Avoid loading too many objects here. The application is not yet
-        opened. Without knowing if you app will be used, do not burden the poor CPU with unused stuff."""
+        """
+        Constructor : called when the ZPUI boots. Avoid loading too many objects here.
+        The application is not yet opened. Without knowing if you app will be used,
+        do not burden the poor CPU with unused stuff.
+        """
         # type: (InputListener, object) -> ZeroApp
         self.__output = o
         self.__input = i
@@ -14,12 +17,21 @@ class ZeroApp(object):
             self.menu_name = "ZeroApp template"  # Name as presented in the menu
         if hasattr(self, "init_app"):
             self.init_app()
+        if getattr(self, "wants_context", False):
+            # placing the default function in an expected spot
+            self.set_context = self.__set_context
+
+    def __set_context(self, context):
+        """
+        default function for obtaining context, is used if `wants_context` is set
+        """
+        self.context = context
 
     def init_app(self):
         """
         After-constructor function. Equivalent to __init__ but you don't need to call `super()` or
-        manage ``i`` and ``o``. In short, just use this one unless you need to do wacky ``i/o`` 
-        obj management stuff, and even then, you probably don't need to redefine ``__init__``!
+        manage ``i`` and ``o``. In short, just use this one unless you need to do wacky ``i/o``
+        obj management stuff (you likely don't), and even then, you probably don't need to redefine ``__init__``!
         """
         pass
 
