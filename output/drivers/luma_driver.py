@@ -45,6 +45,7 @@ class LumaScreen(GraphicalOutputDevice, CharacterOutputDevice, BacklightManager)
     default_i2c_port = 1
     default_spi_port = 0
     default_spi_address = 0
+    default_i2c_address = 0x3c
     default_gpio_dc = 6
     default_gpio_rst = 5
 
