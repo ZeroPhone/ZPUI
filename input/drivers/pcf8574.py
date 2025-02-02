@@ -9,22 +9,22 @@ class InputDevice(InputSkeleton):
     It supports both interrupt-driven mode (as fr now, RPi-only) and polling mode."""
 
     default_mapping = [
-    "KEY_ENTER",
-    "KEY_DELETE",
-    "KEY_END",
-    "KEY_DOWN",
     "KEY_UP",
-    "KEY_HOME",
+    "KEY_PROG1",
+    "KEY_RIGHT",
+    "KEY_F3",
+    "KEY_DOWN",
     "KEY_LEFT",
-    "KEY_RIGHT"]
+    "KEY_F4",
+    "KEY_ENTER"]
 
     previous_data = 0
 
-    def __init__(self, addr = 0x27, bus = 1, int_pin = None, **kwargs):
+    def __init__(self, addr = 0x3f, bus = 1, int_pin = None, **kwargs):
         """Initialises the ``InputDevice`` object.  
-                                                                               
-        Kwargs:                                                                  
-                                                                                 
+
+        Kwargs:
+
             * ``bus``: I2C bus number.
             * ``addr``: I2C address of the expander.
             * ``int_pin``: GPIO pin to which INT pin of the expander is connected. If supplied, interrupt-driven mode is used, otherwise, library reverts to polling mode.
@@ -32,14 +32,13 @@ class InputDevice(InputSkeleton):
         """
         self.bus_num = bus
         self.bus = smbus.SMBus(self.bus_num)
-        if type(addr) in [str, unicode]:
+        if isinstance(addr, basestring):
             addr = int(addr, 16)
         self.addr = addr
         self.int_pin = int_pin
-        self.init_expander()
         InputSkeleton.__init__(self, **kwargs)
 
-    def init_expander(self):
+    def init_hw(self):
         try:
             self.bus.write_byte(self.addr, 0xff)
         except IOError:
@@ -88,9 +87,10 @@ class InputDevice(InputSkeleton):
                 changed_buttons.append(i)
         for button_number in changed_buttons:
             if not data & 1<<button_number:
+                print(self.mapping[button_number])
                 self.send_key(self.mapping[button_number])
 
 
 if __name__ == "__main__":
-    id = InputDevice(addr = 0x23, threaded=False)
+    id = InputDevice(addr = 0x3f, threaded=False)
     id.runner()
