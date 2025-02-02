@@ -1,9 +1,6 @@
 luma.oled
 luma.lcd
 python-nmap
-smspdu
-zerophone_hw>=0.4.2
-gpio
 vobject
 pytest
 mock
