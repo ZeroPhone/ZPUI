@@ -116,7 +116,7 @@ def init():
     if hasattr(screen, "set_backlight_callback"):
         screen.set_backlight_callback(input_processor)
     if hasattr(screen, "reattach_callback"):
-        for dname, driver in input_device_manager.driver_storage.items():
+        for dname, driver in input_processor.initial_drivers.items():
             if hasattr(driver, "reattach_cbs"):
                 # tying the screen's reattach callback into the input device
                 driver.reattach_cbs.append(screen.reattach_callback)

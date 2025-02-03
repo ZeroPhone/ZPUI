@@ -40,3 +40,7 @@ class Screen(LumaScreen, OutputDevice):
             self.device._const.SETCOMPINS,         0x12,
             self.device._const.SETVCOMDETECT,      0x20,
             self.device._const.CHARGEPUMP,         0x14)
+        self.device.contrast(0x7F)
+        self.device.clear()
+        self.device.show()
+        self.display_image(self.current_image)

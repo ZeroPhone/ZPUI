@@ -11,8 +11,11 @@ except ImportError:
     #Compatilibity with older luma.oled version
     from luma.core.serial import spi, i2c
 from luma.core.render import canvas
+from luma.core.error import DeviceNotFoundError as DNFError
 from PIL import ImageChops
 
+from zpui_lib.helpers import setup_logger
+logger = setup_logger(__name__, "warning")
 
 from output.drivers.backlight import *
 try:
@@ -91,11 +94,17 @@ class LumaScreen(GraphicalOutputDevice, CharacterOutputDevice, BacklightManager)
 
     @enable_backlight_wrapper
     def enable_backlight(self):
-        self.device.show()
+        try:
+            self.device.show()
+        except DNFError:
+            logger.warning("couldn't write to the display")
 
     @disable_backlight_wrapper
     def disable_backlight(self):
-        self.device.hide()
+        try:
+            self.device.hide()
+        except DNFError:
+            logger.warning("couldn't write to the display")
 
     @activate_backlight_wrapper
     def display_image(self, image, actually_output=False):
@@ -122,7 +131,10 @@ class LumaScreen(GraphicalOutputDevice, CharacterOutputDevice, BacklightManager)
             raise ValueError("Unknown function wrapped, wtf?")
 
     def _display_image(self, image):
-        self.device.display(image)
+        try:
+            self.device.display(image)
+        except DNFError:
+            logger.warning("couldn't write to the display")
 
     def display_data_onto_image(self, *args, **kwargs):
         """
