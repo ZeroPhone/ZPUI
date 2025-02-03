@@ -389,7 +389,7 @@ class TextView(object):
         self.setup_scrolling()
 
     def setup_scrolling(self):
-        self.el.scrolling_defaults["current_speed"] = self.get_fow_width_in_chars()/self.scrolling_speed_divisor
+        self.el.scrolling_defaults["current_speed"] = self.get_fow_width_in_chars()//self.scrolling_speed_divisor
 
     @property
     def in_foreground(self):
