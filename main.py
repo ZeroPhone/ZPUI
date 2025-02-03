@@ -115,6 +115,12 @@ def init():
     # Tying objects together
     if hasattr(screen, "set_backlight_callback"):
         screen.set_backlight_callback(input_processor)
+    if hasattr(screen, "reattach_callback"):
+        for dname, driver in input_device_manager.driver_storage.items():
+            if hasattr(driver, "reattach_cbs"):
+                # tying the screen's reattach callback into the input device
+                driver.reattach_cbs.append(screen.reattach_callback)
+                logger.info("attached screen reattach callback to driver {}".format(dname))
     cm.init_io(input_processor, screen)
     c = cm.contexts["main"]
     c.register_action(ContextSwitchAction("switch_main_menu", None, menu_name="Main menu"))

@@ -23,6 +23,8 @@ class InputDevice(InputSkeleton):
 
     previous_data = 0
 
+    reattach_cbs = []
+
     def __init__(self, addr = 0x3f, bus = 1, int_pin = None, **kwargs):
         """Initialises the ``InputDevice`` object.
 
@@ -70,7 +72,8 @@ class InputDevice(InputSkeleton):
             while not self.stop_flag:
                 if self.probe_hw():
                     # device found
-                    logger.info("PCF8574 device at {}:{} reattached".format(self.bus_num, hex(self.addr)))
+                    logger.warning("PCF8574 device at {}:{} reattached".format(self.bus_num, hex(self.addr)))
+                    self.reattach_callbacks() # skeleton-defined funni thing - trading structure for UX
                     break # goes to the start of the loop
                 sleep(1)
 

@@ -125,6 +125,11 @@ class InputSkeleton(object):
         self.thread.daemon = True
         self.thread.start()
 
+    def reattach_callbacks(self):
+        # device has been reattached - we might need to reinit the display or do something else
+        for cb in self.reattach_cbs:
+            cb()
+
     def is_connected(self):
         if self.status_available:
             return None
