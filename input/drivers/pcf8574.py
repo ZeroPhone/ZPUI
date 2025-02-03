@@ -61,7 +61,7 @@ class InputDevice(InputSkeleton):
         while not self.stop_flag:
             self.init_hw()
             try:
-                runner_normal()
+                self.runner_simple()
             except IOError:
                 logger.warning("PCF8574 device at {}:{} detached".format(self.bus_num, hex(self.addr)))
             if self.stop_flag:
