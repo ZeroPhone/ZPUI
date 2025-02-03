@@ -253,7 +253,7 @@ class GitUpdater(GenericUpdater):
             conn.close()
 
     def do_install_requirements(self):
-        output = check_output(["pip", "install", "-r", "requirements.txt"])
+        output = check_output(["pip", "install", "-U", "--break-system-packages", "-r", "requirements.txt"])
         if isinstance(output, bytes): output = output.decode("ascii")
         logger.debug("pip output:")
         logger.debug(output)
