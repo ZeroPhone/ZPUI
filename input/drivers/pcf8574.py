@@ -1,6 +1,9 @@
 import smbus
 from time import sleep
 
+from zpui_lib.helpers import setup_logger
+logger = setup_logger(__name__, "warning")
+
 from input.drivers.skeleton import InputSkeleton
 
 class InputDevice(InputSkeleton):
@@ -21,13 +24,13 @@ class InputDevice(InputSkeleton):
     previous_data = 0
 
     def __init__(self, addr = 0x3f, bus = 1, int_pin = None, **kwargs):
-        """Initialises the ``InputDevice`` object.  
+        """Initialises the ``InputDevice`` object.
 
         Kwargs:
 
             * ``bus``: I2C bus number.
             * ``addr``: I2C address of the expander.
-            * ``int_pin``: GPIO pin to which INT pin of the expander is connected. If supplied, interrupt-driven mode is used, otherwise, library reverts to polling mode.
+            * ``int_pin``: GPIO pin to which INT pin of the expander is connected. If supplied, interrupt-driven mode is used, otherwise, library does polling mode.
 
         """
         self.bus_num = bus
@@ -42,11 +45,36 @@ class InputDevice(InputSkeleton):
         try:
             self.bus.write_byte(self.addr, 0xff)
         except IOError:
-            return True
-        else:
             return False
+        else:
+            return True
+
+    def probe_hw(self):
+        try:
+            self.bus.read_byte(self.addr)
+        except IOError:
+            return False
+        else:
+            return True
 
     def runner(self):
+        while not self.stop_flag:
+            self.init_hw()
+            try:
+                runner_normal()
+            except IOError:
+                logger.warning("PCF8574 device at {}:{} detached".format(self.bus_num, hex(self.addr)))
+            if self.stop_flag:
+                break
+            # loop that waits until the device is detected again
+            while not self.stop_flag:
+                if self.probe_hw():
+                    # device found
+                    logger.info("PCF8574 device at {}:{} reattached".format(self.bus_num, hex(self.addr)))
+                    break # goes to the start of the loop
+                sleep(1)
+
+    def runner_simple(self):
         """Starts listening on the input device. Initialises the IO expander and runs either interrupt-driven or polling loop."""
         self.stop_flag = False
         if self.int_pin is None:
