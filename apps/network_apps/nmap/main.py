@@ -7,7 +7,7 @@ import time
 import os, sys
 
 from ui import Menu, PrettyPrinter, Checkbox, NumpadNumberInput, LoadingIndicator, HelpOverlay
-from if_info import get_ip_addr, get_network_from_ip, sort_ips
+from zpui_lib.libs.if_info import parse_ip_addr, get_network_from_ip, sort_ips
 
 try:
     import nmap
@@ -51,7 +51,7 @@ current_filename = ""
 def smart_scan():
     #First, getting all available interfaces
     networks = []
-    interface_data = get_ip_addr()
+    interface_data = parse_ip_addr()
     for interface_name in interface_data.keys():
         #Autofiltering unsuitable interfaces
         interface_info = interface_data[interface_name]
@@ -242,12 +242,14 @@ def scan_network_menu():
     #A report to be passed to Menu object
     networks = []
     #External library function that parses "ip addr" output
-    interface_data = get_ip_addr()
+    interface_data = parse_ip_addr()
     for interface_name in interface_data.keys():
         interface_info = interface_data[interface_name]
         state = interface_info["state"]
         ip = interface_info["addr"] if interface_info["addr"] else "None"
-        networks.append( ["{}:{}, {}".format(interface_name, state, ip), lambda x=ip: quick_scan_network_by_ip(x)] )
+        mask = interface_info["mask"] if interface_info["mask"] else "None"
+        ipm = ip+'/'+mask
+        networks.append( ["{}:{}, {}".format(interface_name, state, ipm), lambda x=ipm: quick_scan_network_by_ip(x)] )
     Menu(networks, i, o).activate()
 
 def ip_info_menu(ip_info):
@@ -292,7 +294,7 @@ def show_scan_results_for_ip(ip, ip_results):
     if protocols:
         report.append([["Open ports:"]])
         for protocol in protocols:
-            ports = ip_result[protocol].keys()
+            ports = list(ip_result[protocol].keys())
             ports.sort()
             for port in ports:
                 report.append([["  {}:{}".format(protocol, port)]])

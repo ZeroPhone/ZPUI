@@ -4,7 +4,10 @@ i = None
 o = None
 
 from ui import Menu, PrettyPrinter as Printer
-from if_info import parse_ip_addr
+from zpui_lib.helpers import setup_logger
+from zpui_lib.libs.if_info import parse_ip_addr
+
+logger = setup_logger(__name__, "debug")
 
 ip_shorthands = {"192.168.":"9_6.",
                  "127.0.0.1":"127..1",
@@ -18,14 +21,14 @@ def get_ifc_menu_contents(ifc_name):
         ifd_menu_contents.append([["Interface", "not found"], lambda:0])
     else:
         if ifc_data['addr'] is not None:
-            ip = ifc_data['addr']
-            mask = ifc_data['mask']
+            ip = str(ifc_data['addr'])
+            mask = str(ifc_data['mask'])
         else:
             ip = "None"
             mask = "0"
         if ifc_data['addr'] is not None:
-            ip6 = ifc_data['addr6']
-            mask6 = ifc_data['mask6']
+            ip6 = str(ifc_data['addr6'])
+            mask6 = str(ifc_data['mask6'])
         else:
             ip6 = "None"
             mask6 = "0"
@@ -55,7 +58,7 @@ def get_if_menu_contents():
     menu_contents = []
     ifc_dict = parse_ip_addr()
     for ifc, ifc_data in ifc_dict.items():
-        print(ifc, ifc_data)
+        logger.info(ifc, ifc_data)
         ifc_state = ifc_states.get(ifc_data["state"], "X")
         ifc_name = "{}: {}".format(ifc, ifc_state)
         ip = ifc_data.get("addr", None)
