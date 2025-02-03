@@ -18,7 +18,8 @@ def callback():
     except OSError:
         PrettyPrinter("Do you have lsusb?", i, o, 2)
         return False
-    for bus, dev, vid_pid, name in usb_devices:
+    for bus, dev, vid, pid, name in usb_devices:
+        vid_pid = ':'.join([hex(i)[2:].zfill(4) for i in (vid, pid)])
         name = name if name else "[Unknown]"
         ell_name = ellipsize(name, o.cols)
         info = "{}\n{}".format(vid_pid, name)
