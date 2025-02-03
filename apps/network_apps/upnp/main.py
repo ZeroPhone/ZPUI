@@ -40,7 +40,7 @@ def run_scan():
         '']
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
     s.settimeout(config["timeout"])
-    s.sendto('\r\n'.join(msg), (config["dst"], 1900) )
+    s.sendto(b'\r\n'.join((bytes(m, 'utf8') for m in msg)), (config["dst"], 1900) )
 
     found_devices = OrderedDict()
     while True:
