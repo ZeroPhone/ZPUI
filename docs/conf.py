@@ -51,8 +51,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'ZPUI'
-copyright = u'2017, ZeroPhone Project'
-author = u'Arsenijs Picugins (CRImier) and ZeroPhone Project contributors'
+copyright = u'2025, ZeroPhone Project'
+author = u'Arya Voronova (CRImier) and ZeroPhone Project contributors'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

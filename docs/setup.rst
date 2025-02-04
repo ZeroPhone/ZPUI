@@ -147,7 +147,7 @@ Emulator credits
 ----------------
 
 Most of the emulator research and work was done by Doug, and later 
-refactored by Brian Dunlay. The input driver was done by Arsenijs. 
+refactored by Brian Dunlay. The input driver was done by Arya.
 OpenSUSE instructions were compiled with help of `piajesse`_.
 Arch Linux instructions were compiled by `monsieurh`_.
 

@@ -4,15 +4,15 @@ from subprocess import check_output
 from copy import deepcopy
 
 remove_names = ["none"]
-replace_contributors =   {"CRImier": "CRImier (Arsenijs)",
+replace_contributors =   {"CRImier": "CRImier (Arya)",
                           "ahub": "monsieur_h",
                           "monsieurh": "monsieur_h",
-                          "Arsenijs": "CRImier (Arsenijs)",
+                          "Arsenijs": "CRImier (Arya)",
                           "samkaufman01": "Sam Kaufman",
-                          "crimier": "CRImier (Arsenijs)",
+                          "crimier": "CRImier (Arya)",
                           "kylemoran138": "KyleMoran138",
                           "Ser2808": "Serge Spraiter",
-                          "CrunchBang LiveUser": "CRImier (Arsenijs)",
+                          "CrunchBang LiveUser": "CRImier (Arya)",
                           "Zero Phone": "Unnamed contributor",
                           "LouisPi": "Louis Parkerson",
                           "Louis Pi": "Louis Parkerson"}

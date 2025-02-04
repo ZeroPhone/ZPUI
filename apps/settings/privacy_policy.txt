@@ -18,7 +18,7 @@ no more than 30 days. The bugreport contents, if successfully processed by our b
 will be emailed to a Protonmail email account, then, once received, will be downloaded to
 our portable device of choice (most likely, a personal laptop), examined, filtered through
 and then deleted (storing only the problem details). Currently, only the main
-developer (Arsenijs) has access to the email account, you'll be notified if the situation
+developer (Arya) has access to the email account, you'll be notified if the situation
 changes. If this bugreport processing mechanism doesn't suit you, we're thinking of a way
 for you to run your own personal server for notifications as one of the possible workarounds.
 
