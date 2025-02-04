@@ -37,7 +37,7 @@ class GitInterface(object):
         commandline = "git {}".format(command)
         logger.debug("Executing: {}".format(commandline))
         output = check_output(commandline, shell=True, stderr=STDOUT)
-        if isinstance(output, bytes): output = output.decode("ascii")
+        if isinstance(output, bytes): output = output.decode("utf-8")
         return output
 
     @classmethod
@@ -254,7 +254,7 @@ class GitUpdater(GenericUpdater):
 
     def do_install_requirements(self):
         output = check_output(["pip", "install", "--break-system-packages", "-r", "requirements.txt"])
-        if isinstance(output, bytes): output = output.decode("ascii")
+        if isinstance(output, bytes): output = output.decode("utf-8")
         logger.debug("pip output:")
         logger.debug(output)
 
@@ -290,12 +290,12 @@ class GitUpdater(GenericUpdater):
             commandline = f.readline().strip()
         try:
             output = check_output(commandline.split(" "))
-            if isinstance(output, bytes): output = output.decode("ascii")
+            if isinstance(output, bytes): output = output.decode("utf-8")
             logger.debug("pytest output:")
             logger.debug(output)
         except CalledProcessError as e:
             output = e.output
-            if isinstance(output, bytes): output = output.decode("ascii")
+            if isinstance(output, bytes): output = output.decode("utf-8")
             logger.warning("pytest output:")
             logger.warning(output)
             raise
