@@ -146,7 +146,7 @@ class TestDrivers(unittest.TestCase):
             with patch.object(main_py, 'load_config') as mocked:
                 mocked.return_value = (config, "test_config.json")
                 i, o = main_py.init()
-            assert(init_hw.called_once())
+            init_hw.assert_called_once()
         assert(isinstance(i, main_py.input.InputProxy))
         assert(isinstance(o, main_py.output.OutputProxy))
         # so that no ugly exception is raised when the test finishes
@@ -163,7 +163,7 @@ class TestDrivers(unittest.TestCase):
             with patch.object(main_py, 'load_config') as mocked:
                 mocked.return_value = (config, "test_config.json")
                 i, o = main_py.init()
-            assert(init_hw.called_once())
+            init_hw.assert_called_once()
         assert(isinstance(i, main_py.input.InputProxy))
         assert(isinstance(o, main_py.output.OutputProxy))
         # so that no ugly exception is raised when the test finishes
@@ -182,7 +182,7 @@ class TestDrivers(unittest.TestCase):
             with patch.object(main_py, 'load_config') as mocked:
                 mocked.return_value = (config, "test_config.json")
                 i, o = main_py.init()
-            assert(init_hw.called_once())
+            init_hw.assert_called_once()
         assert(isinstance(i, main_py.input.InputProxy))
         assert(isinstance(o, main_py.output.OutputProxy))
         # so that no ugly exception is raised when the test finishes

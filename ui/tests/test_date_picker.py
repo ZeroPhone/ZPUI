@@ -134,7 +134,7 @@ class TestDatePicker(unittest.TestCase):
 
 		def scenario():
 			dp.accept_value()
-			assert cb1.called_once
+			cb1.assert_called_once()
 			assert isinstance(cb1.call_args[0][0], dict)
 			assert dp.is_active
 			dp.deactivate()
@@ -151,7 +151,7 @@ class TestDatePicker(unittest.TestCase):
 
 		def scenario():
 			dp.accept_value()
-			assert cb1.called_once
+			cb1.assert_called_once()
 			assert isinstance(cb1.call_args[0][0], basestring)
 			assert dp.is_active
 			dp.deactivate()
@@ -185,7 +185,7 @@ class TestDatePicker(unittest.TestCase):
 
 		with patch.object(dp, 'idle_loop', side_effect=scenario) as p:
 			return_value = dp.activate()
-		assert dp.o.display_data.called_once
+		dp.o.display_image.assert_called_once()
 
 
 if __name__ == '__main__':
