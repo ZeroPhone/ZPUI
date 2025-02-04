@@ -68,11 +68,11 @@ def regenerate_ssh_keys(prompt=True):
                 # logger.warning("Removing {}".format(f))
                 safely_backup_file(ssh_dir, f)
                 current_path = os.path.join(ssh_dir, f)
-                i = 0
-                name = "{}old{}".format(f, i)
+                y = 0
+                name = "{}old{}".format(f, y)
                 while name in os.listdir(ssh_dir):
-                    i += 1
-                    name = "{}_old{}".format(f, i)
+                    y += 1
+                    name = "{}_old{}".format(f, y)
                 new_path = os.path.join(ssh_dir, name)
                 os.move(current_path, new_path)
             for command in config["key_regen_commands"]:
