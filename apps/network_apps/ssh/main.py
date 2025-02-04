@@ -86,6 +86,9 @@ def regenerate_ssh_keys(prompt=True):
         return True
 
 def disable_ssh():
+    if not systemctl.bus_acquired():
+       PrettyPrinter("systemctl: system-wide dbus not found! ", i, o, 5)
+       return
     logger.info("Disabling SSH")
     ssh_unit = config["ssh_unit"]
     systemctl.action_unit("stop", ssh_unit)
@@ -93,6 +96,9 @@ def disable_ssh():
     logger.info("Disabled SSH")
 
 def enable_ssh():
+    if not systemctl.bus_acquired():
+       PrettyPrinter("systemctl: system-wide dbus not found! ", i, o, 5)
+       return
     logger.info("Enabling SSH")
     ssh_unit = config["ssh_unit"]
     systemctl.action_unit("enable", ssh_unit)

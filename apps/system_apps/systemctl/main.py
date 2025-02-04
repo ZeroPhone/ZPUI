@@ -158,13 +158,16 @@ def disable_unit(name):
 
 def callback():
     if systemctl is None:
-       PrettyPrinter("python-gi not found! Please install it using 'apt-get install python-gi' ", i, o, 5)
+       PrettyPrinter("python-gi not found! Please install it using 'apt-get install python-gi' ", i, o, 5, skippable=True)
+       return
+    if not systemctl.bus_acquired():
+       PrettyPrinter("system-wide dbus not found! ", i, o, 5, skippable=True)
        return
     try:
        systemctl.list_units()
     except OSError as e:
        if e.errno == 2:
-           PrettyPrinter("Do you use systemctl?", i, o, 3, skippable=True)
+           PrettyPrinter("Is systemctl installed?", i, o, 3, skippable=True)
            return
        else:
            raise e
