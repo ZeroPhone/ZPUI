@@ -80,3 +80,5 @@ do_not_load
 /screenshots/
 # Nano files
 *.swp
+# Patch files
+*.patch
