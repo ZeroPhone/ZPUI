@@ -61,7 +61,7 @@ class LockApp(ZeroApp):
 
 class KeyScreen(BaseUIElement):
     sleep_time = 0.1
-    default_key_sequence = ["KEY_ENTER", "KEY_*"]
+    default_key_sequence = ["KEY_LEFT", "KEY_RIGHT", "KEY_ENTER"]
 
     def __init__(self, i, o, timeout=3, key_sequence=None):
         self.key_sequence = key_sequence if key_sequence else self.default_key_sequence
@@ -90,12 +90,17 @@ class KeyScreen(BaseUIElement):
     def check_locked(self):
         if len(self.key_sequence) == self.key_sequence_position:
             self.unlock()
+            return True
+        return False
 
     def receive_key(self, key):
         if key == self.key_sequence[self.key_sequence_position]:
             self.key_sequence_position += 1
-            self.check_locked()
+            logger.info("received correct key {}, current position: {}".format(key, self.key_sequence_position))
+            if not self.check_locked():
+                self.refresh()
         else:
+            logger.info("received key {} instead of {}; resetting".format(key, self.key_sequence[self.key_sequence_position]))
             self.deactivate()
 
     def get_return_value(self):
