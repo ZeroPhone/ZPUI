@@ -9,10 +9,12 @@ import threading
 import traceback
 from logging.handlers import RotatingFileHandler
 
-from apps.app_manager import AppManager
-from context_manager import ContextManager
 from zpui_lib.helpers import read_config, local_path_gen, logger, env, read_or_create_config, \
                     zpui_running_as_service, is_emulator
+from zpui_lib import hacks
+
+from apps.app_manager import AppManager
+from context_manager import ContextManager
 from input import input
 from output import output
 from actions import ContextSwitchAction
@@ -76,12 +78,9 @@ logging_format = log_config["format"]
 logfile_size = log_config["file_size"]
 files_to_store = log_config["files_to_store"]
 
-#Py2-3 hax
-try:
-    basestring
-except:
-    import builtins
-    builtins.basestring = str
+# run ZPUI hacks
+
+hacks.basestring_hack()
 
 def init():
     """Initialize input and output objects"""

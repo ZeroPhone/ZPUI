@@ -4,7 +4,17 @@ from time import sleep
 from zpui_lib.helpers import setup_logger
 logger = setup_logger(__name__, "warning")
 
-from input.drivers.skeleton import InputSkeleton
+# fix to enable rumning this driver as standalone file
+try:
+    from input.drivers.skeleton import InputSkeleton
+except ImportError:
+    from skeleton import InputSkeleton
+
+from zpui_lib.hacks import basestring_hack
+try:
+    basestring
+except NameError:
+    basestring_hack()
 
 class InputDevice(InputSkeleton):
     """ A driver for PCF8574-based I2C IO expanders. They have 8 IO pins available as well as an interrupt pin. This driver treats all 8 pins as button pins, which is often the case. 
