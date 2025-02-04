@@ -11,6 +11,8 @@ from logging.handlers import RotatingFileHandler
 
 from zpui_lib.helpers import read_config, local_path_gen, logger, env, read_or_create_config, \
                     zpui_running_as_service, is_emulator
+from zpui_lib.helpers.logger import LoggingConfig
+if __name__ == "__main__": LoggingConfig().autosave = True # "no log_conf.ini clutter by default" mechanism
 from zpui_lib import hacks
 
 from apps.app_manager import AppManager
@@ -219,7 +221,7 @@ def spawn_rconsole(*args):
     try:
         from rfoo.utils import rconsole
     except ImportError:
-        logger.exception("can't import rconsole - python-rfoo not installed?")
+        logger.exception("can't import rconsole - python-rfoo not installed? Install and try again?")
         return False
     try:
         rconsole.spawn_server(port=rconsole_port)
