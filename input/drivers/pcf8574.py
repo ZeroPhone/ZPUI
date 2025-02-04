@@ -23,7 +23,7 @@ class InputDevice(InputSkeleton):
 
     default_mapping = [
     "KEY_UP",
-    "KEY_PROG1",
+    "KEY_PROG2",
     "KEY_RIGHT",
     "KEY_F3",
     "KEY_DOWN",
