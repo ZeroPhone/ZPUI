@@ -4,14 +4,14 @@ from datetime import timedelta
 from subprocess import check_output
 import platform
 
-def _kb_str_to_mb(string):
+def _kb_str_to_mb(str):
     """Converts a string formatted like "1234 kB" into a string where value given is expressed in megabytes"""
-    value, suffix = string.split(" ")
-    if suffix.lower() == "kb":
-       mb_value = int(value)/1024.0
-       return int(mb_value)
+    if str.lower().endswith('kb'):
+        value = str[:-2].rstrip()
+        mb_value = int(value)/1024.0
+        return int(mb_value)
     else:
-       return Non
+        raise ValueError("{} is not a kb string!".format(str))
 
 def linux_info():
     info = {}
@@ -19,7 +19,7 @@ def linux_info():
     arguments = ["system", "hostname", "k_release", "version", 'machine', 'cpu']
     for i, element in enumerate(uname):
         info[arguments[i]] = element
-    info["distribution"] = platform.linux_distribution()    
+    info["distribution"] = platform.linux_distribution()
     return info
 
 
@@ -86,11 +86,11 @@ Swap:       102396          0     102396
 """
 
 def free(in_mb=True):
-    memory_dict = {}    
+    memory_dict = {}
     meminfo_dict = parse_proc_meminfo()
     if in_mb:
         for key in meminfo_dict:
-            meminfo_dict[key] = meminfo_dict[key]/1024
+            meminfo_dict[key] = round(meminfo_dict[key]/1024, 2)
     mem_free = meminfo_dict["MemFree"]
     mem_total = meminfo_dict["MemTotal"]
     memory_dict["Total"] = mem_total
