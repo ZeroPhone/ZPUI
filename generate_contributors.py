@@ -3,7 +3,7 @@
 from subprocess import check_output
 from copy import deepcopy
 
-remove_names = ["none"]
+remove_names = ["none", "git stash"]
 replace_contributors =   {"CRImier": "CRImier (Arya)",
                           "ahub": "monsieur_h",
                           "monsieurh": "monsieur_h",
