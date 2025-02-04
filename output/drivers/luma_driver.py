@@ -36,6 +36,7 @@ class LumaScreen(GraphicalOutputDevice, CharacterOutputDevice, BacklightManager)
     type = ["char", "b&w"]
     cursor_enabled = False
     cursor_pos = (0, 0) #x, y
+    device_mode = None
 
     hw = None
     port = None
@@ -89,22 +90,24 @@ class LumaScreen(GraphicalOutputDevice, CharacterOutputDevice, BacklightManager)
         self.cols = self.width // self.char_width
         self.rows = self.height // self.char_height
         self.init_display(**kwargs)
-        self.device_mode = self.device.mode
+        self.device_mode = getattr(self.device, "mode", self.device_mode)
         BacklightManager.init_backlight(self, **kwargs)
 
     @enable_backlight_wrapper
     def enable_backlight(self):
-        try:
-            self.device.show()
-        except DNFError:
-            logger.warning("couldn't write to the display")
+        if self.device.real: # has the actual device been created yet?
+            try:
+                self.device.show()
+            except (DNFError, OSError):
+                logger.warning("couldn't write to the display")
 
     @disable_backlight_wrapper
     def disable_backlight(self):
-        try:
-            self.device.hide()
-        except DNFError:
-            logger.warning("couldn't write to the display")
+        if self.device.real: # has the actual device been created yet?
+            try:
+                self.device.hide()
+            except (DNFError, OSError):
+                logger.warning("couldn't write to the display")
 
     @activate_backlight_wrapper
     def display_image(self, image, actually_output=False):
@@ -131,10 +134,11 @@ class LumaScreen(GraphicalOutputDevice, CharacterOutputDevice, BacklightManager)
             raise ValueError("Unknown function wrapped, wtf?")
 
     def _display_image(self, image):
-        try:
-            self.device.display(image)
-        except DNFError:
-            logger.warning("couldn't write to the display")
+        if self.device.real: # has the actual device been created yet?
+            try:
+                self.device.display(image)
+            except (DNFError, OSError):
+                logger.warning("couldn't write to the display")
 
     def display_data_onto_image(self, *args, **kwargs):
         """
