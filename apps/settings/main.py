@@ -11,7 +11,7 @@ except:
     import http.client as httplib
 
 from ui import Menu, PrettyPrinter, DialogBox, ProgressBar, Listbox, UniversalInput, HelpOverlay
-from zpui_lib.helpers import setup_logger, read_or_create_config, save_config_method_gen, local_path_gen
+from zpui_lib.helpers import setup_logger, read_or_create_config, save_config_method_gen, local_path_gen, safely_backup_file
 
 local_path = local_path_gen(__name__)
 
@@ -86,8 +86,11 @@ class GitInterface(object):
                         line = line.strip()
                         if not line.endswith('/'):
                             try:
-                                logger.info("Removing interfering file: {}".format(line))
-                                os.remove(line)
+                                dir, fname = os.path.split(line)
+                                if not dir: dir = '.'
+                                new_path = safely_backup_file(dir, fname)
+                                logger.info("Moving interfering file {} to {}".format(line, new_path))
+                                os.renames(line, new_path)
                             except OSError:
                                 logger.warning("Couldn't remove an interfering file {} while pulling!".format(line))
                         line = next(lines)
