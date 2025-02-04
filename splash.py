@@ -2,10 +2,10 @@ from PIL import ImageOps, Image
 
 def splash(i, o):
     if (o.width, o.height) == (128, 64):
-        image = Image.open("splash.png").convert('L')
+        image = Image.open("resources/splash.png").convert('L')
         image = ImageOps.invert(image)
     elif o.width >= 128 and o.height >= 64:
-        image = Image.open("splash_big.png").convert('L')
+        image = Image.open("resources/splash_big.png").convert('L')
         image = ImageOps.invert(image)
         size = o.width, o.height
         image.thumbnail(size, Image.ANTIALIAS)

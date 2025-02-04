@@ -399,9 +399,9 @@ instance and supports some additional arguments:
     ...
     # Will display the ZPUI splash image for 1 second
     # By default, it's inverted
-    GraphicsPrinter("splash.png", i, o, 1)
+    GraphicsPrinter("resources/splash.png", i, o, 1)
     # Same, but the image is not inverted
-    GraphicsPrinter("splash.png", i, o, 1, invert=False)
+    GraphicsPrinter("resources/splash.png", i, o, 1, invert=False)
     # Display an image from the app folder - using the local_path helper
     GraphicsPrinter(local_path("image.png"), i, o, 1)
     # Display an image you drew on a Canvas
