@@ -69,7 +69,10 @@ class GitInterface(object):
         try:
             return cls.command("pull {2} {0} {1}".format(source, branch, opts))
         except CalledProcessError as e:
-            lines = iter(e.output.split('\n'))
+            interfering_files = False
+            output = e.output
+            if isinstance(output, bytes): output = output.decode("utf-8")
+            lines = iter(output.split('\n'))
             logger.debug("Parsing output")
             marker1 = "following untracked working tree files would be overwritten by merge"
             marker2 = "local changes to the following files would be overwritten by merge"
@@ -77,6 +80,7 @@ class GitInterface(object):
                 logger.debug(repr(line))
                 if marker1 in line or marker2 in line:
                     logger.info("Found interfering files!")
+                    interfering_files = True
                     line = next(lines)
                     while line.startswith('\t'):
                         line = line.strip()
@@ -87,7 +91,10 @@ class GitInterface(object):
                             except OSError:
                                 logger.warning("Couldn't remove an interfering file {} while pulling!".format(line))
                         line = next(lines)
-            return cls.command("pull {2} {0} {1}".format(source, branch, opts))
+            if interfering_files:
+                return cls.pull(source, branch, opts)
+            else:
+                raise e
 
 
 class UpdateUnnecessary(Exception):
