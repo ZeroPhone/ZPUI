@@ -25,7 +25,7 @@ class InputDevice(InputSkeleton):
 
     reattach_cbs = []
 
-    def __init__(self, addr = 0x3f, bus = 1, int_pin = None, **kwargs):
+    def __init__(self, addr = 0x3f, bus = 1, int_pin = None, sleep_interval = 0.01, **kwargs):
         """Initialises the ``InputDevice`` object.
 
         Kwargs:
@@ -41,6 +41,7 @@ class InputDevice(InputSkeleton):
             addr = int(addr, 16)
         self.addr = addr
         self.int_pin = int_pin
+        self.sleep_interval = sleep_interval
         InputSkeleton.__init__(self, **kwargs)
 
     def init_hw(self):
@@ -96,7 +97,7 @@ class InputDevice(InputSkeleton):
                 data = (~self.bus.read_byte(self.addr)&0xFF)
                 self.process_data(data)
                 self.previous_data = data
-            sleep(0.1)
+            sleep(self.sleep_interval)
 
     def loop_polling(self):
         """Polling loop. Stops when ``stop_flag`` is set to True."""
@@ -107,7 +108,7 @@ class InputDevice(InputSkeleton):
                 if data != self.previous_data:
                     self.process_data(data)
                     self.previous_data = data
-            sleep(0.1)
+            sleep(self.sleep_interval)
 
     def process_data(self, data):
         """Checks data received from IO expander and classifies changes as either "button up" or "button down" events. On "button up", calls send_key with the corresponding button name from ``self.mapping``. """
