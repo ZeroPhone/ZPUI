@@ -14,7 +14,9 @@ except ImportError:
 
     def import_mock(name, *args):
         if name in ['helpers']:
-            return Mock()
+            m = Mock()
+            m.configure_mock(cb_needs_key_state=lambda x:x, KEY_PRESSED=1, KEY_RELEASED=0, KEY_HELD=2)
+            return m
         elif name == 'ui.utils':
             import utils
             return utils
@@ -31,6 +33,14 @@ def get_mock_output(rows=8, cols=21):
     m = Mock()
     m.configure_mock(rows=rows, cols=cols, type=["char"])
     return m
+
+def execute_key_sequence(ni, key_sequence):
+    for key in key_sequence:
+        key = "KEY_{}".format(key)
+        if key in ni.action_keys:
+            ni.keymap[key]()
+        else:
+            ni.process_streaming_keycode(key)
 
 
 ni_name = "Test NumpadCharInput"
@@ -66,7 +76,7 @@ class TestNumpadCharInput(unittest.TestCase):
 
         # Checking at the start of the list
         def scenario():
-            ni.process_streaming_keycode("KEY_LEFT")
+            ni.keymap["KEY_LEFT"]()
             assert not ni.in_foreground
 
         with patch.object(ni, 'idle_loop', side_effect=scenario) as p:
@@ -77,7 +87,7 @@ class TestNumpadCharInput(unittest.TestCase):
         def scenario():
             for i in range(3):
                 ni.process_streaming_keycode("KEY_1")
-            ni.process_streaming_keycode("KEY_F1")
+            ni.keymap["KEY_F1"]()
             assert not ni.in_foreground
 
         with patch.object(ni, 'idle_loop', side_effect=scenario) as p:
@@ -93,8 +103,7 @@ class TestNumpadCharInput(unittest.TestCase):
         expected_output = "hello"
 
         def scenario():
-            for key in key_sequence:
-                ni.process_streaming_keycode("KEY_{}".format(key))
+            execute_key_sequence(ni, key_sequence)
             assert not ni.in_foreground  # Should not be active
 
         with patch.object(ni, 'idle_loop', side_effect=scenario) as p:
@@ -109,8 +118,7 @@ class TestNumpadCharInput(unittest.TestCase):
         key_sequence = [4, 4, 1, "F2", 3, 3, "F2", 3, 3, 5, 5, 5, "RIGHT", 1, "F2", 5, 5, 5, 6, 6, 6, 1, 1, "ENTER"]
         expected_output = "hello!"
         def scenario():
-            for key in key_sequence:
-                ni.process_streaming_keycode("KEY_{}".format(key))
+            execute_key_sequence(ni, key_sequence)
             assert not ni.in_foreground  # Should not be active
 
         with patch.object(ni, 'idle_loop', side_effect=scenario) as p:

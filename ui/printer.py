@@ -1,8 +1,10 @@
+from time import sleep
+
 import PIL
 from PIL import ImageOps
-from time import sleep
-from funcs import format_for_screen as ffs
-from utils import fit_image_to_screen
+
+from ui.funcs import format_for_screen as ffs
+from ui.utils import fit_image_to_screen
 
 def Printer(message, i, o, sleep_time=1, skippable=True):
     """Outputs a string, or a list of strings, on a display as soon as it's called.
@@ -57,7 +59,7 @@ def Printer(message, i, o, sleep_time=1, skippable=True):
     #Now onto calculating the parameters and displaying the message screen-by-screen
     screen_rows = o.rows
     render_length = len(rendered_message)
-    num_screens = render_length/screen_rows #Number of screens it will take to show the whole message
+    num_screens = render_length//screen_rows #Number of screens it will take to show the whole message
     if render_length%screen_rows != 0: #There is one more screen necessary, it's just not full but we need it.
         num_screens += 1
     for screen_num in range(num_screens):

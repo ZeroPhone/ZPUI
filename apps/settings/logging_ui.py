@@ -38,7 +38,8 @@ def prettify_logger_names(names):
         elif name.startswith("input.drivers") or name.startswith("output.drivers"):
             # This is a driver logger
             driver_name = name.rsplit(".", 1)[1].capitalize().replace("_", " ")
-            name_mapping[name] = '{} driver'.format(driver_name)
+            driver_type = name.split(".", 1)[0]
+            name_mapping[name] = '{} {} driver'.format(driver_name, driver_type)
         else:
             # Fallback - name is not know and we can't yet prettify it
             name_mapping[name] = name

@@ -1,7 +1,7 @@
 from time import sleep
 
-from base_ui import BaseUIElement
-from canvas import Canvas
+from ui.base_ui import BaseUIElement
+from ui.canvas import Canvas
 
 class TimePicker(BaseUIElement):
 

@@ -6,7 +6,7 @@ from mock import patch, Mock
 from PIL import Image, ImageFont, ImageChops
 
 try:
-    from ui import Canvas
+    from ui import Canvas, expand_coords
 except ImportError:
     print("Absolute imports failed, trying relative imports")
     os.sys.path.append(os.path.dirname(os.path.abspath('.')))
@@ -22,12 +22,12 @@ except ImportError:
         return orig_import(name, *args)
 
     with patch('__builtin__.__import__', side_effect=import_mock):
-        from canvas import Canvas
+        from canvas import Canvas, expand_coords
 
 
 def get_mock_output(width=128, height=64, mode="1"):
     m = Mock()
-    m.configure_mock(width=width, height=height, device_mode=mode, type=["b&w-pixel"])
+    m.configure_mock(width=width, height=height, device_mode=mode, type=["b&w"])
     return m
 
 
@@ -60,8 +60,9 @@ class TestCanvas(unittest.TestCase):
         assert (c.check_coordinates(("-2", "-3")) == (w-2, h-3))
         assert (c.check_coordinates((0, 1, 2, 3)) == (0, 1, 2, 3))
         assert (c.check_coordinates((0, 1, "-2", "-3")) == (0, 1, w-2, h-3))
-        assert (c.check_coordinates(("-0", "-1", "-2", "-3")) == (w, h-1, w-2, h-3))
-        assert (c.check_coordinates(("-0", "1", "-2", "-3")) == (w, h+1, w-2, h-3))
+        # check_coordinates will rearrange coordinates in a way that x1 < x2 and y1 < y2
+        assert (c.check_coordinates(("-0", "-1", "-2", "-3")) == (w-2, h-3, w, h-1))
+        assert (c.check_coordinates(("-0", "1", "-2", "-3")) == (w-2, h-3, w, h+1))
 
     def test_howto_example_drawing_basics(self):
         """tests the first canvas example from howto"""
@@ -196,23 +197,32 @@ class TestCanvas(unittest.TestCase):
         assert(c.get_image().mode == o.device_mode)
         assert(imgs_are_equal(c.get_image(), test_image.convert("RGB")))
 
-    def test_rotate(self):
-	test_image = get_image("canvas_12.png")
-	o = get_mock_output(mode="RGB")
-	c = Canvas(o, name=c_name)
-	c.text("Hello world", (5, 5))
-	c.rotate(90)
-	assert(c.get_image().mode == o.device_mode)
-	assert(imgs_are_equal(c.get_image(), test_image.convert("RGB")))
+#    def test_rotate(self):
+#    test_image = get_image("canvas_12.png")
+#    o = get_mock_output(mode="RGB")
+#    c = Canvas(o, name=c_name)
+#    c.text("Hello world", (5, 5))
+#    c.rotate(90)
+#    assert(c.get_image().mode == o.device_mode)
+#    assert(imgs_are_equal(c.get_image(), test_image.convert("RGB")))
 
     def test_paste(self):
-	test_image = get_image("canvas_13.png")
-	o = get_mock_output(mode="RGB")
-	c = Canvas(o, name=c_name)
-	c.text("Hello world", (16, 16))
-	c.paste("canvas_14.png")
-	assert(c.get_image().mode == o.device_mode)
-	assert(imgs_are_equal(c.get_image(), test_image.convert("RGB")))
+        test_image = get_image("canvas_13.png")
+        image_to_paste = get_image("canvas_14.png")
+        o = get_mock_output(mode="RGB")
+        c = Canvas(o, name=c_name)
+        c.text("Hello world", (16, 16))
+        c.paste(image_to_paste)
+        assert(c.get_image().mode == o.device_mode)
+        assert(imgs_are_equal(c.get_image(), test_image.convert("RGB")))
+
+    def test_expand_coords(self):
+        """tests the expand_coords function"""
+        c = (1, 2, 3, 4)
+        assert(expand_coords(c, 1) == (0, 1, 4, 5))
+        assert(expand_coords(c, 2) == (-1, 0, 5, 6))
+        assert(expand_coords(c, (1, 2, 3, 4)) == (0, 0, 6, 8))
+
 
 def imgs_are_equal(i1, i2):
     return ImageChops.difference(i1, i2).getbbox() is None

@@ -1,11 +1,13 @@
 from time import sleep
+from functools import wraps
+from traceback import print_exc
 
 import PIL
 
+from ui.number_input import IntegerAdjustInput
+from ui.utils import to_be_foreground
+from ui.base_ui import BaseUIElement, internal_callback_in_background
 from helpers import setup_logger
-from number_input import IntegerAdjustInput
-from utils import to_be_foreground
-from base_ui import BaseUIElement, internal_callback_in_background
 
 logger = setup_logger(__name__, "info")
 
@@ -22,7 +24,7 @@ class Refresher(BaseUIElement):
     will be updated with whatever it returns.
     """
 
-    def __init__(self, refresh_function, i, o, refresh_interval=1, keymap=None, name="Refresher"):
+    def __init__(self, refresh_function, i, o, refresh_interval=1, keymap=None, name="Refresher", **kwargs):
         """Initialises the Refresher object.
 
         Args:
@@ -39,15 +41,14 @@ class Refresher(BaseUIElement):
 
             * ``refresh_interval``: Time between display refreshes (and, accordingly, ``refresh_function`` calls).
             * ``keymap``: Keymap entries you want to set while Refresher is active.
-              * If set to a string
               * By default, KEY_LEFT deactivates the Refresher, if you want to override it, make sure that user can still exit the Refresher.
             * ``name``: Refresher name which can be used internally and for debugging.
 
         """
         self.custom_keymap = keymap if keymap else {}
-        BaseUIElement.__init__(self, i, o, name, input_necessary=False)
+        BaseUIElement.__init__(self, i, o, name, input_necessary=False, **kwargs)
         self.set_refresh_interval(refresh_interval)
-        self.refresh_function = refresh_function
+        self.set_refresh_function(refresh_function)
         self.calculate_intervals()
 
     @property
@@ -67,18 +68,18 @@ class Refresher(BaseUIElement):
         printing things on the screen. Refreshes the screen when it's called.
         """
         if not self.in_foreground:
-            self.in_foreground = True
-            self.activate_input()
-            self.refresh()
+            self.to_foreground()
 
     def background_if_inactive(self):
         """
         If the UI element hasn't been launched yet, launches it in background
-        and waits until it's fully running.
+        and waits until it's fully running. Otherwise, resumes the UI element.
         """
         if not self.is_active:
             self.run_in_background()
             self.wait_for_active()
+        else:
+            self.resume()
 
     def wait_for_active(self, timeout=100):
         """
@@ -101,6 +102,11 @@ class Refresher(BaseUIElement):
         self.refresh_interval = new_interval
         self.sleep_time = 0.1 if new_interval > 0.1 else new_interval
         self.calculate_intervals()
+
+    def set_refresh_function(self, refresh_function):
+        if isinstance(refresh_function, RefresherView):
+            refresh_function.init(self.o)
+        self.refresh_function = refresh_function
 
     def calculate_intervals(self):
         """Calculates the sleep intervals of the refresher, so that no matter the
@@ -141,6 +147,34 @@ class Refresher(BaseUIElement):
     def generate_keymap(self):
         return {}
 
+    def process_callback(self, func):
+        """
+        Decorates a function so that during its execution the UI element stops
+        being in foreground. Is typically used as a wrapper for a callback from
+        input event processing thread. After callback's execution is finished,
+        sets the keymap again and refreshes the UI element.
+        """
+        # This function is copied from base_ui.py - the only difference is
+        # the RefresherExitException handling. TODO: think of a prettier way
+        # to make it work.
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            self.to_background()
+            self.to_background()
+            e = None
+            try:
+                func(*args, **kwargs)
+            except RefresherExitException:
+                self.deactivate()
+            except Exception as e:
+                print_exc()
+            logger.debug("{}: executed wrapped function: {}".format(self.name, func.__name__))
+            if self.in_background:
+                self.to_foreground()
+            if e:
+                raise e
+        return wrapper
+
     @to_be_foreground
     def refresh(self):
         logger.debug("{}: refreshed data on display".format(self.name))
@@ -158,10 +192,28 @@ class Refresher(BaseUIElement):
             #Passed a tuple. Let's convert it into a list!
             data_to_display = list(data_to_display)
         elif isinstance(data_to_display, PIL.Image.Image):
-            if "b&w-pixel" not in self.o.type:
+            if "b&w" not in self.o.type:
                 raise ValueError("The screen doesn't support showing images!")
             self.o.display_image(data_to_display)
             return
         elif not isinstance(data_to_display, list):
             raise ValueError("refresh_function returned an unsupported type: {}!".format(type(data_to_display)))
         self.o.display_data(*data_to_display)
+
+
+class RefresherView(object):
+    def __init__(self, text_callback, monochrome_callback, color_callback=None):
+        self.text_callback = text_callback
+        self.monochrome_callback = monochrome_callback
+        self.color_callback = color_callback
+
+    def init(self, o):
+        if "color" in o.type:
+            self.callback = self.color_callback if self.color_callback else self.monochrome_callback
+        elif "b&w" in o.type:
+            self.callback = self.monochrome_callback
+        else:
+            self.callback = self.text_callback
+
+    def __call__(self, *args, **kwargs):
+        return self.callback(*args, **kwargs)

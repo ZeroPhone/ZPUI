@@ -1,5 +1,6 @@
 import os
 import signal
+from actions import FirstBootAction
 from subprocess import check_output, STDOUT, CalledProcessError
 from time import sleep
 import json
@@ -9,7 +10,7 @@ try:
 except:
     import http.client as httplib
 
-from ui import Menu, PrettyPrinter, DialogBox, ProgressBar, Listbox, UniversalInput, TextReader, HelpOverlay
+from ui import Menu, PrettyPrinter, DialogBox, ProgressBar, Listbox, UniversalInput, HelpOverlay
 from helpers import setup_logger, read_or_create_config, save_config_method_gen, local_path_gen
 
 local_path = local_path_gen(__name__)
@@ -20,7 +21,6 @@ import about
 
 menu_name = "Settings"
 logger = setup_logger(__name__, "info")
-
 
 class GitInterface(object):
 
@@ -110,15 +110,24 @@ class GenericUpdater(object):
         else:
             logger.debug("Can't revert step {} - no reverter available.".format(step_name))
 
-    def update(self):
+    def update_on_firstboot(self):
+        choice = DialogBox("yn", i, o, message="Update ZPUI?", name="ZPUI update app firstboot dialog").activate()
+        if not choice:
+            return None
+        return self.update(suggest_restart=False)
+
+    def update(self, suggest_restart=True, skip_steps=None):
         logger.info("Starting update process")
         pb = ProgressBar(i, o, message="Updating ZPUI")
         pb.run_in_background()
         progress_per_step = 100 / len(self.steps)
+        skip_steps = skip_steps if skip_steps else []
 
         completed_steps = []
         try:
             for step in self.steps:
+                if step in skip_steps:
+                    continue
                 pb.set_message(self.progressbar_messages.get(step, "Loading..."))
                 sleep(0.5)  # The user needs some time to read the message
                 self.run_step(step)
@@ -128,6 +137,7 @@ class GenericUpdater(object):
             logger.info("Update is unnecessary!")
             pb.stop()
             PrettyPrinter("ZPUI already up-to-date!", i, o, 2)
+            return True
         except:
             # Name of the failed step is contained in `step` variable
             failed_step = step
@@ -157,12 +167,15 @@ class GenericUpdater(object):
             pb.stop()
             logger.info("Update failed")
             PrettyPrinter("Update failed, try again later?", i, o, 3)
+            return False
         else:
             logger.info("Update successful!")
             sleep(0.5)  # showing the completed progressbar
             pb.stop()
             PrettyPrinter("Update successful!", i, o, 3)
-            self.suggest_restart()
+            if suggest_restart:
+                self.suggest_restart()
+            return True
 
     def suggest_restart(self):
         needs_restart = DialogBox('yn', i, o, message="Restart ZPUI?").activate()
@@ -313,9 +326,18 @@ class GitUpdater(GenericUpdater):
 
 i = None  # Input device
 o = None  # Output device
+git_updater = None
+context = None
+update_zpui_fba = None
+
+def set_context(c):
+    global context
+    context = c
+    context.register_firstboot_action(bugreport_ui.autosend_optin_fba)
+    context.register_firstboot_action(update_zpui_fba)
 
 def init_app(input, output):
-    global i, o
+    global i, o, git_updater, update_zpui_fba
     i = input
     o = output
     logging_ui.i = i
@@ -326,14 +348,15 @@ def init_app(input, output):
     about.i = i
     about.o = o
     about.git_if = GitInterface
+    git_updater = GitUpdater()
+    update_zpui_fba = FirstBootAction("update_zpui", git_updater.update_on_firstboot, depends=["check_connectivity"])
 
 def callback():
-    git_updater = GitUpdater()
     c = [["Update ZPUI", git_updater.update, git_updater.settings],
          ["Bugreport", bugreport_ui.main_menu],
          ["Logging settings", logging_ui.config_logging],
          ["About", about.about]]
     menu = Menu(c, i, o, "ZPUI settings menu")
-    tr = TextReader("Press RIGHT on \"Update ZPUI\" to change OTA update settings (branch or git URL to use)", i, o, h_scroll=False)
-    HelpOverlay(tr.activate).apply_to(menu)
+    help_text = "Press RIGHT on \"Update ZPUI\" to change OTA update settings (branch or git URL to use)"
+    HelpOverlay(help_text).apply_to(menu)
     menu.activate()

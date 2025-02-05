@@ -8,22 +8,32 @@ from uuid import uuid4 as gen_uuid
 
 from ui import Menu, DialogBox, TextReader, LoadingIndicator, PrettyPrinter, PathPicker, Checkbox
 from helpers import read_or_create_config, local_path_gen, save_config_gen, setup_logger
+from actions import FirstBootAction as FBA
+
 from libs import dmesg
 from libs.bugreport.bugreport import BugReport
 
 import psutil
 
-uuid_info_text = """UUID is the unique identifier of a bugreport sender.
-It's only used for tracking whether an error has been fixed in subsequent bugreports,
-or corellating bugreports with phones (with consent and cooperation of the phone owner)
-in case the owner inquires about the bug through other channels (IRC/Matrix/email/GitHub/
-etc.). It is randomly generated without using any persistent identifying information
-(i.e. hostname), so if you're not expecting a bugfix for your particular issue, feel
-free to regenerate it at any time. In the future, it will be used by ZPUI to
-query about whether there's a fix concerning a bugreport sent by particular UUID,
+uuid_info_text = """UUID is the unique identifier of a bugreport sender. \
+It's only used for tracking whether an error has been fixed in subsequent bugreports, \
+or corellating bugreports with phones (with consent and cooperation of the phone owner) \
+in case the owner inquires about the bug through other channels (IRC/Matrix/email/GitHub/etc.). \
+It is randomly generated, so if you're not expecting a bugfix for your particular \
+issue, feel \
+free to regenerate it at any time. In the future, it will be used by ZPUI to \
+query about whether there's a fix concerning a bugreport sent by particular UUID, \
 and then notify the owner about it (opt-in, of course)."""
 
-default_config = '{"uuid":"", "last_choices":""}'
+bugreport_optin_text = """ZPUI has built-in bugreport facilities to ensure error-free operation. \
+These allow to automatically send somewhat-anonymized logs to ZeroPhone servers \
+whenever some kind of exception happens in ZPUI (either core or apps), \
+so that the bug that caused the exception can be fixed.
+Your logs, once submitted, will be handled with care, processed quickly \
+and fully deleted as soon as possible. You can read more  (and change your choice) \
+in the Settings=>Bugreport menu."""
+
+default_config = '{"uuid":"", "last_choices":"", "autosend":false}'
 config_filename = "bugreport_config.json"
 
 local_path = local_path_gen(__name__)
@@ -51,6 +61,7 @@ git_if = None
 def main_menu():
     mc = [["Send a bugreport", send_files],
           ["Manage UUID", manage_uuid],
+          ["Automatic bugreports", control_autosend],
           ["Privacy policy", read_privacy_policy]]
     Menu(mc, i, o, name="Bugreport app main menu").activate()
 
@@ -210,6 +221,32 @@ def manage_uuid():
           ["What is UUID?", uuid_info]]
     Menu(mc, i, o, name="Bugreport app UUID menu").activate()
 
+def control_autosend():
+    is_autosent = config.get("autosend", False)
+    d = DialogBox("yn", i, o, message="Automatically send bugreports?", name="Autosend control dialog box")
+    d.set_start_option(0 if is_autosent else 1)
+    choice = d.activate()
+    if choice is not None:
+        config["autosend"] = True if choice else False
+        save_config(config)
+
+def firstboot_log_autosend_opt_in():
+    more = True
+    while more: # Need to restart the DialogBox every time "learn more" option is picked
+        choice = DialogBox(["y", "n", ["Learn more", "more"]], i, o, message="Automatically send ZPUI error logs for analysis & fixing?").activate()
+        if choice is None:
+            return False
+        elif choice != "more":
+            more = False
+            if choice:
+                logger.info("Automatic sending of bugreports enabled")
+                config["autosend"] = True
+                save_config(config)
+            return True
+        else:
+            TextReader(bugreport_optin_text, i, o, "Bugreport app UUID reader", h_scroll=False).activate()
+    return False
+
 def generate_uuid():
     uuid = str(gen_uuid())
     config["uuid"] = uuid
@@ -221,3 +258,5 @@ def see_uuid():
 
 def uuid_info():
     TextReader(uuid_info_text, i, o, "Bugreport app UUID info reader", h_scroll=False).activate()
+
+autosend_optin_fba = FBA("error_log_auto_send", firstboot_log_autosend_opt_in)

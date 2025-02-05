@@ -1,10 +1,10 @@
 from time import sleep
 from copy import copy
+
+from ui.utils import to_be_foreground
+from ui.base_ui import BaseUIElement
 from helpers import setup_logger
 logger = setup_logger(__name__, "warning")
-
-from utils import to_be_foreground
-from base_ui import BaseUIElement
 
 class IntegerAdjustInput(BaseUIElement):
     """Implements a simple number input dialog which allows you to increment/decrement a number using  which can be used to navigate through your application, output a list of values or select actions to perform. Is one of the most used elements, used both in system core and in most of the applications.
@@ -102,8 +102,8 @@ class IntegerAdjustInput(BaseUIElement):
         "KEY_RIGHT":'reset',
         "KEY_UP":'increment',
         "KEY_DOWN":'decrement',
-        "KEY_PAGEUP":lambda: self.increment(multiplier=10),
-        "KEY_PAGEDOWN":lambda: self.decrement(multiplier=10),
+        "KEY_F3":lambda: self.increment(multiplier=10),
+        "KEY_F4":lambda: self.decrement(multiplier=10),
         "KEY_ENTER":'select_number',
         "KEY_LEFT":'exit'
         }

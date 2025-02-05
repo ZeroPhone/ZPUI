@@ -3,9 +3,10 @@ from math import cos
 from threading import Thread
 from time import time
 
-from canvas import Canvas
-from refresher import Refresher
-from utils import clamp, Chronometer, to_be_foreground, Rect
+from ui.canvas import Canvas
+from ui.refresher import Refresher
+from ui.utils import clamp, Chronometer, to_be_foreground, Rect
+from helpers import setup_logger
 
 """
 These UI elements are used to show the user that something is happening in the background.
@@ -19,6 +20,8 @@ These classes are based on `Refresher`.
 """
 
 # ========================= abstract classes =========================
+
+logger = setup_logger(__name__, "info")
 
 
 class Paused(object):
@@ -40,15 +43,31 @@ class Paused(object):
 
 class BaseLoadingIndicator(Refresher):
     """Abstract class for "loading indicator" elements."""
+    on_left_cb = None
 
-    def __init__(self, i, o, *args, **kwargs):
+    def __init__(self, i, o, on_left=None, *args, **kwargs):
         self._progress = 0
+        if on_left:
+            self.set_on_left(on_left)
+        keymap = kwargs.get("keymap", {})
+        if "KEY_LEFT" not in keymap:
+            keymap["KEY_LEFT"] = "on_left"
+        kwargs["keymap"] = keymap
         Refresher.__init__(self, self.on_refresh, i, o, *args, **kwargs)
         self.t = None
         self.paused = Paused(self)
 
+    def set_on_left(self, on_left):
+        self.on_left_cb = on_left
+
     def on_refresh(self):
         pass
+
+    def on_left(self):
+        if callable(self.on_left_cb):
+            self.on_left_cb()
+        else:
+            logger.warning("{}: User pressed LEFT but there's no LEFT handler, bad UX!".format(self.name))
 
     def set_message(self, new_message):
         self.message = new_message
@@ -299,7 +318,7 @@ class GraphicalProgressBar(ProgressIndicator):
 def ProgressBar(i, o, *args, **kwargs):
     """Instantiates and returns the appropriate kind of progress bar
     for the output device - either graphical or text-based."""
-    if "b&w-pixel" in o.type:
+    if "b&w" in o.type:
         return GraphicalProgressBar(i, o, *args, **kwargs)
     elif "char" in o.type:
         return TextProgressBar(i, o, *args, **kwargs)
@@ -310,7 +329,7 @@ def ProgressBar(i, o, *args, **kwargs):
 def LoadingBar(i, o, *args, **kwargs):
     """Instantiates and returns the appropriate kind of loading indicator
     for the output device - either graphical or text-based."""
-    if "b&w-pixel" in o.type:
+    if "b&w" in o.type:
         return Throbber(i, o, *args, **kwargs)
     elif "char" in o.type:
         return IdleDottedMessage(i, o, *args, **kwargs)

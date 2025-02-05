@@ -5,6 +5,8 @@ from datetime import datetime
 
 from ui import Menu, PrettyPrinter, GraphicsPrinter
 
+from actions import BackgroundAction as Action
+
 i = None
 o = None
 context = None
@@ -23,7 +25,7 @@ def take_screenshot():
 def set_context(received_context):
     global context
     context = received_context
-    context.register_action("screenshot", take_screenshot, "Take screenshot", description="Takes a screenshot from previous app")
+    context.register_action(Action("screenshot", take_screenshot, menu_name="Take screenshot", description="Takes a screenshot from previous app"))
 
 def init_app(input, output):
     global i, o

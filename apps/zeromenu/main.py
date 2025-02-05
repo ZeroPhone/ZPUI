@@ -2,8 +2,9 @@ menu_name = "ZeroMenu"
 
 import os
 
+from actions import Action, ContextSwitchAction, FirstBootAction
 from ui import Menu, PrettyPrinter, Checkbox, Listbox
-from helpers import read_or_create_config, local_path_gen, save_config_gen
+from helpers import read_or_create_config, local_path_gen, save_config_gen, setup_logger
 
 i = None
 o = None
@@ -17,10 +18,13 @@ local_path = local_path_gen(__name__)
 config = read_or_create_config(local_path(config_filename), default_config, menu_name+" app")
 save_config = save_config_gen(local_path(config_filename))
 
+logger = setup_logger(__name__, "warning")
+
 def set_context(received_context):
     global context
     context = received_context
     context.request_global_keymap({"KEY_PROG2":context.request_switch})
+    context.threaded = True
     context.set_target(zeromenu.activate)
 
 def set_ordering():
@@ -66,10 +70,10 @@ def manage_contents():
     global config
     cc = []
     for action in context.get_actions():
-        menu_name_cb = action["menu_name_cb"]
-        menu_name = menu_name_cb() if callable(menu_name_cb) else menu_name_cb
-        name = action["full_name"]
-        is_excluded = action["full_name"] not in config["excluded_actions"]
+        menu_name_or_cb = action.menu_name
+        menu_name = menu_name_or_cb() if callable(menu_name_or_cb) else menu_name_or_cb
+        name = action.full_name
+        is_excluded = action.full_name not in config["excluded_actions"]
         cc.append([menu_name, name, is_excluded])
     choice = Checkbox(cc, i, o, default_state=False, name="ZeroMenu contents checkbox").activate()
     if choice:
@@ -87,18 +91,36 @@ def settings_menu():
     #      ["Set ordering", set_ordering]]
     Menu(mc, i, o, name="ZeroMenu settings menu").activate()
 
+def wrap_cb_in_context_switch(action, cb):
+    def wrapper():
+        context.request_switch(action.context)
+        cb()
+    return wrapper
+
+def get_cb(action):
+    if getattr(action, "func", None) is None:
+        return None
+    else:
+        cb = action.func
+        if action.will_context_switch:
+            cb = wrap_cb_in_context_switch(action, cb)
+    return cb
+
 def init_app(input, output):
     global i, o, zeromenu
     i = input; o = output
     def get_contents():
         mc = []
-        for action in context.get_actions():
-            if action["full_name"] not in config["excluded_actions"]:
-                menu_name_cb = action["menu_name_cb"]
-                menu_name = menu_name_cb() if callable(menu_name_cb) else menu_name_cb
-                entry = [menu_name, action["cb"]]
-                if action["aux_cb"]:
-                    entry.append(action["aux_cb"])
+        for name, action in context.get_actions().items():
+            if isinstance(action, FirstBootAction):
+                logger.debug("Action {} is a firstboot action, ignoring".format(name))
+            elif name not in config["excluded_actions"]:
+                menu_name_or_cb = action.menu_name
+                menu_name = menu_name_or_cb() if callable(menu_name_or_cb) else menu_name_or_cb
+                cb = get_cb(action)
+                entry = [menu_name, cb]
+                if hasattr(action, "aux_cb"):
+                    entry.append(action.aux_cb)
                 mc.append(entry)
         if config["app_open_entries"]:
             context_list = [entry for entry in context.list_contexts()]
@@ -109,4 +131,3 @@ def init_app(input, output):
         mc.append(["ZM settings", settings_menu])
         return mc
     zeromenu = Menu([], i, o, name="ZeroMenu main menu", contents_hook=get_contents)
-

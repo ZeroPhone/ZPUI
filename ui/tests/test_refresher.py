@@ -4,9 +4,10 @@ import unittest
 
 from mock import patch, Mock
 
+from PIL import Image
 
 try:
-    from ui import Refresher, RefresherExitException
+    from ui import Refresher, RefresherExitException, RefresherView
 except ImportError:
     print("Absolute imports failed, trying relative imports")
     os.sys.path.append(os.path.dirname(os.path.abspath('.')))
@@ -22,18 +23,21 @@ except ImportError:
         return orig_import(name, *args)
 
     with patch('__builtin__.__import__', side_effect=import_mock):
-        from refresher import Refresher, RefresherExitException
+        from refresher import Refresher, RefresherExitException, RefresherView
 
 
 def get_mock_input():
     return Mock()
-
 
 def get_mock_output(rows=8, cols=21):
     m = Mock()
     m.configure_mock(rows=rows, cols=cols, type=["char"])
     return m
 
+def get_mock_graphical_output(width=128, height=64, mode="1", cw=6, ch=8):
+    m = get_mock_output(rows=width//cw, cols=height//ch)
+    m.configure_mock(width=width, height=height, device_mode=mode, char_height=ch, char_width=cw, type=["b&w"])
+    return m
 
 r_name = "Test Refresher"
 
@@ -50,14 +54,14 @@ class TestRefresher(unittest.TestCase):
         """Tests the keymap entries"""
         r = Refresher(lambda: "Hello", get_mock_input(), get_mock_output(), name=r_name)
         self.assertIsNotNone(r.keymap)
-        for key_name, callback in r.keymap.iteritems():
+        for key_name, callback in r.keymap.items():
             self.assertIsNotNone(callback)
 
     def test_string_keymap(self):
         """Tests the keymap entries"""
         k = {"KEY_LEFT":'refresh', "KEY_RIGHT":'deactivate'}
         r = Refresher(lambda: "Hello", get_mock_input(), get_mock_output(), keymap=k, name=r_name)
-        for key_name, callback in r.keymap.iteritems():
+        for key_name, callback in r.keymap.items():
             self.assertIsNotNone(callback)
         assert (r.keymap["KEY_LEFT"] == r.refresh)
         assert (r.keymap["KEY_RIGHT"] == r.deactivate)
@@ -162,7 +166,7 @@ class TestRefresher(unittest.TestCase):
         o = get_mock_output()
         r = Refresher(lambda: "Hello", i, o, name=r_name, refresh_interval=0.1)
         r.refresh = lambda *args, **kwargs: None
-        
+
         r.to_foreground()
         assert i.set_keymap.called
         assert i.set_keymap.call_count == 1
@@ -222,6 +226,36 @@ class TestRefresher(unittest.TestCase):
             keymap2.update(keymap1)
             assert(r.keymap == keymap2)
 
+    def test_refresher_view(self):
+        text_cb = Mock()
+        text_cb.return_value = "Test"
+        monochrome_cb = Mock()
+        monochrome_cb.return_value = Image.new("1", (128, 64))
+        color_cb = Mock()
+        color_cb.return_value = Image.new("RGB", (128, 64))
+        view = RefresherView(text_cb, monochrome_cb, color_cb)
+        i = get_mock_input()
+        o = get_mock_output()
+        r = Refresher(view, i, o)
+        r.to_foreground()
+        r.refresh()
+        assert(text_cb.called)
+        assert(o.display_data.called)
+        assert(o.display_data.call_count == 2)
+        o = get_mock_graphical_output()
+        r = Refresher(view, i, o)
+        r.to_foreground()
+        r.refresh()
+        assert(monochrome_cb.called)
+        assert(o.display_image.called)
+        assert(o.display_image.call_count == 2)
+        o.type.append("color")
+        r = Refresher(view, i, o)
+        r.to_foreground()
+        r.refresh()
+        assert(color_cb.called)
+        assert(o.display_image.called)
+        assert(o.display_image.call_count == 4)
 
 if __name__ == '__main__':
     unittest.main()

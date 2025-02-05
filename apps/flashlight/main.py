@@ -1,6 +1,7 @@
 menu_name = "Flashlight"
 
 from zerophone_hw import RGB_LED
+from actions import BackgroundAction as Action
 
 led = None
 state = False
@@ -13,7 +14,7 @@ def init_app(i, o):
 def set_context(c):
     global context
     context = c
-    context.register_action("flashlight_toggle", callback, get_state_message, description="Flashlight toggle")
+    context.register_action(Action("flashlight_toggle", callback, menu_name=get_state_message, description="Flashlight toggle"))
 
 def get_state_message():
     if state:

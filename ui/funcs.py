@@ -2,9 +2,9 @@
 
 import string
 
-from helpers import setup_logger
-
 from unidecode import unidecode
+
+from helpers import setup_logger
 
 logger = setup_logger(__name__, "info")
 
@@ -80,7 +80,7 @@ def format_values_into_text_grid(values, o):
             col_i += 1
             cols[col_i].append(val)
     # filtering empty cols
-    cols = filter(None, cols)
+    cols = list(filter(None, cols))
     # padding string values
     for a, col in enumerate(cols):
         max_len = max([len(x) for x in col])
@@ -120,8 +120,12 @@ def replace_filter_ascii(text, replace_characters=replace_characters):
     strings with Unicode characters, you'll want to use this function to filter your
     text before displaying.
     """
-    if isinstance(text, str) and not isinstance(text, unicode):
-        text = text.decode('utf-8')
+    try:
+        if isinstance(text, str) and not isinstance(text, unicode):
+            text = text.decode('utf-8')
+    except NameError:
+        if isinstance(text, bytes):
+            text = text.decode('utf-8')
     # First, developer-added exceptions
     for character, replacement in replace_characters.items():
         if character in text:
@@ -129,7 +133,7 @@ def replace_filter_ascii(text, replace_characters=replace_characters):
     # Then, use the unidecode() function
     text = unidecode(text)
     # Filter all non-printable characters left
-    text = filter(lambda x: x in printable_characters, text)
+    text = "".join(list(filter(lambda x: x in printable_characters, text)))
     return text
 
 rfa = replace_filter_ascii

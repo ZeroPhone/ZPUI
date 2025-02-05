@@ -25,7 +25,9 @@ default_config = """{
  {"path":"wget",
   "name":"wget google main page",
   "args":["http://www.google.com"]}
-]}"""
+],
+"history":[]
+}"""
 
 local_path = local_path_gen(__name__)
 config_path = local_path(config_filename)
@@ -97,18 +99,45 @@ def call_by_path():
     if args is not None:
         path = path + " " + args
     call_external(path, shell=True)
+    if path not in config["history"]:
+        config["history"] = [path] + config["history"]
+        save_config(config)
 
-
-def call_command():
-    command = UniversalInput(i, o, message="Command:", name="Script command input").activate()
-    if command is None:
-        return
+def call_command(command=None):
+    if not command:
+        command = UniversalInput(i, o, message="Command:", name="Script command input").activate()
+        if not command:
+            return
     call_external(command, shell=True)
+    if command not in config["history"]:
+        config["history"] = [command] + config["history"]
+        save_config(config)
+
+def exec_history_entry(num):
+    call_command(config["history"][num])
+
+def del_history_entry(num):
+    answer = DialogBox("yn", i, o, message="Delete entry?").activate()
+    if answer:
+        config["history"].pop(num)
+        save_config(config)
+
+def history_menu():
+    def get_mc():
+        c = []
+        for i, entry in enumerate(config["history"]):
+            exec_e = lambda x=i: exec_history_entry(x)
+            del_e = lambda x=i: del_history_entry(x)
+            c.append([entry, exec_e, del_e])
+        return c
+    Menu([], i, o, contents_hook=get_mc, name="Scripts app history menu").activate()
 
 
 def callback():
     script_menu_contents = [["Script by path", call_by_path],
-                            ["Custom command", call_command]]
+                            ["Custom command", call_command],
+                            ["History", history_menu],
+                           ]
     scripts_in_config = []
     for script_def in config["scripts"]:
         script_path = script_def["path"]

@@ -35,8 +35,8 @@ def get_mock_output(rows=8, cols=21):
 shorthands = {
     "u":"KEY_UP",
     "d":"KEY_DOWN",
-    "p":"KEY_PAGEUP",
-    "q":"KEY_PAGEDOWN",
+    "p":"KEY_F3",
+    "q":"KEY_F4",
     "l":"KEY_LEFT",
     "r":"KEY_RIGHT",
     "e":"KEY_ENTER"}

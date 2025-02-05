@@ -1,0 +1,69 @@
+digraph {
+  label="\nUI element input processing - thread interactions v1.0"
+  compound=true;
+
+  subgraph cluster_activate {
+    label="1. The activate() thread" 
+    // Connections
+    before_foreground -> to_foreground
+    to_foreground -> still_executing
+    still_executing -> before_deactivation [label="no longer active"];
+    before_deactivation -> deactivation
+    deactivation -> after_deactivation
+    // Labels
+    before_foreground[label="..."];
+    to_foreground[label="to_foreground()"];
+    still_executing[label="Still executing?\n(self.is_active check)", shape="diamond", style=""];
+    before_deactivation[label="..."];
+    deactivation[label="Deactivation"];
+    after_deactivation[label="..."];
+  }
+
+  subgraph cluster_inputthread {
+    label="2. The input processing thread" 
+    // Connections
+    wait_key -> get_key
+    get_key -> is_it_suitable
+    is_it_suitable -> is_it_internal_callback [lhead=cluster_executingcallback, label="Found callback for key"];
+    is_it_suitable -> is_not_suitable [label="Callback not found"];
+    is_not_suitable -> wait_key
+    wait_key -> thread_exiting [label="Exit flag detected"];
+    // Labels
+    wait_key[label="Waiting for key events"];
+    get_key[label="Got key event from input system"];
+    is_it_suitable[label="Looking up callback for key"];
+    is_not_suitable[label="Back to waiting"];
+    thread_exiting[label="Thread exiting"];
+
+    subgraph cluster_executingcallback {
+      label="Executing the callback" 
+      // Connections
+      is_it_internal_callback -> executing_callback [label="Internal callback"];
+      is_it_internal_callback -> going_to_background [label="External callback"];
+      going_to_background -> executing_callback
+      executing_callback -> is_element_in_background
+      is_element_in_background -> cb_end [label="Element still in foreground"];
+      is_element_in_background -> el_to_foreground [label="Element in background (not exited)"];
+      el_to_foreground -> cb_end
+      // Labels
+      is_it_internal_callback[label="Internal or external callback?", shape="diamond", style=""];
+      executing_callback[label="Executing callback"];
+      going_to_background[label="Going to background"];
+      is_element_in_background[label="Is UI el. in background?", shape="diamond", style=""];
+      cb_end[label="Back to waiting for key event"];
+      el_to_foreground[label="Bringing UI el. to foreground"];
+    }
+
+  }
+
+  // Connections 
+  to_foreground -> spawn_input_thread
+  spawn_input_thread -> wait_key [lhead=cluster_inputthread];
+  deactivation -> stop_input_thread
+  stop_input_thread -> wait_key
+
+  // Labels/styles
+  spawn_input_thread[shape="box", style=rounded, label="Spawning input thread"];
+  stop_input_thread[shape="box", style=rounded, label="Setting flag for input thread to exit"];
+
+}

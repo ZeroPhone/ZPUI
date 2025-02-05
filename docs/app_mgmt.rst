@@ -36,7 +36,7 @@ Class-based
 -----------
 Class-based apps need a single ``class`` inheriting from ``ZeroApp`` to work.
 
-* ``__init__(self, i, o)`` is called when the app is **loaded**. That is, when the UI boots. Avoid doing any heavy work here, it would slow down everything, and there is no guarantee the app is going to be activated at this point. You need to call the base class constructor to keep a reference to the input and output devices (``self.i, self.o``).
+* ``init_app(self)`` is called when the app is **loaded**. That is, when the UI boots. Avoid doing any heavy work here, it would slow down everything, and there is no guarantee the app is going to be activated at this point. There's ways to do heavy stuff on boot, check the Example page!
 * ``on_load(self)`` is called when the app is actually opened and brought to foreground. This is where most of your code should belong.
 * ``menu_name`` is a member variable that can be set to define the name of the application shown in the main menu. If not provided, it will fall back to the name of the parent directory.
 

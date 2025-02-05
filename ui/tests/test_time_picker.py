@@ -27,7 +27,7 @@ def get_mock_input():
 
 def get_mock_output(width=128, height=64, mode="1"):
     m = Mock()
-    m.configure_mock(width=width, height=height, device_mode=mode, type=["b&w-pixel"])
+    m.configure_mock(width=width, height=height, device_mode=mode, type=["b&w"])
     return m
 
 tp_name = "Test TimePicker"
@@ -44,7 +44,7 @@ class TestDatePicker(unittest.TestCase):
 		"""Tests keymap"""
 		tp = TimePicker(get_mock_input(), get_mock_output(), name=tp_name)
 		self.assertIsNotNone(tp)
-		for key_name, callback in tp.keymap.iteritems():
+		for key_name, callback in tp.keymap.items():
 			self.assertIsNotNone(callback)
 
 	# Test whether it returns None when deactivating it

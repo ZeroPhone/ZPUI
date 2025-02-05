@@ -1,11 +1,10 @@
 from threading import Event
 from time import sleep
 
-from base_list_ui import BaseListUIElement, to_be_foreground
-from loading_indicators import LoadingBar
-from utils import clamp, clamp_list_index
-from entry import Entry
-
+from ui.base_list_ui import BaseListUIElement, to_be_foreground
+from ui.loading_indicators import LoadingBar
+from ui.utils import clamp, clamp_list_index
+from ui.entry import Entry
 from helpers import setup_logger
 
 logger = setup_logger(__name__, "warning")
@@ -56,10 +55,12 @@ class Menu(BaseListUIElement):
             * ``catch_exit``: If ``MenuExitException`` is received and catch_exit is False, it passes ``MenuExitException`` to the parent menu so that it exits, too. If catch_exit is True, MenuExitException is not passed along.
             * ``exitable``: Decides if menu can exit by pressing ``KEY_LEFT``. Set by default and disables ``KEY_LEFT`` callback if unset. Is used for ZPUI main menu, not advised to be used in other settings.
             * ``contents_hook``: A function that is called every time menu goes in foreground that returns new menu contents. Allows to almost-dynamically update menu contents.
+            * ``on_contents_hook_fail``: A function that is called when ``contents_hook`` raises an exception or returns None. Will be passed two arguments: 1) arg ``self`` (``Menu`` object) 2) kwarg ``exception=bool`` (``True`` or ``False``, whether ``contents_hook`` raised an exception or not).
 
         """
         self.catch_exit = kwargs.pop("catch_exit", True)
         self.contents_hook = kwargs.pop("contents_hook", None)
+        self.on_contents_hook_fail = kwargs.pop("on_contents_hook_fail", None)
         BaseListUIElement.__init__(self, *args, **kwargs)
 
     def before_activate(self):
@@ -67,8 +68,50 @@ class Menu(BaseListUIElement):
         self.exit_exception = False
 
     def before_foreground(self):
+        self.exec_contents_hook()
+
+    def trigger_contents_hook(self):
+        """
+        External method to trigger Menu contents update if the contents_hook is set.
+        If contents_hook is not set, raises an AttributeError.
+        """
+        result = self.exec_contents_hook()
+        if result is None:
+            raise AttributeError("{}: contents_hook is not set!".format(self.name))
+
+    def exec_contents_hook(self):
+        """
+        Executes ``contents_hook`` and, if successful, sets new contents.
+        If ``contents_hook`` failed to execute (or returned ``None``), will see if
+        ``on_contents_hook_fail`` attribute is callable and, if it is, calls it.
+        Otherwise, deactivates the ``Menu``.
+        Returns ``True`` if successful. If failed at any step, returns ``False``.
+        If contents_hook is not set, returns ``None``.
+        """
         if callable(self.contents_hook):
-            self.set_contents(self.contents_hook())
+            try:
+                new_contents = self.contents_hook()
+            except:
+                logger.exception("{}: contents hook raised an exception!".format(self.name))
+                if callable(self.on_contents_hook_fail):
+                    self.on_contents_hook_fail(self, exception=True)
+                else:
+                    # Just making the menu exit by deactivating
+                    self.deactivate()
+                return False
+            else:
+                if new_contents is not None:
+                    self.set_contents(new_contents)
+                    return True
+                else:
+                    if callable(self.on_contents_hook_fail):
+                        self.on_contents_hook_fail(self, exception=False)
+                    else:
+                        logger.error("{}: contents hook returned None, on_contents_hook_fail not set - deactivating".format(self.name))
+                        self.deactivate()
+                    return False
+        else:
+            return None
 
     def get_return_value(self):
         if self.exit_exception:
@@ -110,6 +153,8 @@ class Menu(BaseListUIElement):
                 callback()
             except MenuExitException:
                 self.exit_exception = True
+            except Exception as exc:
+                logger.exception("{}: Callback raised an exception".format(self.name))
             finally:
                 if self.exit_exception:
                     self.deactivate()
@@ -142,17 +187,25 @@ class MenuRenderingMixin(object):
     def has_second_callback(self, entry):
         if isinstance(entry, Entry):
             if callable(entry.cb2):
-               return True
+                return True
         elif len(entry) > 2 and callable(entry[2]):
             return True
         return False
 
-    def draw_triangle(self, c, index):
-        contents_entry = self.el.contents[self.first_displayed_entry + index/self.el.entry_height]
+    def draw_graphic(self, c, index):
+        # c is the canvas object
+        # draw_graphic is called for each line of text - not menu entry!
+        # so, index is the "line number" - assuming 4 lines/display,
+        # for entry_height=1, each index will correspond to a menu entry
+        # for entry_height=2, indices 0-1 will be used for the first menu entry
+        # and 2-3 will be used for the second menu entry
+        # hence, the /self.entry_height part
+        print(self.first_displayed_entry, index, self.entry_height)
+        contents_entry = self.el.contents[self.first_displayed_entry + index//self.entry_height]
         if self.has_second_callback(contents_entry):
-            tw, th = self.charwidth / 2, self.charheight / 2
+            tw, th = self.charwidth // 2, self.charheight // 2
             right_offset = 1
-            top_offset = (self.charheight - th) / 2
+            top_offset = (self.charheight - th) // 2
             coords = (
                 (str(-1*(right_offset+tw)), index * self.charheight + top_offset),
                 (str(-1*(right_offset+tw)), index * self.charheight + top_offset + th),
@@ -164,15 +217,22 @@ class MenuRenderingMixin(object):
         for i, line in enumerate(menu_text):
             y = (i * self.charheight - 1) if i != 0 else 0
             c.text(line, (left_offset, y), font=self.font)
-            if "b&w-pixel" in self.o.type:
-                self.draw_triangle(c, i)
+            if "b&w" in self.o.type:
+                self.draw_graphic(c, i)
 
 
 Menu.view_mixin = MenuRenderingMixin
 
 
 class MessagesMenu(Menu):
-    """A modified version of the Menu class for displaying a list of messages and loading new ones"""
+    """
+    A modified version of the Menu class
+    for displaying a list of messages and loading new ones
+
+    HERE BE DRAGONS
+    FORMATTING PROBABLY BROKEN
+    PROCEED WITH CAUTION
+    """
 
     load_more_possible = True
     load_more_marker = ["Load more"]
@@ -189,11 +249,11 @@ class MessagesMenu(Menu):
         Menu.before_activate(self)
         self.pointer = clamp(len(self.contents) - 2, 0, len(self.contents)-1)
         if self.contents: # Not empty
-		self.add_load_more_marker()
+            self.add_load_more_marker()
 
     def add_load_more_marker(self):
-	if [self.load_more_marker] not in self.contents:
-	        self.contents = [self.load_more_marker] + self.contents
+        if [self.load_more_marker] not in self.contents:
+            self.contents = [self.load_more_marker] + self.contents
 
     def remove_load_more_marker(self):
         while self.load_more_marker in self.contents:
@@ -202,32 +262,32 @@ class MessagesMenu(Menu):
     def load_more(self):
         self.load_more_allow_refresh.clear()
         before = len(self.contents)
-	self.remove_load_more_marker()
-	has_loaded_more_events = True
-	contents_added = False
+        self.remove_load_more_marker()
+        has_loaded_more_events = True
+        contents_added = False
         counter = 0
         li = None
-	while has_loaded_more_events and not contents_added:
-                if counter == 5: # the user is let down, let's at least show them stuff is happening
-                    li = LoadingBar(self.i, self.o, message="Loading messages", name="{} - load_more() LoadingBar")
-                    li.run_in_background()
-	        has_loaded_more_events = self.load_more_callback()
+        while has_loaded_more_events and not contents_added:
+            if counter == 5: # the user is let down, let's at least show them stuff is happening
+                li = LoadingBar(self.i, self.o, message="Loading messages", name="{} - load_more() LoadingBar")
+                li.run_in_background()
+                has_loaded_more_events = self.load_more_callback()
                 logger.debug("Loaded more events!")
-		if has_loaded_more_events:
-			self.remove_load_more_marker()
-			self.add_load_more_marker()
-		        after = len(self.contents)
-			difference = after-before
-			if difference > 0:
-				contents_added = True
-				logger.info("Loaded {} messages".format(difference))
-			        self.pointer += (after-before)+1
-			else:
-				logger.info("Loaded events but no messages, retrying")
-			self.pointer = clamp_list_index(self.pointer, self.contents)
-		else:
-			self.remove_load_more_marker()
-                counter += 1
+                if has_loaded_more_events:
+                    self.remove_load_more_marker()
+                    self.add_load_more_marker()
+                    after = len(self.contents)
+            difference = after-before
+            if difference > 0:
+                contents_added = True
+                logger.info("Loaded {} messages".format(difference))
+                self.pointer += (after-before)+1
+            else:
+                logger.info("Loaded events but no messages, retrying")
+            self.pointer = clamp_list_index(self.pointer, self.contents)
+        else:
+            self.remove_load_more_marker()
+            counter += 1
         if li: # LoadingBar fired up, need to stop it now
             li.stop()
             sleep(0.5) # until it actually stops =D

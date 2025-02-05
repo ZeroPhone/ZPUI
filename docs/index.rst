@@ -21,6 +21,7 @@ Guides:
 References:
 ===========
 
+- :doc:`Crash course <crash_course>`
 - :doc:`UI elements <ui>`
 - :doc:`Helper functions <helpers>`
 - :doc:`Input system <input>`
@@ -43,6 +44,7 @@ References:
 
    setup.rst
    config.rst
+   crash_course.rst
    howto.rst
    ui.rst
    helpers.rst

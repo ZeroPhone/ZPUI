@@ -48,7 +48,7 @@ class TestPathPicker(unittest.TestCase):
         """tests keymap"""
         pp = PathPicker("/tmp", get_mock_input(), get_mock_output(), name=pp_name, config={})
         self.assertIsNotNone(pp.keymap)
-        for key_name, callback in pp.keymap.iteritems():
+        for key_name, callback in pp.keymap.items():
             self.assertIsNotNone(callback)
 
     def test_left_key_returns_none(self):

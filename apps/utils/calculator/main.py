@@ -368,9 +368,9 @@ def set_keymap():
               "KEY_UP": lambda: next_mode(-1),   # prev mode/ help
               "KEY_DOWN": lambda: next_mode(+1), # next mode / help
               "KEY_ANSWER": values.save,         # save to memory
-              "KEY_PAGEUP": values.read,         # read from memory
+              "KEY_F3": values.read,             # read from memory
               "KEY_HANGUP": values.add_memory,   # add to memory
-              "KEY_PAGEDOWN": values.sub_memory, # sub from memory
+              "KEY_F4": values.sub_memory,       # sub from memory
               "KEY_F2": values.clear_memory,
               "KEY_F1": toggle_degree,
               "KEY_F5": help,

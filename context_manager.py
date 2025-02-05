@@ -1,5 +1,6 @@
 from input.input import InputProxy
 from output.output import OutputProxy
+from actions import ContextSwitchAction
 from action_manager import ActionManager
 
 from functools import wraps
@@ -59,14 +60,14 @@ class Context(object):
         """
         return self.i, self.o
 
-    def activate(self):
+    def activate(self, start_thread=True):
         """
         Starts the context - if it's threaded, starts the thread, otherwise it assumes
         that there's already a running thread and does nothing. In latter case, throws
         an exception if it detects that a supposedly non-threaded context has the ``threaded``
         flag set.
         """
-        if self.is_threaded():
+        if self.is_threaded() and start_thread:
             if not self.thread_is_active():
                 self.verify_target()
                 self.start_thread()
@@ -75,6 +76,8 @@ class Context(object):
         else:
             if self.name == "main":
                 logger.debug("Main context does not have thread target, that is to be expected")
+            elif not start_thread:
+                logger.info("Instructed not to start the thread for context {}".format(self.name))
             elif self.threaded:
                 logger.warning("Context {} does not have a target! Raising an exception".format(self.name))
                 raise ContextError("Context {} does not have a target!".format(self.name))
@@ -154,21 +157,28 @@ class Context(object):
 
     def exclusive_status(self):
         """
-        Rescind exclusive context switch from the app. Will only work if such a context is
-        already requested.
+        Request whether there's an app that has grabbed exclusive context.
         """
         return self.event_cb(self.name, "exclusive_status")
 
-    def request_switch(self, requested_context=None):
+    def request_switch(self, requested_context=None, start_thread=True):
         """
         Requests ContextManager to switch to the context in question. If switch is done,
         returns True, otherwise returns False. If a context name is supplied,
         will switch to that context.
         """
         if requested_context:
-            return self.event_cb(self.name, "request_switch_to", requested_context)
+            return self.event_cb(self.name, "request_switch_to", requested_context, start_thread=start_thread)
         else:
-            return self.event_cb(self.name, "request_switch")
+            return self.event_cb(self.name, "request_switch", start_thread=start_thread)
+
+    def request_context_start(self, context_alias):
+        """
+        Asks ContextManager to start a context in the background.
+        Useful for i.e. a lockscreen starting an app that it'll grab images
+        from so that they can be displayed on the lockscreen's idle screen.
+        """
+        return self.event_cb(self.name, "request_context_start", context_alias)
 
     def is_active(self):
         """
@@ -183,24 +193,24 @@ class Context(object):
         """
         return self.event_cb(self.name, "get_previous_context_image")
 
-    def register_action(self, name, cb, menu_name_cb, description="", aux_cb = None, documentation='', *args, **kwargs):
+    def get_context_image(self, context_alias):
+        """
+        Useful for showing images from other contexts - i.e. lockscreen.
+        """
+        return self.event_cb(self.name, "get_context_image", context_alias)
+
+    def register_action(self, action):
         """
         Allows an app to register an 'action' that can be used by other apps -
         for example, ZeroMenu.
-
-        Arguments:
-
-          * ``name``: software-friendly name
-          * ``cb``: the main callback, which will be called when the action is called. Should expect no parameters.
-          * ``menu_name_cb``: the callback that will be called to get the menu name. Can be a string instead.
-          * ``description``: the user-friendly description of the action, one sentence or more
-          * ``aux_cb``: the auxiliary callback. For example, ZeroMenu will have that mapped to the right click.
-          * ``documentation``: documentation for the callback/auxiliary callback usage
         """
-        d = {'name':name, 'cb':cb, 'menu_name_cb':menu_name_cb, 'description':description, 'aux_cb':aux_cb, 'documentation':documentation}
-        d.update(kwargs)
-        d['args'] = args
-        return self.event_cb(self.name, "register_action", dict=d)
+        return self.event_cb(self.name, "register_action", action)
+
+    def register_firstboot_action(self, action):
+        """
+        Allows an app to register an action that shall be run on ZP first boot.
+        """
+        return self.event_cb(self.name, "register_firstboot_action", action)
 
     def get_actions(self):
         return self.event_cb(self.name, "get_actions")
@@ -224,13 +234,13 @@ class ContextManager(object):
     fallback_context = "main"
     initial_contexts = ["main"]
     start_context = "main"
-    allowed_exclusive_contexts = ["apps.lockscreen"]
+    allowed_exclusive_contexts = ["apps.lockscreen", "apps.firstboot_wizard"]
 
     def __init__(self):
         self.contexts = {}
         self.previous_contexts = {}
         self.switching_contexts = Lock()
-        self.am = ActionManager()
+        self.am = ActionManager(self)
 
     def init_io(self, input_processor, screen):
         """
@@ -282,7 +292,7 @@ class ContextManager(object):
         """
         self.contexts[context_alias].menu_name = menu_name
 
-    def switch_to_context(self, context_alias):
+    def switch_to_context(self, context_alias, start_thread=True):
         """
         Lets you switch to another context by its alias.
         """
@@ -291,7 +301,7 @@ class ContextManager(object):
             self.previous_contexts[context_alias] = self.current_context
             with self.switching_contexts:
                 try:
-                    self.unsafe_switch_to_context(context_alias)
+                    self.unsafe_switch_to_context(context_alias, start_thread=start_thread)
                 except ContextError:
                     logger.exception("A ContextError was caught")
                     self.previous_contexts.pop(context_alias)
@@ -299,11 +309,11 @@ class ContextManager(object):
                 else:
                     return True
 
-    def unsafe_switch_to_context(self, context_alias, do_raise=True):
+    def unsafe_switch_to_context(self, context_alias, do_raise=True, start_thread=True):
         """
         This is a non-thread-safe context switch function. Not to be used directly
         - is only for internal usage. In case an exception is raised, sets things as they
-        were before and re-raises the exception - in the worst case,
+        were before and re-raises the exception.
         """
         logger.info("Switching to {} context".format(context_alias))
         previous_context = self.current_context
@@ -326,7 +336,7 @@ class ContextManager(object):
                 raise
         # Activating the context - restoring everything if it fails
         try:
-            self.contexts[context_alias].activate()
+            self.contexts[context_alias].activate(start_thread=start_thread)
         except:
             logger.exception("Switching to the {} context failed - couldn't activate the context!".format(context_alias))
             # Activating IO of the previous context
@@ -473,15 +483,25 @@ class ContextManager(object):
         elif event == "get_previous_context_image":
             # This is a special-case function for screenshots. I'm wondering
             # if there's a better way to express this.
-            previous_context = self.get_previous_context(context_alias)
+            previous_context = self.get_previous_context(self.current_context)
             return self.contexts[previous_context].get_io()[1].get_current_image()
+        elif event == "get_context_image":
+            # This is a special-case function for lockscreens. I'm wondering
+            # if there's a better way to express this.
+            context = args[0]
+            return self.contexts[context].get_io()[1].get_current_image()
         elif event == "is_active":
             return context_alias == self.current_context
         elif event == "register_action":
-            d = kwargs["dict"]
-            d["app_name"] = context_alias
-            d["full_name"] = "{}-{}".format(context_alias, d["name"])
-            self.am.register_action(**d)
+            action = args[0]
+            action.full_name = "{}-{}".format(context_alias, action.name)
+            action.context = context_alias
+            if isinstance(action, ContextSwitchAction) and action.target_context is None:
+                action.target_context = context_alias
+            self.am.register_action(action)
+        elif event == "register_firstboot_action":
+            action = args[0]
+            self.am.register_firstboot_action(action, context_alias)
         elif event == "request_exclusive":
             if self.exclusive_context and self.exclusive_context != context_alias:
                 logger.warning("Context {} requested exclusive switch but {} already got it".format(context_alias, self.exclusive_context))
@@ -497,7 +517,7 @@ class ContextManager(object):
         elif event == "rescind_exclusive":
             if self.exclusive_context == context_alias:
                 self.exclusive_context = None
-                return self.signal_event("finished", context_alias)
+                return True
             else:
                 return False
         elif event == "exclusive_status":
@@ -523,17 +543,26 @@ class ContextManager(object):
             # As usecases appear, we will likely want to do some checks here
             logger.info("Context switch requested by {} app".format(context_alias))
             if self.exclusive_context:
-                return False
-            return self.switch_to_context(context_alias)
+                # If exclusive context is active, only an app that has it
+                # can initiate a switch.
+                if context_alias != self.exclusive_context:
+                    return False
+            return self.switch_to_context(context_alias, start_thread=kwargs.get("start_thread", True))
         elif event == "request_switch_to":
             # If app is not the one active, should we honor its request?
             # probably not, but we might want to do something about it
             # to be considered
             if self.exclusive_context:
-                return False
+                # If exclusive context is active, only an app that has it
+                # can initiate a switch to other context
+                if context_alias != self.exclusive_context:
+                    return False
             new_context = args[0]
             logger.info("Context switch to {} requested by {} app".format(new_context, context_alias))
-            return self.switch_to_context(new_context)
+            return self.switch_to_context(new_context, start_thread=kwargs.get("start_thread", True))
+        elif event == "request_context_start":
+            context_alias = args[0]
+            return self.contexts[context_alias].activate()
         elif event == "request_global_keymap":
             results = {}
             keymap = args[0]

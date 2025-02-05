@@ -1,7 +1,7 @@
 import os
 
-from menu import Menu, MenuExitException, to_be_foreground
-from printer import Printer
+from ui.menu import Menu, MenuExitException, to_be_foreground
+from ui.printer import Printer
 from helpers import setup_logger
 logger = setup_logger(__name__, "warning")
 

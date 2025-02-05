@@ -1,8 +1,8 @@
 from helpers import setup_logger
 logger = setup_logger(__name__, "warning")
 
-from base_list_ui import BaseListUIElement, to_be_foreground
-from entry import Entry
+from ui.base_list_ui import BaseListUIElement, to_be_foreground
+from ui.entry import Entry
 
 class OrderAdjust(BaseListUIElement):
     """Implements an UI element to change ordering of a list of things.

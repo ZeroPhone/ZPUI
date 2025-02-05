@@ -74,6 +74,8 @@ do_not_load
 /log_config.json
 # Emulator flag file
 /emulator
+# Firstboot list file
+/zpui_firstboot.list
 # Ignoring the default screenshot folder
 /screenshots/
 # Nano files

@@ -6,7 +6,7 @@ from functools import wraps
 import time
 import os, sys
 
-from ui import Menu, PrettyPrinter, Checkbox, NumpadNumberInput, LoadingIndicator, HelpOverlay, TextReader
+from ui import Menu, PrettyPrinter, Checkbox, NumpadNumberInput, LoadingIndicator, HelpOverlay
 from if_info import get_ip_addr, get_network_from_ip, sort_ips
 
 try:
@@ -348,8 +348,8 @@ def callback():
     ["Scan localhost", scan_localhost]
     ]
     menu = Menu(menu_contents, i, o)
-    tr = TextReader("Press F6 in the scan results menu to save the scan results into a file", i, o, h_scroll=False)
-    HelpOverlay(tr.activate).apply_to(menu)
+    help_text = "Press F6 in the scan results menu to save the scan results into a file"
+    HelpOverlay(help_text).apply_to(menu)
     menu.activate()
     #Have to remove the dump function callback because once application exits it isn't removed automatically
     i.remove_maskable_callback("KEY_F6")

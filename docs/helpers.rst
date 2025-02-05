@@ -10,6 +10,11 @@ running initialization tasks or exiting event loops on a keypress.
 They can help you build the logic of your application quicker, and allow 
 to not repeat the code that was already written for other ZPUI apps.
 
+ProHelper
+---------
+
+:ref:`See here for ProHelper documentation and usage examples <process_helper>`
+
 .. automodule:: helpers
 
 local_path_gen helper

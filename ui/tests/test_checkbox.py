@@ -38,7 +38,7 @@ def get_mock_output(rows=8, cols=21):
 
 def get_mock_graphical_output(width=128, height=64, mode="1", cw=6, ch=8):
     m = get_mock_output(rows=width/cw, cols=height/ch)
-    m.configure_mock(width=width, height=height, device_mode=mode, char_height=ch, char_width=cw, type=["b&w-pixel"])
+    m.configure_mock(width=width, height=height, device_mode=mode, char_height=ch, char_width=cw, type=["b&w"])
     return m
 
 cb_name = "Test checkbox"
@@ -56,7 +56,7 @@ class TestCheckbox(unittest.TestCase):
         """tests keymap"""
         checkbox = Checkbox([["Option", "option"]], get_mock_input(), get_mock_output(), name=cb_name, config={})
         self.assertIsNotNone(checkbox.keymap)
-        for key_name, callback in checkbox.keymap.iteritems():
+        for key_name, callback in checkbox.keymap.items():
             self.assertIsNotNone(callback)
 
     def test_exit_label_leakage(self):

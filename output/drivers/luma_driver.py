@@ -3,6 +3,7 @@
 #luma.oled library used: https://github.com/rm-hull/luma.oled
 
 from mock import Mock
+from threading import Lock
 
 try:
     from luma.core.interface.serial import spi, i2c
@@ -10,12 +11,14 @@ except ImportError:
     #Compatilibity with older luma.oled version
     from luma.core.serial import spi, i2c
 from luma.core.render import canvas
+from PIL import ImageChops
 
-from threading import Lock
 
-from backlight import *
-
-from ..output import GraphicalOutputDevice, CharacterOutputDevice
+from output.drivers.backlight import *
+try:
+    from ..output import GraphicalOutputDevice, CharacterOutputDevice
+except ModuleNotFoundError:
+    from output import GraphicalOutputDevice, CharacterOutputDevice
 
 
 class LumaScreen(GraphicalOutputDevice, CharacterOutputDevice, BacklightManager):
@@ -27,7 +30,7 @@ class LumaScreen(GraphicalOutputDevice, CharacterOutputDevice, BacklightManager)
 
     __base_classes__ = (GraphicalOutputDevice, CharacterOutputDevice)
 
-    type = ["char", "b&w-pixel"]
+    type = ["char", "b&w"]
     cursor_enabled = False
     cursor_pos = (0, 0) #x, y
 
@@ -65,12 +68,13 @@ class LumaScreen(GraphicalOutputDevice, CharacterOutputDevice, BacklightManager)
         elif hw == "i2c":
             self.port = port if port else self.default_i2c_port
             if isinstance(address, basestring): address = int(address, 16)
-            self.address = address
+            self.address = address if address else self.default_i2c_address
             self.serial = i2c(port=self.port, address=self.address)
         elif hw == "dummy":
             self.port = port
             self.address = address
             self.serial = Mock(unsafe=True)
+            kwargs["gpio"] = Mock()
         else:
             raise ValueError("Unknown interface type: {}".format(hw))
         self.busy_flag = Lock()
@@ -78,8 +82,8 @@ class LumaScreen(GraphicalOutputDevice, CharacterOutputDevice, BacklightManager)
         self.height = height if height else self.default_height
         self.char_width = 6
         self.char_height = 8
-        self.cols = self.width / self.char_width
-        self.rows = self.height / self.char_height
+        self.cols = self.width // self.char_width
+        self.rows = self.height // self.char_height
         self.init_display(**kwargs)
         self.device_mode = self.device.mode
         BacklightManager.init_backlight(self, **kwargs)
@@ -93,12 +97,28 @@ class LumaScreen(GraphicalOutputDevice, CharacterOutputDevice, BacklightManager)
         self.device.hide()
 
     @activate_backlight_wrapper
-    def display_image(self, image):
+    def display_image(self, image, actually_output=False):
         """Displays a PIL Image object onto the display
         Also saves it for the case where display needs to be refreshed"""
         with self.busy_flag:
             self.current_image = image
             self._display_image(image)
+
+    def trigger_backlight_on_change(self, func_name, *args, **kwargs):
+        """
+        Hook that allows the backlight driver to determine whether the image has changed.
+        """
+        if func_name == "display_image":
+            image = args[0]
+            is_new_image = ImageChops.difference(image, self.current_image).getbbox() is None
+            return is_new_image
+        elif func_name == "display_data":
+            # Redundant, sorry =(
+            image = self.display_data_onto_image(*args)
+            is_new_image = ImageChops.difference(image, self.current_image).getbbox() is None
+            return is_new_image
+        else:
+            raise ValueError("Unknown function wrapped, wtf?")
 
     def _display_image(self, image):
         self.device.display(image)

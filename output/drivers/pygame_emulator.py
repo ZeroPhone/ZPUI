@@ -28,8 +28,8 @@ class Screen(OutputDevice):
         """ Sets variables for high-level functions."""
         self.char_width = 6
         self.char_height = 8
-        self.cols = 128 / self.char_width
-        self.rows = 64 / self.char_height
+        self.cols = 128 // self.char_width
+        self.rows = 64 // self.char_height
 
         self.init_display(**kwargs)
 

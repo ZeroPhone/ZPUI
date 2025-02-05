@@ -7,7 +7,6 @@ class TaskManager(ZeroApp):
 
     def set_context(self, c):
         self.context = c
-        c.register_action("switch_main_menu", lambda: c.request_switch("main"), "Main menu")
 
     def get_contexts(self):
         return self.context.list_contexts()

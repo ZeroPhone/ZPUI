@@ -1,12 +1,12 @@
 This application allows you to send us the ZPUI log files to help us solve ZPUI
-and ZeroPhone problems. It will never do so without your explicit confirmation.
-In the future, when we implement opt-in automatic notifications on exceptions,
-then it will prompt you for confirmation using a notification or a context switch.
+and ZeroPhone problems. It will never do so without your permission, whether
+on a case-by-case basis or as a result of you permitting to send all bugreports automatically.
 
-This function is meant to be used together with ZPUI/ZeroPhone online issue trackers,
+The bugreport function, when used manually, is meant to be used together with ZPUI/ZeroPhone online issue trackers,
 such as one located at https://github.com/ZeroPhone/ZPUI/issues . Logs that will be sent
 without a request from our side will be, nevertheless, examined, under the assumption
-that the user sent them to help us fix a ZPUI/ZeroPhone problem.
+that they were sent automatically or that the user sent them to help us fix
+a ZPUI/ZeroPhone problem.
 
 Note that there might still be personally identifying information in the logs (for
 example, input exception catching mechanism also prints out local variables from
@@ -15,9 +15,9 @@ the files before they're sent to us, access them and edit them.
 
 We will only store your files for as long as it takes to identify the problem, but
 no more than 30 days. The bugreport contents, if successfully processed by our backend,
-will be emailed to our Protonmail account, then, when received,will be downloaded to
+will be emailed to a Protonmail email account, then, once received, will be downloaded to
 our portable device of choice (most likely, a personal laptop), examined, filtered through
-and then deleted once the problem is resolved (or 30 days pass). Currently, only the main
+and then deleted (storing only the problem details). Currently, only the main
 developer (Arsenijs) has access to the email account, you'll be notified if the situation
 changes. If this bugreport processing mechanism doesn't suit you, we're thinking of a way
 for you to run your own personal server for notifications as one of the possible workarounds.

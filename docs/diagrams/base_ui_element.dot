@@ -1,0 +1,44 @@
+digraph {
+  compound=true;
+  subgraph cluster_activate {
+    // Connections
+    before_activate -> to_foreground
+    to_foreground -> still_executing
+    still_executing -> after_activate [label="no longer active"];
+    after_activate -> get_return_value;
+    get_return_value -> return_value [penwidth=3];
+    // Labels
+    before_activate[label="before_activate()"];
+    to_foreground[label="to_foreground()"];
+    after_activate[label="after_activate()"];
+    get_return_value[label="get_return_value()"];
+    return_value[label="Return value"];
+    still_executing[label="Still executing?\n(self.is_active check)"]
+    label="activate()" 
+  }
+  subgraph cluster_toforeground {
+    to_foreground -> before_foreground
+    before_foreground -> activate_input
+    activate_input -> refresh
+    before_foreground[label="before_foreground()"];
+    activate_input[label="activate_input()"];
+    refresh[label="refresh()"];
+    label="to_foreground()" 
+  }
+
+  start[shape="box", style=rounded];
+  end[shape="box", style=rounded];
+  return_value[shape="parallelogram", style=""];
+  still_executing[shape="diamond", style=""];
+ 
+  start -> before_activate [lhead=cluster_activate];
+  // Idle loop arrows
+  still_executing -> idle_loop [label="still active"];
+  idle_loop -> still_executing
+  // End
+  return_value -> end [penwidth=3; label=" activate() return value"]
+
+  end[label="Execution returns to your code"];
+
+  label="\nBasic UI element workflow (no __init__ or input processing shown) v1.0"
+}

@@ -4,6 +4,7 @@ menu_name = "USB control"
 
 from zerophone_hw import USB_DCDC
 from ui import Menu, Printer
+from actions import BackgroundAction
 from time import sleep
 import os
 
@@ -22,7 +23,7 @@ def set_context(c):
     global context
     context = c
     call_usb_app = lambda: context.request_switch()
-    context.register_action("usb_toggle", dcdc_toggle, get_menu_name, description="Toggles USB port power", aux_cb=call_usb_app)
+    context.register_action(BackgroundAction("usb_toggle", dcdc_toggle, menu_name=get_menu_name, description="Switches USB port power on or off", aux_cb=call_usb_app))
 
 def dcdc_off_on():
     global dcdc_state

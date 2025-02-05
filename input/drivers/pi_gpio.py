@@ -1,6 +1,6 @@
 from time import sleep
 
-from skeleton import InputSkeleton
+from input.drivers.skeleton import InputSkeleton, KEY_PRESSED, KEY_RELEASED
 
 class InputDevice(InputSkeleton):
     """ A driver for pushbuttons attached to Raspberry Pi GPIO.
@@ -10,14 +10,17 @@ class InputDevice(InputSkeleton):
     are enabled. If internal pullups are not desired, supply
     `"pullups":false` in config.json and provide your own pullups."""
 
+    supports_key_states = True
+    supports_held_state = False
+
     default_mapping = [
     "KEY_UP",
     "KEY_DOWN",
     "KEY_LEFT",
     "KEY_RIGHT",
     "KEY_ENTER",
-    "KEY_PAGEUP",
-    "KEY_PAGEDOWN",
+    "KEY_F3",
+    "KEY_F4",
     "KEY_PROG1"]
 
     def __init__(self, button_pins=[], pullups=True, **kwargs):
@@ -53,9 +56,10 @@ class InputDevice(InputSkeleton):
             for i, pin_num in enumerate(self.button_pins):
                 button_state = self.GPIO.input(pin_num)
                 if button_state != self.button_states[i]:
-                    if button_state == False and self.enabled:
+                    if self.enabled:
                         key = self.mapping[i]
-                        self.map_and_send_key(key)
+                        state = KEY_RELEASED if button_state else KEY_PRESSED
+                        self.map_and_send_key(key, state=state)
                     self.button_states[i] = button_state
             sleep(0.01)
 

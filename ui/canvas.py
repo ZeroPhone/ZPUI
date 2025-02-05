@@ -42,7 +42,7 @@ class Canvas(object):
 
     def __init__(self, o, base_image=None, name="", interactive=False):
         self.o = o
-        if "b&w-pixel" not in o.type:
+        if "b&w" not in o.type:
             raise ValueError("The output device supplied doesn't support pixel graphics!")
         self.width = o.width
         self.height = o.height
@@ -59,6 +59,7 @@ class Canvas(object):
         self.interactive = interactive
 
     def load_image(self, image):
+        assert(image.size == self.size)
         self.image = image.copy()
         self.draw = ImageDraw.Draw(self.image)
 
@@ -197,7 +198,8 @@ class Canvas(object):
         coords = self.check_coordinates(coords)
         char_coords = list(coords)
         if not charheight: # Auto-determining charheight if not available
-            _, charheight = self.draw.textsize("H", font=font)
+            _, t, _, b = self.draw.textbbox((0, 0), "H", font=font)
+            charheight = b-t
         for char in text:
             self.draw.text(char_coords, char, fill=fill, font=font, **kwargs)
             char_coords[1] += charheight
@@ -306,6 +308,31 @@ class Canvas(object):
         self.draw.ellipse(coords, outline=outline, fill=fill, **kwargs)
         self.display_if_interactive()
 
+    def arc(self, coords, start, end, **kwargs):
+        """
+        Draw an arc on the canvas. Coordinates are expected in
+        ``(x1, y1, x2, y2)`` format, where ``x1`` & ``y1`` are coordinates
+        of the top left corner, and ``x2`` & ``y2`` are coordinates
+        of the bottom right corner. ``start`` and ``end`` angles are
+        measured in degrees (360 is a full circle), start at 0 (3 o'clock)
+        and increase *clockwise*.
+
+        .. code_block:: python
+                270
+              225  315
+            180      0
+              135  45
+                 90
+
+        Keyword arguments:
+
+          * ``fill``: text color (default: white, as default canvas color)
+        """
+        coords = self.check_coordinates(coords)
+        fill = kwargs.pop("fill", self.default_color)
+        self.draw.arc(coords, start, end, fill=fill, **kwargs)
+        self.display_if_interactive()
+
     def get_image(self):
         """
         Get the current ``PIL.Image`` object.
@@ -318,7 +345,7 @@ class Canvas(object):
         especially with those displays having even numbers as width and height
         in pixels (that is, the absolute majority of them).
         """
-        return self.width / 2, self.height / 2
+        return self.width // 2, self.height // 2
 
     def invert(self):
         """
@@ -393,8 +420,14 @@ class Canvas(object):
             return coords
         elif len(coords) == 4:
             x1, y1, x2, y2 = coords
-            # Not sure those checks make sense
-            #assert (x2 >= x1), "x2 ({}) is smaller than x1 ({}), rearrange?".format(x2, x1)
+            # sanity checks for coordinates
+            if (x1 >= x2):
+                x2, x1 = x1, x2
+                logger.info("x1 ({}) is smaller than x2 ({}), rearranging".format(x1, x2))
+            if (y1 >= y2):
+                y2, y1 = y1, y2
+                logger.info("y1 ({}) is smaller than y2 ({}), rearranging".format(y1, y2))
+            coords = x1, y1, x2, y2
             #assert (y2 >= y1), "y2 ({}) is smaller than y1 ({}), rearrange?".format(y2, y1)
             return coords
         else:
@@ -413,7 +446,7 @@ class Canvas(object):
             # Didn't get pairs of coordinates - converting into pairs
             # But first, sanity checks
             assert (len(coord_pairs) % 2 == 0), "Odd number of coordinates supplied! ({})".format(coord_pairs)
-            assert all([isinstance(c, (int, basestring)) for i in coord_pairs]), "Coordinates are non-uniform! ({})".format(coord_pairs)
+            assert all([isinstance(i, (int, basestring)) for i in coord_pairs]), "Coordinates are non-uniform! ({})".format(coord_pairs)
             coord_pairs = convert_flat_list_into_pairs(coord_pairs)
         coord_pairs = list(coord_pairs)
         for i, coord_pair in enumerate(coord_pairs):
@@ -443,7 +476,8 @@ class Canvas(object):
         if text == "":
             return (0, 0)
         font = self.decypher_font_reference(font)
-        w, h = self.draw.textsize(text, font=font)
+        l, t, r, b = self.draw.textbbox((0, 0), text, font=font)
+        w, h = r-l, b-t
         return w, h
 
     def get_centered_text_bounds(self, text, cw=None, ch=None, font=None):
@@ -457,8 +491,8 @@ class Canvas(object):
         """
         w, h = self.get_text_bounds(text, font=font)
         # Text center width and height
-        tcw = w / 2
-        tch = h / 2
+        tcw = w // 2
+        tch = h // 2
         # Real center width and height
         rcw, rch = self.get_center()
         # If no values supplied as arguments (likely), using the real ones
@@ -489,30 +523,43 @@ class Canvas(object):
 
         self.display_if_interactive()
 
-    def rotate(self, degrees, expand=True):
-	"""
-	Rotates the image clockwise by the given amount of degrees. If
-	expand is set to False part of the original image may be cut
-	off.
-	"""
+#    def rotate(self, degrees, expand=True):
+#	"""
+#	Rotates the image clockwise by the given amount of degrees. If
+#	expand is set to False part of the original image may be cut
+#	off.
+#
+#	TODO: define behaviour and goals of this function better.
+#	For now, doesn't recalculate the canvas size, regenerate the
+#	``ImageDraw`` object or impose any restrictions.
+#	"""
+#
+#	self.image = self.image.rotate(degrees, expand=expand)
 
-	self.image = self.image.rotate(degrees, expand=expand)
+    def paste(self, image_or_path, coords=None, invert=False):
+        """
+        Pastes the supplied image onto the canvas, with optional
+        coordinates. Otherwise, you can supply a string path to an image
+            that will be opened and pasted.
 
-    def paste(self, image_to_paste, coords=None):
-	"""
-	Pastes the image supplied onto the current image. If coords
-	is kept as None, the image will be pasted in the top left
-	corner. Also, coords can be a 2-tuple giving the upper left
-	corner or a 4-tuple defining the left, upper, right and lower
-	pixel coordinate. If a 4-tuple is given the size of the pasted
-	image must match the size of the region.
+        If ``coords`` is not supplied, the image will be pasted in the top left
+        corner. ``coords`` can be a 2-tuple giving the upper left
+        corner or a 4-tuple defining the left, upper, right and lower
+        pixel coordinate. If a 4-tuple is given, the size of the pasted
+        image must match the size of the region.
         """
 
-	if isinstance(image_to_paste, basestring):
-            paste_image = Image.open(image_to_paste)
-    	else:
-            paste_image = image_to_paste
-	self.image.paste(paste_image, box=coords)
+        if coords is not None:
+            coords = self.check_coordinates(coords)
+        if isinstance(image_or_path, basestring):
+            image = Image.open(image_or_path)
+        else:
+            image = image_or_path
+        self.image.paste(image, box=coords)
+        if invert:
+            if not coords: coords = (0, 0)
+            coords = coords+(coords[0]+image.width, coords[1]+image.height)
+            self.invert_rect(coords)
 
     def display_if_interactive(self):
         if self.interactive:
@@ -533,21 +580,57 @@ class MockOutput(object):
 
       * ``width``
       * ``height``
-      * ``type``: ZPUI output device type list (``["b&w-pixel"]`` by default)
+      * ``type``: ZPUI output device type list (``["b&w"]`` by default)
       * ``device_mode``: PIL device.mode attribute (by default, ``'1'``)
     """
 
     def __init__(self, width=128, height=64, type=None, device_mode='1'):
         self.width = width
         self.height = height
-        self.type = type if type else ["b&w-pixel"]
+        self.type = type if type else ["b&w"]
         self.device_mode = device_mode
 
     def display_image(self, *args):
         return True
 
+
+def expand_coords(coords, expand_by):
+    """
+    A simple method to expand 4 coordinates: x1, y1, x2, y2.
+    If expand_by is an integer/float, will do x1-v, y1-v, x2+v, y2+v.
+    If expand_by is a list of 4 values, will do x1-v1, y1-v1, x2+v2, y2+v2.
+    """
+    if len(coords) != 4:
+        raise ValueError("expand_coords expects a tuple/list of 4 coordinates for 'coords', got {}".format(coords))
+    if not isinstance(expand_by, (int, float, list, tuple)):
+        raise ValueError("expand_coords expects an int/float/list/tuple as 'expand_by', got {} ({})".format(expand_by, type(expand_by)))
+    if isinstance(expand_by, (list, tuple)) and len(expand_by) != 4:
+        raise ValueError("expand_coords expects a 4-element list/tuple as 'expand_by', got {} ({} elements)".format(expand_by, len(expand_by)))
+    a, b, c, d = coords
+    e = expand_by
+    if isinstance(expand_by, (int, float)):
+        return (a-e, b-e, c+e, d+e)
+    else:
+        return (a-e[0], b-e[1], c+e[2], d+e[3])
+
+def crop(image, min_width=None, min_height=None, align=None):
+    bbox = image.getbbox()
+    print(bbox)
+    if bbox is None:
+        return Image.new(image.mode, (0, 0))
+    image = image.crop(bbox)
+    border = [0, 0, 0, 0]
+    if min_width and image.width<min_width:
+        border[0 if align == "right" else 2]=min_width-image.width
+    if min_height and image.height<min_height:
+        border[1 if align == "bottom" else 3]=min_height-image.height
+    print(border)
+    if border != [0, 0, 0, 0]:
+        image = ImageOps.expand(image, border=tuple(border), fill=Canvas.background_color)
+    return image
+
 def convert_flat_list_into_pairs(l):
     pl = []
-    for i in range(len(l)/2):
+    for i in range(len(l)//2):
         pl.append((l[i*2], l[i*2+1]))
     return pl

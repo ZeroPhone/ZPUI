@@ -3,7 +3,7 @@ menu_name = "MOCP control"
 import shlex
 
 from subprocess import call, CalledProcessError
-from ui import Menu, Printer, DialogBox, IntegerAdjustInput
+from ui import Menu, Printer, DialogBox, IntegerAdjustInput, IntegerAdjustInputOverlay
 from helpers import read_or_create_config, local_path_gen, save_config_gen
 
 i = None
@@ -18,6 +18,14 @@ save_config = save_config_gen(local_path(config_filename))
 
 # TODO: replace 'silent' calls with context.is_active() checks, so that we can then expose
 # actions to ZPUI
+
+iaio = IntegerAdjustInputOverlay()
+
+def get_ia(*args, **kwargs):
+    ia = IntegerAdjustInput(*args, **kwargs)
+    iaio.apply_to(ia)
+    return ia
+
 
 #MOCP commands
 def mocp_command(*command, **options):
@@ -50,7 +58,7 @@ def mocp_seek_ui(sign, silent=False):
         mocp_command('--seek', "{}{}".format(sign, amount), silent=silent)
 
 def get_seek_amount(message="Amount:", start=10):
-    return IntegerAdjustInput(start, i, o, message=message, min=0, name="MOCP app seek adjust").activate()
+    return get_ia(start, i, o, message=message, min=0, name="MOCP app seek adjust").activate()
 
 def option_switch_dialog(option):
     answer = DialogBox([["On", 'o'], ["Off", 'u'], ["Toggle", "t"]], i, o, message=option.capitalize()+":", name="MOCP {} option control dialog".format(option)).activate()

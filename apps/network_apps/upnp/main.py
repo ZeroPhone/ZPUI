@@ -58,7 +58,7 @@ def run_scan():
     if not found_devices:
         Printer("No devices found", i, o, 2)
     else:
-        data = [[ip, lambda x=ip, y=d: read_info(x, y)] for ip, d in found_devices.iteritems()]
+        data = [[ip, lambda x=ip, y=d: read_info(x, y)] for ip, d in found_devices.items()]
         Menu(data, i, o).activate()
 
 def read_info(ip_str, data):

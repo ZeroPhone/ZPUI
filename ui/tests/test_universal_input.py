@@ -28,13 +28,13 @@ except ImportError:
 zerophone_keys = [ "KEY_LEFT", "KEY_UP", "KEY_DOWN", "KEY_RIGHT", "KEY_ENTER",
                    "KEY_1", "KEY_2", "KEY_3", "KEY_4", "KEY_5", "KEY_6", "KEY_7",
                    "KEY_8", "KEY_9", "KEY_*", "KEY_0", "KEY_#", "KEY_F1", "KEY_F2",
-                   "KEY_ANSWER", "KEY_HANGUP", "KEY_PAGEUP", "KEY_PAGEDOWN", "KEY_F5",
+                   "KEY_ANSWER", "KEY_HANGUP", "KEY_F3", "KEY_F4", "KEY_F5",
                    "KEY_F6", "KEY_VOLUMEUP", "KEY_VOLUMEDOWN", "KEY_PROG1", "KEY_PROG2",
                    "KEY_CAMERA"]
 hardpass_keys = [ "KEY_1", "KEY_UP", "KEY_3", "KEY_LEFT", "KEY_ENTER", "KEY_RIGHT", "KEY_7",
                   "KEY_DOWN", "KEY_9", "KEY_*", "KEY_0", "KEY_#"]
-ad_oledbon_keys = [ "KEY_UP", "KEY_DOWN", "KEY_LEFT", "KEY_RIGHT", "KEY_ENTER", "KEY_PAGEUP",
-                    "KEY_PAGEDOWN", "KEY_PROG1"]
+ad_oledbon_keys = [ "KEY_UP", "KEY_DOWN", "KEY_LEFT", "KEY_RIGHT", "KEY_ENTER", "KEY_F3",
+                    "KEY_F4", "KEY_PROG1"]
 ascii_keyboard_keys = [ "KEY_1", "KEY_2", "KEY_3", "KEY_4", "KEY_5", "KEY_6", "KEY_7", "KEY_8",
                         "KEY_9", "KEY_0", "KEY_SPACE", "KEY_A", "KEY_B", "KEY_C", "KEY_D", "KEY_E",
                         "KEY_F", "KEY_G", "KEY_H", "KEY_I", "KEY_J", "KEY_K", "KEY_L", "KEY_M", "KEY_N",

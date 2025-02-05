@@ -4,7 +4,7 @@ import argparse
 import logging
 import os
 
-from general import Singleton
+from helpers.general import Singleton
 
 try:
     import ConfigParser as configparser
@@ -51,8 +51,12 @@ def get_log_level_for_logger(logger_name):
     return get_log_level_name(logging.getLogger(logger_name).level)
 
 def get_log_level_name(level):
-    assert(level in logging._levelNames)
-    return logging._levelNames[level]
+    try:
+        assert(level in logging._levelToName)
+        return logging._levelToName[level]
+    except AttributeError:
+        assert(level in logging._levelNames)
+        return logging._levelNames[level]
 
 def on_reload(*args):
     LoggingConfig().reload_config()

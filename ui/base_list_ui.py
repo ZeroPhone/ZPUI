@@ -6,11 +6,11 @@ from copy import copy
 from time import sleep
 from threading import Event
 
-from entry import Entry
-from canvas import Canvas
+from ui.entry import Entry
+from ui.canvas import Canvas
+from ui.base_ui import BaseUIElement
+from ui.utils import to_be_foreground, clamp_list_index
 from helpers import setup_logger
-from base_ui import BaseUIElement
-from utils import to_be_foreground, clamp_list_index
 
 logger = setup_logger(__name__, "warning")
 
@@ -122,7 +122,7 @@ class BaseListUIElement(BaseUIElement):
     def get_default_view(self):
         """Decides on the view to use for UI element when config file has
         no information on it."""
-        if "b&w-pixel" in self.o.type:
+        if "b&w" in self.o.type:
             return self.views["SixteenPtView"]
         elif "char" in self.o.type:
             return self.views["TextView"]
@@ -237,6 +237,30 @@ class BaseListUIElement(BaseUIElement):
         return True
 
     @to_be_foreground
+    def move_to_start(self, counter=None):
+        """ Goes to the first entry if not already there. """
+        if self.pointer != 0:
+            logger.debug("moved to start")
+            self.pointer = 0
+            self.refresh()
+            self.reset_scrolling()
+            return True
+        else:
+            return False
+
+    @to_be_foreground
+    def move_to_end(self):
+        """ Goes to the last entry if not already there. """
+        if self.pointer != len(self.contents)-1:
+            logger.debug("moved to end")
+            self.pointer = len(self.contents)-1
+            self.refresh()
+            self.reset_scrolling()
+            return True
+        else:
+            return False
+
+    @to_be_foreground
     def select_entry(self):
         """To be overridden by child UI elements. Is executed when ENTER is pressed
            in UI element."""
@@ -252,12 +276,13 @@ class BaseListUIElement(BaseUIElement):
 
     def generate_keymap(self):
         """Makes the keymap dictionary for the input device."""
-        # Has to be in a function because otherwise it will be a SyntaxError
         return {
             "KEY_UP": "move_up",
             "KEY_DOWN": "move_down",
-            "KEY_PAGEUP": "page_up",
-            "KEY_PAGEDOWN": "page_down",
+            "KEY_F3": "page_up",
+            "KEY_F4": "page_down",
+            "KEY_HOME": "move_to_start",
+            "KEY_END": "move_to_end",
             "KEY_ENTER": "select_entry",
             "KEY_RIGHT": "process_right_press"
         }
@@ -362,7 +387,7 @@ class TextView(object):
         return self.el.in_foreground
 
     def get_entry_count_per_screen(self):
-        return self.get_fow_height_in_chars() / self.entry_height
+        return self.get_fow_height_in_chars() // self.entry_height
 
     def get_fow_width_in_chars(self):
         return self.o.cols
@@ -477,7 +502,6 @@ class TextView(object):
     def get_active_line_num(self):
         return (self.el.pointer - self.first_displayed_entry) * self.entry_height
 
-    @to_be_foreground
     def refresh(self):
         logger.debug("{}: refreshed data on display".format(self.el.name))
         self.fix_pointers_on_refresh()
@@ -497,18 +521,18 @@ class EightPtView(TextView):
     x_scrollbar_offset = 5
     scrollbar_y_offset = 1
     font = None
+    default_full_width_cursor = False
 
     def __init__(self, *args, **kwargs):
-        self.full_width_cursor = kwargs.pop("full_width_cursor", False)
+        self.full_width_cursor = kwargs.pop("full_width_cursor", self.default_full_width_cursor)
         TextView.__init__(self, *args, **kwargs)
 
     def get_fow_width_in_chars(self):
-        return (self.o.width - self.x_scrollbar_offset) / self.charwidth
+        return (self.o.width - self.x_scrollbar_offset) // self.charwidth
 
     def get_fow_height_in_chars(self):
-        return self.o.height / self.charheight
+        return self.o.height // self.charheight
 
-    @to_be_foreground
     def refresh(self):
         logger.debug("{}: refreshed data on display".format(self.el.name))
         self.fix_pointers_on_refresh()
@@ -560,7 +584,7 @@ class EightPtView(TextView):
         if cursor_y is not None:
             c_y = cursor_y * self.charheight + 1
             if self.full_width_cursor:
-                x2 = c.width-(left_offset-1)
+                x2 = c.width
             else:
                 menu_texts = menu_text[cursor_y:cursor_y+self.entry_height]
                 max_menu_text_len = max([len(t) for t in menu_texts])

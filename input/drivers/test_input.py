@@ -1,6 +1,6 @@
 from time import sleep
 
-from skeleton import InputSkeleton
+from input.drivers.skeleton import InputSkeleton
 
 class InputDevice(InputSkeleton):
     default_mapping = [

@@ -2,11 +2,13 @@ import subprocess
 #Description used for all interfaces
 from copy import copy
 
-if_description = { 
+if_description = {
    'state':'down',
    'addr':None,
+   'mask':0,
    'addr6':None,
-   'ph_addr':None    
+   'mask6':0,
+   'ph_addr':None
 }
 
 def parse_params(param_string):
@@ -32,15 +34,23 @@ def parse_ip_addr():
             interfaces[if_name].update(param_dict)
         else: #Lines that continue describing interfaces
             line = line.lstrip()
-            if line.startswith('inet '):
-                words = line.split(" ")
-                interfaces[current_if]['addr'] = words[1]
-            if line.startswith('link/ether'):
-                words = line.split(" ")
+            words = line.split(" ")
+            if words[0] == "inet":
+                ip = words[1]
+                mask = 0
+                if "/" in ip:
+                    ip, mask = ip.rsplit('/', 1)
+                interfaces[current_if]['addr'] = ip
+                interfaces[current_if]['mask'] = mask
+            elif words[0] == 'link/ether':
                 interfaces[current_if]['ph_addr'] = words[1]
-            if line.startswith('inet6'):
-                words = line.split(" ")
-                interfaces[current_if]['addr6'] = words[1]
+            elif words[0] == 'inet6':
+                ip = words[1]
+                mask = 0
+                if "/" in ip:
+                    ip, mask = ip.rsplit('/', 1)
+                interfaces[current_if]['addr6'] = ip
+                interfaces[current_if]['mask6'] = mask
     return interfaces
 
 if __name__ == "__main__":

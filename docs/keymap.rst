@@ -35,7 +35,47 @@ Thankfully, all this is taken care of when you're using stock UI elements - you 
 Key states
 ==========
 
-As of writing this page, key press/release/hold events are not supported, however, there are plans for adding support (i.e. there's ZeroPhone keypad firmware work going on). So, callbacks are executed when a key is pressed - release/hold events are ignored, even if the input driver receives them. Once support for release/hold is added, drivers will be updated and a new API for processing release/hold events will be added, to be used by UI elements and apps.
+By default, callbacks are only called when key is pressed, as that covers the majority
+of usecase and is an intuitive choice. However, you can also make your callbacks receive
+key events by using a decorator:
+
+.. code-block:: python
+
+    from helpers import cb_needs_key_state, KEY_HELD # Also has KEY_PRESSED and KEY_RELEASED
+
+    @cb_needs_key_state
+    def up_held_cb(state):
+        if state == KEY_HELD:
+            print("UP key held!")
+    
+    i.set_callback("KEY_UP", up_held_cb)
+
+Of course, for now, this does imply that you need to set a single callback for the same
+key, even if you need to process different states.
+
+Streaming callbacks also receive the key name:
+
+.. code-block:: python
+
+    from helpers import cb_needs_key_state, KEY_PRESSED, KEY_RELEASED, KEY_HELD
+
+    @cb_needs_key_state
+    def state_cb(key, state):
+        state_name = {KEY_PRESSED:"down", KEY_HELD:"hold", KEY_RELEASED:"up", None:"down"}[state]
+        print("{} - {}".format(key, state_name))
+    
+    i.set_streaming(key_state_cb)
+
+.. note:: The function will be modified in-place. If you need the ``cb_needs_key_state``
+          to return a new function instead of modifying the existing one, call it with
+          ``new_function=True``.
+
+.. warning:: Not all drivers support key state (though it will likely be a matter of time
+             and requests to add it to drivers), in that case, you will get ``None``.
+             Also, not all drivers support "key held" state - but the default ZP keypad
+             driver and the HID driver do.
+
+.. _keymap_for_custom_ui:
 
 Changing UI elements' keymaps in your own apps
 ==============================================
@@ -49,8 +89,8 @@ Most UI elements (specifically, BaseUIElement-based-ones) allow you to add and o
         "KEY_RIGHT":'reset',
         "KEY_UP":'increment',
         "KEY_DOWN":'decrement',
-        "KEY_PAGEUP":lambda: self.increment(multiplier=10),
-        "KEY_PAGEDOWN":lambda: self.decrement(multiplier=10),
+        "KEY_F3":lambda: self.increment(multiplier=10),
+        "KEY_F4":lambda: self.decrement(multiplier=10),
         "KEY_ENTER":'select_number',
         "KEY_LEFT":'exit'
         }

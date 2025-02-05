@@ -37,7 +37,7 @@ def get_mock_output(rows=8, cols=21):
 
 def get_mock_graphical_output(width=128, height=64, mode="1", cw=6, ch=8):
     m = get_mock_output(rows=width/cw, cols=height/ch)
-    m.configure_mock(width=width, height=height, device_mode=mode, char_height=ch, char_width=cw, type=["b&w-pixel"])
+    m.configure_mock(width=width, height=height, device_mode=mode, char_height=ch, char_width=cw, type=["b&w"])
     return m
 
 el_name = "Test BaseListUIElement"
@@ -55,7 +55,7 @@ class TestBaseListUIElement(unittest.TestCase):
         """tests keymap"""
         element = BaseListUIElement([["Option", "option"]], get_mock_input(), get_mock_output(), name=el_name, config={})
         self.assertIsNotNone(element.keymap)
-        for key_name, callback in element.keymap.iteritems():
+        for key_name, callback in element.keymap.items():
             self.assertIsNotNone(callback)
 
     def test_properties(self):

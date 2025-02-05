@@ -24,6 +24,8 @@ Installation
     #Once tested:
     sudo ./update.sh #Transfer the working system to your system-wide ZPUI copy
 
+
+.. _local_system_copy:
 .. admonition:: Behind the scenes
    :class: note
 

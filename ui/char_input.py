@@ -1,12 +1,11 @@
 from time import sleep
-from helpers import setup_logger
-logger = setup_logger(__name__, "warning")
-
 import string
 
-from utils import to_be_foreground
-from canvas import Canvas
-from base_ui import BaseUIElement
+from ui.utils import to_be_foreground
+from ui.canvas import Canvas
+from ui.base_ui import BaseUIElement
+from helpers import setup_logger
+logger = setup_logger(__name__, "warning")
 
 
 class CharArrowKeysInput(BaseUIElement):
@@ -79,7 +78,7 @@ class CharArrowKeysInput(BaseUIElement):
         self.set_view()
 
     def set_view(self):
-        if "b&w-pixel" in self.o.type:
+        if "b&w" in self.o.type:
             view_class = GraphicalView
         elif "char" in self.o.type:
             view_class = TextView

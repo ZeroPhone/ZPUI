@@ -13,6 +13,8 @@ a snippet in your app code? This page is for you =)
 Basics
 ======
 
+.. _howto_minimal_zpui_app:
+
 What's the minimal ZPUI app?
 ----------------------------
 
@@ -21,25 +23,45 @@ In ``app/main.py``:
 .. code-block:: python
 
     menu_name = "Skeleton app"
-    
+
+    # These two variables will be automatically assigned by init_app
+    # unless you define your own init_app. However, you do need to define them
+    # - for now, just for readability.
     i = None #Input device
     o = None #Output device
-    
-    def init_app(input, output):
-        #Gets called when app is loaded
-        global i, o
-        i = input; o = output
     
     def callback():
         #Gets called when app is selected from menu
         pass
 
-``app/__init__.py`` has to be an empty file:
+``app/__init__.py`` has to exist, but can be an empty file:
 
 .. code-block:: python
 
+.. _howto_zpui_helloworld:
+
+"Hello, world!"
+---------------
+
+In ``app/main.py``:
+
+.. code-block:: python
+
+    menu_name = "Hello, world!"
+
+    # An UI element that does most of the legwork for us
+    from ui import PrettyPrinter as Printer
+
+    i = None #Input device
+    o = None #Output device
+    
+    def callback():
+        # will show text on screen for 3 seconds and then exit
+        Printer("Hello, world!", i, o, 3)
 
 ------------
+
+.. _howto_minimal_zpui_class_app:
 
 What's the minimal class-based app?
 -----------------------------------
@@ -57,9 +79,11 @@ In ``app/main.py``:
             #Gets called when app is selected from menu
             pass
 
-``app/__init__.py`` has to be an empty file, as with the previous example.
+``app/__init__.py`` has to exist and can be an empty file, as with the previous example.
      
 ------------
+
+.. _howto_zpui_app_sandbox:
 
 Experiment with ZPUI code
 =========================
@@ -109,6 +133,8 @@ Whether your app involves a complex task, a task that could be done in multiple
 different ways or just something plain and simple, there are UI elements, functions
 and snippets that can help you make your app more accessible to the user.
 
+.. _howto_confirm_a_choice:
+
 Confirm a choice
 ----------------
 
@@ -125,6 +151,8 @@ you might want them to confirm their actions. Here's how to ask them that:
         erase_hdd(device_path)
 
 By default, Yes returns ``True``, No returns ``False`` and Cancel returns ``None``.
+
+.. _howto_one_out_of_many:
 
 Pick one thing out of many
 --------------------------
@@ -155,6 +183,8 @@ let them choose:
 
 -----------
 
+.. _howto_many_out_of_many:
+
 Enable/disable options
 ----------------------
 
@@ -179,6 +209,8 @@ through a really long list of options to choose from, here's what you can do:
     # {"replace_on_change":True, "delete_in_destination":False, "save_settings":False}
 
 -----------
+
+.. _howto_show_progress:
 
 Indicate progress
 -----------------
@@ -217,6 +249,8 @@ user-friendly:
         results = scan_ports()
     print_results(results)
 
+.. _howto_show_progress_with_percentage:
+
 What if you actually know how much of the task is completed? Then, you can use a
 ProgressBar, which is going to show the user a percentage of the task completed:
 
@@ -236,6 +270,8 @@ ProgressBar, which is going to show the user a percentage of the task completed:
     print_results(results)
 
 -----------
+
+.. _howto_pick_a_file_dir:
 
 Pick a file/directory
 ---------------------
@@ -258,6 +294,8 @@ The ``PathPicker`` also supports a ``callback`` attribute which, instead of
 letting the user pick one file and returning it, lets the user just click on
 files and calls a function on each one of them as they're selected. An example
 of this working is the "File browser" app in "Utils" category of the main menu.
+
+.. _howto_exit_loop_on_keypress:
 
 Allow exiting a loop on a keypress
 -----------------------------------
@@ -335,6 +373,8 @@ won't be responsive.
 Draw on the screen
 ==================
 
+.. _howto_show_image:
+
 Display an image
 ----------------
 
@@ -344,6 +384,8 @@ by using the ``display_image`` method of ``OutputProxy`` object:
 .. code-block:: python
 
     o.display_image(image) #A PIL.Image object
+
+.. _howto_show_image_better:
 
 However, you might want a user-friendly wrapper around it that would allow
 you to easily load images by filename, invert, add a delay/exit-on-key etc.
@@ -373,6 +415,8 @@ a shorthand:
     c.display()
 
 ------------
+
+.. _howto_using_canvas:
 
 Draw things on the screen - basics
 ----------------------------------
@@ -507,8 +551,12 @@ If you want to highlight a region of the screen, you might want to invert it:
 
 ------------
 
+.. _howto_improve_support:
+
 Make your app easier to support
 ===============================
+
+.. _howto_add_logging:
 
 Add logging to your app
 -----------------------
@@ -625,6 +673,8 @@ example will probably work for your needs.
 
 ------------
 
+.. _howto_config_file:
+
 Read a config file with "restore to defaults on error", migrations and save_config() method
 -------------------------------------------------------------------------------------------
 
@@ -699,14 +749,15 @@ The resulting config received from ``read_or_create_config`` will look like this
         default_config = '{"your":"default", "config":"to_use"}' #has to be a string
         config_filename = "config.json"
         
-        def __init__(self, *args, **kwargs):
-            ZeroApp.__init__(self, *args, **kwargs)
+        def init_app(self):
             self.config = read_or_create_config(local_path(self.config_filename), self.default_config, self.menu_name+" app")
             self.save_config = save_config_method_gen(self, local_path(self.config_filename))
 
 To save the config, use ``self.save_config()`` from anywhere in your app class.
 
 ------------
+
+.. _howto_local_path:
 
 Get path to a file in the app directory
 ---------------------------------------
@@ -733,6 +784,8 @@ In case of your app having nested folders, you can also give multiple arguments 
 
 ------------
 
+.. _howto_run_tasks_for_app:
+
 Run tasks on app startup
 =====================================
 
@@ -741,8 +794,7 @@ How to do things on app startup in a class-based app?
 
 .. code-block:: python
 
-    def __init__(self, *args, **kwargs):
-        ZeroApp.__init__(self, *args, **kwargs)
+    def init_app(self):        
         # do your thing
      
 ------------
@@ -755,8 +807,10 @@ with other apps.
 
 .. code-block:: python
 
-    def init_app(i, o):
-        ...
+    def init_app(input, output):
+        # if we define our own init_app, we need to do this
+        global i, o
+        i = input; o = output
         init_hardware() #Your task - short enough to run while app is being loaded
 
 .. warning:: If there's a chance that the task will take a long time, use one
@@ -886,6 +940,8 @@ The ``request_global_keymap`` call returns a dictionary with a keyname as a key 
 requested callback, with ``True`` as the value if the key was set or, if an exception was
 raised while setting the , an exception object.
 
+.. _howto_readability:
+
 Readability
 ===========
 
@@ -905,7 +961,7 @@ start with:
     import smbus # external library, needs to be installed
     ...
 
-A more readable way to arrange imports is:
+ZPUI-proposed way to arrange imports is:
 
 * Built-in libraries
 * ZPUI libraries
@@ -913,7 +969,7 @@ A more readable way to arrange imports is:
 * Local imports (something in the same folder as your ``main.py``
 
 It's best if you separate these groups with a single empty line. This is especially
-helpful once your app grows big. Here's an example:
+helpful once your app grows big. Here's an example of the end result:
 
 .. code-block:: python
 
@@ -925,6 +981,8 @@ helpful once your app grows big. Here's an example:
 
     import smbus_funcs # local
     ...
+
+.. _howto_things_not_to_do:
 
 Frequent mistakes
 =================

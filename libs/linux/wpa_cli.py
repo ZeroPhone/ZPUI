@@ -6,10 +6,15 @@ from helpers import setup_logger
 
 logger = setup_logger(__name__, "warning")
 
+current_interface = None
+
 #wpa_cli related functions and objects
 def wpa_cli_command(*command):
+    run = ["wpa_cli"]
+    if current_interface:
+        run += ["-i"+current_interface]
     try:
-        return check_output(['wpa_cli'] + list(command))
+        return check_output(run + list(command))
     except CalledProcessError as e:
         raise WPAException(command[0], e.returncode, output=e.output, args=command[1:])
 
@@ -75,7 +80,18 @@ def get_interfaces():
 
 def set_active_interface(interface_name):
     #TODO output check
-    output = process_output(wpa_cli_command("interface", interface_name))
+    global current_interface
+    # try to set the module's interface variable, then check status
+    # if status check fails, set the variable back to what it was
+    # and re-raise the exception
+    last_interface = current_interface
+    try:
+        current_interface = interface_name
+        output = process_output(wpa_cli_command("status"))
+    except:
+        current_interface = last_interface
+        raise
+    # else: all went well
     #if output == "Connected to interface '{}'".format(interface_name):
 
 def get_current_interface():
@@ -102,6 +118,14 @@ def list_configured_networks():
     networks = process_table(output[0], output[1:])
     return networks
 
+def dict_configured_networks_by_ssid():
+    networks = list_configured_networks()
+    return {n["ssid"]:n for n in networks}
+
+def dict_configured_networks_by_id():
+    networks = list_configured_networks()
+    return {n["network id"]:n for n in networks}
+
 def select_network(network_id):
     return ok_fail_command("select_network", str(network_id))
 
@@ -120,7 +144,13 @@ def disable_network(network_id):
 def initiate_scan():
     return ok_fail_command("scan")
 
-def parse_ssid_from_cli(ssid):
+def disconnect():
+    return ok_fail_command("disconnect")
+
+def reconnect():
+    return ok_fail_command("reconnect")
+
+def parse_string_from_cli(ssid):
     return literal_eval("'{}'".format(ssid))
 
 def get_scan_results():
@@ -130,17 +160,23 @@ def get_scan_results():
     networks = process_table(output[0], output[1:])
     # Filtering SSIDs to allow for using Unicode SSIDs
     for network in networks:
-        network["ssid"] = parse_ssid_from_cli(network["ssid"])
+        network["ssid"] = parse_string_from_cli(network["ssid"])
     return networks
 
 def add_network():
     return int_fail_command("add_network")
 
 def set_network(network_id, param_name, value):
-    #Might fail if the wireless dongle gets unplugged or something
     if param_name == "ssid":
         value = 'P'+value
     return ok_fail_command("set_network", str(network_id), param_name, value)
+
+def get_network(network_id, param_name):
+    output = wpa_cli_command("get_network", str(network_id), param_name)
+    value = process_output(output)[0]
+    if value.startswith("'") or value.startswith('"'):
+        value = literal_eval(value)
+    return value
 
 
 #Helper commands
@@ -176,11 +212,10 @@ def process_table(header, contents):
 
 def process_output(output):
     #First line of output of wpa_cli (almost?) always says "Selected interface: $INT"
-    #In future, we might need to keep that value somewhere, so this function could be a perfect hook to update that.
-    #Not now.
+    # but only if the interface is not passed using "wpa_cli -iinterface".
     lines = output.split('\n')
-    #print(lines)
-    lines = lines[1:] #First line has the "Selected interface: $INT"
+    if not current_interface:
+        lines = lines[1:] #First line has the "Selected interface: $INT"
     return [line.strip(' ') for line in lines if line] #Removing all whitespace and not counting empty lines
 
 
@@ -195,5 +230,3 @@ if __name__ == "__main__":
         print(get_scan_results())
     print(initiate_scan())
     print(initiate_scan())
-
-

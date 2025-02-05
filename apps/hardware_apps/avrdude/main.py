@@ -328,33 +328,17 @@ class AvrdudeApp(ZeroApp):
                 # Status changed, updating
                 if s["status"] == "started":
                     self.read_write_bar.pause()
-                    if not self.erase_restore_indicator.is_active:
-                        self.erase_restore_indicator.run_in_background()
-                        while not self.erase_restore_indicator.is_active:
-                            pass
-                    else:
-                        self.erase_restore_indicator.resume()
+                    self.erase_restore_indicator.background_if_inactive()
                     self.erase_restore_indicator.message = "Started"
                 elif s["status"] == "in progress":
                     if s["operation"] in ["reading", "writing", "verifying"]:
                         self.erase_restore_indicator.pause()
-                        if not self.read_write_bar.is_active:
-                            self.read_write_bar.run_in_background()
-                            while not self.read_write_bar.is_active:
-                               pass
-                        else:
-                            self.read_write_bar.resume()
+                        self.read_write_bar.background_if_inactive()
                         self.read_write_bar.message = s["operation"].capitalize()
                         self.read_write_bar.message += " " + s["time"]
                         self.read_write_bar.progress = s["progress"]
                     elif s["operation"] in ["erasing", "restoring fuses"]:
                         self.read_write_bar.pause()
-                        if not self.erase_restore_indicator.is_active:
-                            self.erase_restore_indicator.run_in_background()
-                            while not self.erase_restore_indicator.is_active:
-                                pass
-                        else:
-                            self.erase_restore_indicator.resume()
                         self.erase_restore_indicator.message = s["operation"].capitalize()
                 elif s["status"] in ["success", "failure"]:
                     pass # Is going to fail/succeed anyway once it goes through all the lines

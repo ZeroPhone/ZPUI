@@ -5,14 +5,16 @@
  - monsieur_h
  - Louis Parkerson
  - Unnamed contributor
- - Timothée Floure
  - Serge Spraiter
+ - Timothée Floure
  - Jon Maier
  - Björn Pettersson
  - Gnu-Bricoleur
- - Patrick Schneeweis
+ - piajesse
  - KyleMoran138
+ - Patrick Schneeweis
+ - Johannes Kool
  - Brian Dunlay
  - Beauregard Slim
- - i5heu
  - Sam Kaufman
+ - i5heu

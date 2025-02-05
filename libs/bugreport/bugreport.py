@@ -1,5 +1,8 @@
 from ftplib import FTP_TLS as FTP
-from StringIO import StringIO
+try:
+    from io import StringIO
+except ImportError:
+    from StringIO import StringIO
 from mock import Mock
 import traceback
 import zipfile

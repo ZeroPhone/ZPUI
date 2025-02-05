@@ -23,7 +23,7 @@ class OutputDevice(object):
 
     def init_proxy(self, proxy):
         base_classes = self.__base_classes__
-        base_classes_items = sum([cls.__dict__.items() for cls in base_classes], [])
+        base_classes_items = sum([list(cls.__dict__.items()) for cls in base_classes], [])
         #print(base_classes_items)
         public_attributes = [ (k, v) for (k, v) in base_classes_items if not k.startswith("_") ]
         hidden_attributes = ["current_proxy", "current_image"]
@@ -117,7 +117,7 @@ class GraphicalOutputDevice(OutputDevice):
     """Common class for all graphical OutputDevices."""
     height = None  # height of display in pixels
     width = None  # width of display in pixels
-    type = ["b&w-pixel"]  # supported output type list
+    type = ["b&w"]  # supported output type list
     device_mode = "1"  # a "mode" parameter for PIL
     char_height = 8 # height of the default font
     char_width = 8 # width of the default font
@@ -153,7 +153,11 @@ class OutputProxy(CharacterOutputDevice, GraphicalOutputDevice):
     def __init__(self, context_alias):
         self.context_alias = context_alias
 
-    def _display_image(self, image):
+    def _display_image(self, image, **kwargs):
+        """
+        **kwargs here is because the backlight driver (or other overlays)
+        can be passed other arguments
+        """
         self.current_image = image
 
     def _clear(self):

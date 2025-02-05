@@ -1,5 +1,5 @@
-from numpad_input import NumpadCharInput, NumpadNumberInput, NumpadHexInput, NumpadKeyboardInput, NumpadPasswordInput
-from char_input import CharArrowKeysInput
+from ui.numpad_input import NumpadCharInput, NumpadNumberInput, NumpadHexInput, NumpadKeyboardInput, NumpadPasswordInput
+from ui.char_input import CharArrowKeysInput
 
 def UniversalInput(i, o, *args, **kwargs):
     """

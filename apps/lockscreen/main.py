@@ -1,9 +1,10 @@
-from time import sleep
+from time import sleep, time
 from threading import Event
 
 from ui import Canvas
-from ui.base_ui import BaseUIElement
 from apps import ZeroApp
+from ui.base_ui import BaseUIElement
+from actions import ContextSwitchAction
 from helpers import ExitHelper, setup_logger, remove_left_failsafe, read_or_create_config, local_path_gen, save_config_method_gen
 
 local_path = local_path_gen(__name__)
@@ -13,12 +14,17 @@ settings = {"name":"KeyScreen"}
 
 class LockApp(ZeroApp):
     locked = False
+    showing_other_context = "apps.personal.clock"
 
     def set_context(self, c):
         self.context = c
+        self.contextscreen = ContextWatcher(self.i, self.o, self.context)
         c.threaded = True
         c.set_target(self.activate_lockscreen)
-        c.register_action("lock_screen", c.request_switch, "Lock screen", description="Switches to the lockscreen app")
+        c.register_action(ContextSwitchAction("lock_screen", c.request_switch, menu_name="Lock screen", description="Switches to the lockscreen app"))
+
+    def show_other_context(self, context_alias):
+        self.showing_other_context = context_alias
 
     def get_screens(self):
         return {"KeyScreen": KeyScreen,
@@ -33,17 +39,25 @@ class LockApp(ZeroApp):
         c = Canvas(self.o)
         c.centered_text("Locked")
         remove_left_failsafe(self.i)
+        if self.showing_other_context:
+            self.context.request_context_start(self.showing_other_context)
         while self.locked:
-            c.display()
+            key = None
+            if self.showing_other_context:
+                key = self.contextscreen.wait_loop(self.showing_other_context)
+            else:
+                c.display()
             lockscreen_obj = screens.get(settings["name"], KeyScreen)
             args = settings.get("args", [])
             kwargs = settings.get("kwargs", {})
             lockscreen = lockscreen_obj(self.i, self.o, *args, **kwargs)
-            lockscreen.wait_loop()
+            lockscreen.wait_loop(last_key = key)
             logger.info("Lockscreen triggered")
             self.locked = lockscreen.activate()
             logger.info("Finished, restarting loop")
         self.context.rescind_exclusive()
+        if self.showing_other_context:
+            pass # stop the context that we might've started? idk
 
 class KeyScreen(BaseUIElement):
     sleep_time = 0.1
@@ -57,8 +71,12 @@ class KeyScreen(BaseUIElement):
         self.reset_timeout()
         BaseUIElement.__init__(self, i, o, name="KeyScreen lockscreen")
 
-    def wait_loop(self):
+    def wait_loop(self, last_key=None):
+        # some key was pressed before that
         self.eh = ExitHelper(self.i, keys="*").start()
+        if last_key:
+            self.eh.last_key = last_key
+            return
         while self.eh.do_run():
             sleep(self.sleep_time)
 
@@ -144,9 +162,13 @@ class PinScreen(object):
         self.active = Event()
         self.clear()
 
-    def wait_loop(self):
-        eh = ExitHelper(self.i, keys="*").start()
-        while eh.do_run():
+    def wait_loop(self, last_key=None):
+        # some key was pressed before that
+        self.eh = ExitHelper(self.i, keys="*").start()
+        if last_key:
+            self.eh.last_key = last_key
+            return
+        while self.eh.do_run():
             sleep(self.sleep_time)
 
     def activate(self):
@@ -228,6 +250,53 @@ class PinScreen(object):
             c.line((x_offset+charwidth*i, y_offset+charheight, x_offset+charwidth*i, y_offset+charheight-5))
         self.o.display_image(c.get_image())
 
+class ContextWatcher(object):
+    """
+    Allows showing image from other context while the lockscreen is active
+    """
+
+    acceptable_backlight_methods = ["always",
+                                    "on_new",
+                                    "off_after_delay"]
+    started_at = None
+
+    def __init__(self, i, o, context, sleep_time=0.1, config={}):
+        self.i = i
+        self.o = o
+        self.context = context
+        self.sleep_time = sleep_time
+        self.config = config
+        if self.config.get("backlight_method", "") not in self.acceptable_backlight_methods:
+            self.config["backlight_method"] = "off_after_delay"
+            self.config["backlight_off_delay"] = 10
+
+    def wait_loop(self, context_to_watch):
+        eh = ExitHelper(self.i, keys="*").start()
+        while eh.do_run():
+            sleep(self.sleep_time)
+            self.refresh(context_to_watch)
+        self.started_at = None
+        return eh.last_key
+
+    def refresh(self, context_to_watch):
+        bl_method = self.config.get("backlight_method", "always")
+        bl_on_new = False
+        if bl_method == "off_after_delay":
+            delay = self.config.get("backlight_off_delay", 10)
+            if not self.started_at:
+                # First run, starting countdown
+                self.started_at = time()
+            elif self.started_at + delay < time():
+                # Time exceeded
+                self.started_at = None
+                return
+        elif bl_method == "on_new":
+            bl_on_new = True
+        else: # "always"
+            bl_on_new = False
+        image = self.context.get_context_image(context_to_watch)
+        if image:
+            self.o.display_image(image, backlight_only_on_new=bl_on_new)
 
 class LockscreenSettings(object):
     menu_name = "Lockscreen"

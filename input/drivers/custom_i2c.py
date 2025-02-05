@@ -2,7 +2,7 @@ import smbus
 from time import sleep
 
 from helpers import setup_logger
-from skeleton import InputSkeleton
+from input.drivers.skeleton import InputSkeleton, KEY_PRESSED, KEY_RELEASED, KEY_HELD
 logger = setup_logger(__name__, "warning")
 
 class InputDevice(InputSkeleton):
@@ -28,8 +28,8 @@ class InputDevice(InputSkeleton):
     "KEY_F2",
     "KEY_ANSWER",
     "KEY_HANGUP",
-    "KEY_PAGEUP",
-    "KEY_PAGEDOWN",
+    "KEY_F3",
+    "KEY_F4",
     "KEY_F5",
     "KEY_F6",
     "KEY_VOLUMEUP",
@@ -40,6 +40,9 @@ class InputDevice(InputSkeleton):
     ]
 
     status_available = True
+    supports_key_states = True
+    supports_held_state = True
+    state_mapping = {0:KEY_PRESSED, 1:KEY_HELD, 2:KEY_RELEASED}
 
     def __init__(self, addr = 0x12, bus = 1, int_pin = 16, **kwargs):
         """Initialises the ``InputDevice`` object.
@@ -94,18 +97,35 @@ class InputDevice(InputSkeleton):
                     if not self.connected.isSet():
                         logger.info("Receiving data from keypad again!")
                         self.connected.set()
-                    if data != 0:
-                        data -= 1
-                        if data in range(len(self.mapping)):
-                            key_name = self.mapping[data]
-                            logger.debug("Maps to valid key: {}".format(key_name))
-                            self.map_and_send_key(key_name)
+                    # Valid format: 8 bits
+                    # [0, state, state, key, key, key, key, key]
+                    # Parsing data into bits
+                    data_7 = data >> 7           # Bit  7
+                    data_65 = (data >> 5) & 0x7  # Bits 6 and 5
+                    data_43210 = data & 0x1f     # Bits 4,3,2,1,0
+                    #print("{} {} {} {}".format( *map(bin, (data, data_7, data_65, data_43210)) ))
+                    if data_7 == 0 \
+                      and data_65 in self.state_mapping.keys() \
+                      and data_43210 != 0:
+                        # data_7 should be 0, other reserved for future
+                        # data_65 in (0, 1, 2): (pressed, released, held), 3 is reserved
+                        # data_43210 != 0: 0x00 is returned when I2C buffer is empty (no keys to be read)
+                        key_num = data_43210 - 1
+                        if key_num in range(len(self.mapping)):
+                            key_name = self.mapping[key_num]
+                            state = data_65
+                            logger.debug("Maps to valid key: {}, state: {}".format(key_name, state))
+                            self.map_and_send_key(key_name, state=self.state_mapping[state])
                         else:
-                            logger.info("Unknown data arrived: {}".format(data))
+                            logger.warning("Non-mappable key data arrived: {}".format(key_num))
                     else:
-                        logger.warning("Received 0 from keypad though the interrupt has been triggered!")
-                        sleep(0.1)
+                        if data == 0:
+                            logger.warning("Received 0 or other data from keypad though the interrupt has been triggered!")
+                            sleep(0.1)
+                        else:
+                            logger.info("Non-key data arrived: {}".format(bin(data)))
             sleep(0.1)
+
 
 if __name__ == "__main__":
     id = InputDevice(addr = 0x12, int_pin = 16, threaded=False)

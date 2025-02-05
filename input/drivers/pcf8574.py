@@ -1,7 +1,7 @@
 import smbus
 from time import sleep
 
-from skeleton import InputSkeleton
+from input.drivers.skeleton import InputSkeleton
 
 class InputDevice(InputSkeleton):
     """ A driver for PCF8574-based I2C IO expanders. They have 8 IO pins available as well as an interrupt pin. This driver treats all 8 pins as button pins, which is often the case. 

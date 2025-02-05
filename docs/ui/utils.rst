@@ -1,7 +1,7 @@
 .. _ui_utils:
 
 #####################
-Utils UI Element
+UI element utilities
 #####################
 
 .. currentmodule:: ui.utils

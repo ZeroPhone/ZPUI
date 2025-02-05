@@ -11,19 +11,20 @@ from logging.handlers import RotatingFileHandler
 
 from apps.app_manager import AppManager
 from context_manager import ContextManager
-from helpers import read_config, local_path_gen, read_or_create_config
+from helpers import read_config, local_path_gen, logger, env, read_or_create_config, \
+                    zpui_running_as_service, is_emulator
 from input import input
 from output import output
+from actions import ContextSwitchAction
 from ui import Printer
-import helpers.logger
-
-emulator_flag_filename = "emulator"
-local_path = local_path_gen(__name__)
-is_emulator = emulator_flag_filename in os.listdir(".")
+import pidcheck
 
 rconsole_port = 9377
 
-config_paths = ['/boot/zpui_config.json', '/boot/pylci_config.json'] if not is_emulator else []
+pid_path = '/run/zpui_pid.pid'
+
+local_path = local_path_gen(__name__)
+config_paths = ['/boot/zpui_config.json', '/boot/pylci_config.json'] if not is_emulator() else []
 config_paths.append(local_path('config.json'))
 #Using the .example config as a last resort
 config_paths.append(local_path('default_config.json'))
@@ -75,7 +76,12 @@ logging_format = log_config["format"]
 logfile_size = log_config["file_size"]
 files_to_store = log_config["files_to_store"]
 
-
+#Py2-3 hax
+try:
+    basestring
+except:
+    import builtins
+    builtins.basestring = str
 
 def init():
     """Initialize input and output objects"""
@@ -96,7 +102,6 @@ def init():
 
     # Initialize the context manager
     cm = ContextManager()
-
     # Initialize input
     try:
         # Now we can show errors on the display
@@ -111,6 +116,8 @@ def init():
     if hasattr(screen, "set_backlight_callback"):
         screen.set_backlight_callback(input_processor)
     cm.init_io(input_processor, screen)
+    c = cm.contexts["main"]
+    c.register_action(ContextSwitchAction("switch_main_menu", None, menu_name="Main menu"))
     cm.switch_to_context("main")
     i, o = cm.get_io_for_context("main")
 
@@ -223,7 +230,7 @@ if __name__ == '__main__':
     # Signal handler for debugging
     signal.signal(signal.SIGUSR1, dump_threads)
     signal.signal(signal.SIGUSR2, spawn_rconsole)
-    signal.signal(signal.SIGHUP, helpers.logger.on_reload)
+    signal.signal(signal.SIGHUP, logger.on_reload)
 
     # Setup argument parsing
     parser = argparse.ArgumentParser(description='ZPUI runner')
@@ -239,6 +246,10 @@ if __name__ == '__main__':
         help='The minimum log level to output',
         choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
         default='INFO')
+    parser.add_argument(
+        '--ignore-pid',
+        help='Skips PID check on startup (not applicable for emulator as it doesn\'t do PID check)',
+        action='store_true')
     args = parser.parse_args()
 
     # Setup logging
@@ -260,6 +271,15 @@ if __name__ == '__main__':
 
     # Set log level
     logger.setLevel(args.log_level)
+
+    # Check if another instance is running
+    if not is_emulator():
+        if args.ignore_pid:
+            logger.info("Skipping PID check");
+        else:
+            is_interactive = not zpui_running_as_service()
+            do_kill = zpui_running_as_service()
+            pidcheck.check_and_create_pid(pid_path, interactive=is_interactive, kill_not_stop=do_kill)
 
     # Launch ZPUI
     launch(**vars(args))

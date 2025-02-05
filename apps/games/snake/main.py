@@ -71,7 +71,7 @@ def load_scores():
 	try:
 		with open(local_path("highscore"), "r") as f:
 			scores = [int(x) for x in next(f).split()]
-		print "success"
+		print("success")
 	except:
 		scores = [0, 0, 0]
 

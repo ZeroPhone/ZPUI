@@ -2,7 +2,7 @@ from evdev import InputDevice as HID, list_devices, ecodes
 from time import sleep
 
 from helpers import setup_logger
-from skeleton import InputSkeleton
+from input.drivers.skeleton import InputSkeleton
 
 logger = setup_logger(__name__, "warning")
 
@@ -36,7 +36,9 @@ def get_name_by_path(path):
 class InputDevice(InputSkeleton):
     """ A driver for HID devices. As for now, supports keyboards and numpads."""
 
-    default_name_mapping = {"KEY_KPENTER":"KEY_ENTER"}
+    default_name_mapping = {"KEY_KPENTER":"KEY_ENTER", "KEY_PAGEUP":"KEY_F3", "KEY_PAGEDOWN":"KEY_F4"}
+    supports_key_states = True
+    supports_held_state = True
 
     def __init__(self, path=None, name=None, **kwargs):
         """Initialises the ``InputDevice`` object.
@@ -52,7 +54,6 @@ class InputDevice(InputSkeleton):
         self.path = path
         self.name = name
         InputSkeleton.__init__(self, mapping = [], **kwargs)
-        self.setup_keycode_mapping()
         self.hid_device_error_filter = False
 
     @property
@@ -115,9 +116,9 @@ class InputDevice(InputSkeleton):
         if event is not None and event.type == ecodes.EV_KEY:
             key = ecodes.keys[event.code]
             value = event.value
-            if value == 0 and self.enabled:
+            if self.enabled:
                 key = self.keycode_mapping.get(key, key)
-                self.map_and_send_key(key)
+                self.map_and_send_key(key, state = value)
 
     def atexit(self):
         InputSkeleton.atexit(self)

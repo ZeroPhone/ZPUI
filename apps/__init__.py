@@ -15,4 +15,4 @@ _ordering = [
 "update"]
 
 
-from zero_app import ZeroApp
+from apps.zero_app import ZeroApp

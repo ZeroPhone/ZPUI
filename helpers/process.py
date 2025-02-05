@@ -1,6 +1,7 @@
 import os
 import sys
 import pty
+import threading
 import subprocess
 import time
 from select import select
@@ -98,7 +99,7 @@ class ProHelper(object):
         and returns a status code. Don't use this function if you want to send
         input to the function, kill the process at a whim, or do something else
         that is not done by the output callback (unless you're running it in a
-        separate thread - which might be unwarranted.
+        separate thread - which might be unwarranted).
         """
         self.run()
         while self.is_ongoing():
@@ -106,6 +107,15 @@ class ProHelper(object):
                 self.relay_output()
             time.sleep(delay)
         return True
+
+    def run_in_background(self, delay=0.5, thread_name=None):
+        """
+        Runs the ``run_in_foreground`` method in a separate thread.
+        Can set the thread name, can also pass the ``delay`` argument.
+        """
+        self.thread = threading.Thread(target=self.run_in_foreground, kwargs={"delay":delay})
+        self.thread.daemon = True
+        self.thread.start()
 
     def poll(self, **read_kw):
         """
@@ -225,4 +235,6 @@ class TestProHelper(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    import sys
+    if sys.argv[-1] != "play":
+        unittest.main()

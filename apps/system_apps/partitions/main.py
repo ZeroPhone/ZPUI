@@ -89,5 +89,5 @@ def init_app(input, output):
     #["Drives", list_drives],
     #["Status", status_menu]]
     ]
-    callback = Menu(menu_contents, i, o).activate
+    callback = Menu(menu_contents, i, o, name="Partitions app main menu").activate
 

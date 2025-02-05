@@ -2,10 +2,10 @@ from time import sleep
 from copy import copy
 from collections import OrderedDict
 
-from ui import Canvas, Listbox, PrettyPrinter, FunctionOverlay
+from ui import Canvas, Listbox, PrettyPrinter, FunctionOverlay, HelpOverlay
 from ui.base_ui import BaseUIElement
 from ui.utils import to_be_foreground
-from helpers import flatten, Singleton
+from helpers import flatten, Singleton, is_emulator
 from apps import ZeroApp
 
 
@@ -59,20 +59,16 @@ class DrawingTool(object):
         return self.modify_image(image)
 
     def modify_image(self, image):
-        if self.blink_on:
-            self.blink_on = False
-            image = self.draw_tool_position(image)
-            return image
-        else:
-            self.blink_on = True
-            return image
+        self.blink_on = not self.blink_on
+        image = self.draw_tool_position(image, blink_phase=self.blink_on)
+        return image
 
     # A tool needs to implement at least these two, at the very least
 
     def tool_down(self):
         raise NotImplementedError
 
-    def draw_tool_position(self, image):
+    def draw_tool_position(self, image, blink_phase=True):
         raise NotImplementedError
 
 
@@ -82,9 +78,10 @@ class PointTool(DrawingTool):
     def tool_down(self):
         self.board.update_image(self.draw_tool_position(self.board.field.get_image()))
 
-    def draw_tool_position(self, image):
+    def draw_tool_position(self, image, blink_phase=True):
         self.c.load_image(image)
-        self.c.point(self.board.coords)
+        color = self.c.default_color if blink_phase else self.c.background_color
+        self.c.point(self.board.coords, fill=color)
         return self.c.get_image()
 
 
@@ -101,57 +98,61 @@ class LineTool(DrawingTool):
         self.board.update_image(self.draw_tool_position(self.board.field.get_image()))
         self.start = None
 
-    def draw_tool_position(self, image):
+    def draw_tool_position(self, image, blink_phase=True):
         self.c.load_image(image)
+        color = self.c.default_color if blink_phase else self.c.background_color
         if self.start:
             coords = self.start + self.board.coords
-            self.c.line( coords )
+            self.c.line( coords , fill=color)
         else:
-            self.c.point(self.board.coords)
+            self.c.point(self.board.coords, fill=color)
         return self.c.get_image()
 
 
 class RectangleTool(LineTool):
     menu_name = "Rectangle"
 
-    def draw_tool_position(self, image):
+    def draw_tool_position(self, image, blink_phase=True):
         self.c.load_image(image)
+        color = self.c.default_color if blink_phase else self.c.background_color
         if self.start:
             coords = self.start + self.board.coords
-            self.c.rectangle( coords )
+            self.c.rectangle( coords , outline=color)
         else:
-            self.c.point(self.board.coords)
+            self.c.point(self.board.coords, fill=color)
         return self.c.get_image()
 
 
 class EllipseTool(LineTool):
     menu_name = "Ellipse"
 
-    def draw_tool_position(self, image):
+    def draw_tool_position(self, image, blink_phase=True):
         self.c.load_image(image)
+        color = self.c.default_color if blink_phase else self.c.background_color
         if self.start:
             coords = self.start + self.board.coords
-            self.c.ellipse( coords )
+            self.c.ellipse( coords , outline=color)
         else:
-            self.c.point(self.board.coords)
+            self.c.point(self.board.coords, fill=color)
         return self.c.get_image()
 
 
 class CircleTool(LineTool):
     menu_name = "Circle"
 
-    def draw_tool_position(self, image):
+    def draw_tool_position(self, image, blink_phase=True):
         self.c.load_image(image)
+        color = self.c.default_color if blink_phase else self.c.background_color
         if self.start:
             radius = max( [ abs(self.start[0]-self.board.coords[0]),
                             abs(self.start[1]-self.board.coords[1])] )
             if radius > 0:
                 coords = self.start + [radius]
-                self.c.circle( coords )
+                self.c.circle( coords , outline=color)
             else:
-                self.c.point(self.board.coords)
+                self.c.point(self.board.coords, fill=color)
         else:
-            self.c.point(self.board.coords)
+            self.c.point(self.board.coords, fill=color)
         return self.c.get_image()
 
 
@@ -169,25 +170,29 @@ class PolygonTool(DrawingTool):
         else:
             self.polygon_coords.append(copy(self.board.coords))
 
-    def draw_tool_position(self, image, final=False):
+    def draw_tool_position(self, image, final=False, blink_phase=True):
         pc = copy(self.polygon_coords)
         if not final: pc.append(copy(self.board.coords))
         self.c.load_image(image)
+        color = self.c.default_color if blink_phase else self.c.background_color
         if len(pc) > 2:
-            self.c.polygon( pc )
+            self.c.polygon( pc , outline=color)
         elif len(pc) == 2:
-            self.c.line( flatten(pc) )
+            self.c.line( flatten(pc) , fill=color)
         elif len(pc) == 1:
-            self.c.point( pc[0] )
-        self.c.point(self.board.coords)
+            self.c.point( pc[0] , fill=color)
+        self.c.point(self.board.coords, fill=color)
         return self.c.get_image()
 
 
 class DrawingBoard(BaseUIElement):
+    far_move_len = 10
+
     def __init__(self, i, o):
         BaseUIElement.__init__(self, i, o, "Drawing app's drawing board", override_left=False)
         self.reset()
-        self.sleep_time = 0.01
+        # horrible hack that makes the refresh rate decent on both ZP and emulator ;-P
+        self.sleep_time = 0.1 if is_emulator() else 0.01
         self.view_wrappers = []
 
     def idle_loop(self):
@@ -243,6 +248,38 @@ class DrawingBoard(BaseUIElement):
             self.coords[0] = x + 1
             self.refresh()
 
+    def move_far_up(self):
+        y = self.coords[1]
+        if y > self.far_move_len:
+            self.coords[1] = y - self.far_move_len
+        else:
+            self.coords[1] = 0
+        self.refresh()
+
+    def move_far_down(self):
+        y = self.coords[1]
+        if y < self.field.height-(self.far_move_len+1):
+            self.coords[1] = y + self.far_move_len
+        else:
+            self.coords[1] = self.field_height-1
+        self.refresh()
+
+    def move_far_left(self):
+        x = self.coords[0]
+        if x > self.far_move_len:
+            self.coords[0] = x - self.far_move_len
+        else:
+            self.coords[0] = 0
+        self.refresh()
+
+    def move_far_right(self):
+        x = self.coords[0]
+        if x < self.field.width-(self.far_move_len+1):
+            self.coords[0] = x + self.far_move_len
+        else:
+            self.coords[0] = self.field_width-1
+        self.refresh()
+
     def tool_settings(self):
         pass
 
@@ -261,8 +298,12 @@ class DrawingBoard(BaseUIElement):
             "KEY_DOWN": "move_down",
             "KEY_LEFT": "move_left",
             "KEY_RIGHT": "move_right",
+            "KEY_2": "move_far_up",
+            "KEY_8": "move_far_down",
+            "KEY_4": "move_far_left",
+            "KEY_6": "move_far_right",
             "KEY_ENTER": "on_enter",
-            "KEY_PAGEUP": self.tool_settings,
+            "KEY_F3": self.tool_settings,
             "KEY_F1": "back",
             "KEY_F2": self.pick_tools}
 
@@ -271,6 +312,9 @@ class DrawingBoard(BaseUIElement):
         self.field.display()
 
 
+help_text = \
+"""Use 2/4/6/8 to move in 10-pixel distances."""
+
 class DrawingApp(ZeroApp):
     menu_name = "Draw"
 
@@ -278,4 +322,5 @@ class DrawingApp(ZeroApp):
         PrettyPrinter("No image saving implemented yet!", self.i, self.o, 3)
         board = DrawingBoard(self.i, self.o)
         FunctionOverlay(["back", board.pick_tools], labels=["Exit", "Tools"]).apply_to(board)
+        HelpOverlay(help_text).apply_to(board)
         board.activate()

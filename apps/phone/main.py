@@ -42,10 +42,10 @@ def phone_status():
     callerid = {}
     if status["state"] != "idle":
         callerid = phone.get_caller_id()
-    for key, value in status.iteritems():
+    for key, value in status.items():
         if value:
             data.append("{}: {}".format(key, value))
-    for key, value in callerid.iteritems():
+    for key, value in callerid.items():
         data.append("{}: {}".format(key, value))
     return data
 

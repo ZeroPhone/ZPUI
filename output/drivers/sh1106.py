@@ -1,9 +1,9 @@
 #!/usr/bin/python
 
-from luma_driver import LumaScreen
 from luma.oled.device import sh1106
 
 from output.output import OutputDevice
+from output.drivers.luma_driver import LumaScreen
 
 
 class Screen(LumaScreen, OutputDevice):

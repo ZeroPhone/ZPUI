@@ -24,6 +24,10 @@ UI elements:
    * :ref:`ui_char_input`
    * :ref:`ui_utils`
 
+More about UI elements:
+
+  * :ref:`ui_internals`
+
 .. toctree::
    :maxdepth: 1
    :hidden:
@@ -39,3 +43,4 @@ UI elements:
    ui/number_input.rst
    ui/char_input.rst
    ui/utils.rst
+   ui_internals.rst

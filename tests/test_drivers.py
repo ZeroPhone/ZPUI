@@ -111,6 +111,30 @@ class TestDrivers(unittest.TestCase):
         # so that no ugly exception is raised when the test finishes
         main_py.input_processor.atexit()
 
+    def test_hid_driver(self):
+        input_config = {"driver":"hid", "kwargs":{"name":"test"}}
+        config = deepcopy(base_config)
+        config["input"][0] = input_config
+        assert(config["output"][0]["driver"] == "test_output")
+        module_patch = patch.dict('sys.modules', {"evdev":Mock()})
+        module_patch.start()
+        import sys; #print([(key, sys.modules[key]) for key in sys.modules.keys() if key.startswith('evdev')])
+        sys.modules['evdev'].configure_mock(device2=Mock())
+        #print(sys.modules['evdev'])
+        from input.drivers import hid
+        with patch.object(hid.InputDevice, 'init_hw') as init_hw, \
+          patch.object(hid.InputDevice, 'runner') as runner:
+            with patch.object(main_py, 'load_config') as mocked:
+                mocked.return_value = (config, "test_config.json")
+                i, o = main_py.init()
+        assert(isinstance(i, main_py.input.InputProxy))
+        assert(isinstance(o, main_py.output.OutputProxy))
+        module_patch.stop()
+        # Checking if we removed all imports
+        # print([(key, sys.modules[key]) for key in sys.modules.keys() if key.startswith('evdev')])
+        # so that no ugly exception is raised when the test finishes
+        main_py.input_processor.atexit()
+
     @unittest.skip("broken test, can't properly patch the imports =(")
     def test_pi_gpio_driver(self):
         input_config = {"driver":"pi_gpio"}

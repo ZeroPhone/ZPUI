@@ -2,9 +2,10 @@ import importlib
 import os
 import traceback
 
-import zero_app
+import apps.zero_app
 from helpers import setup_logger
-from ui import Printer, Menu, HelpOverlay, TextReader, GridMenu, Entry, GridMenuLabelOverlay, GridMenuSidebarOverlay
+from ui import Printer, Menu, HelpOverlay, GridMenu, Entry, \
+               GridMenuLabelOverlay, GridMenuSidebarOverlay, GridMenuNavOverlay
 
 from PIL import Image, ImageOps
 
@@ -44,7 +45,8 @@ class AppManager(object):
         self.cm = context_manager
         self.i, self.o = self.cm.get_io_for_context("main")
         self.config = config if config else {}
-        if default_plugins:
+        #logger.warning(self.config)
+        if default_plugins and self.config.get("default_overlays", True):
             self.register_default_plugins()
 
     def create_main_menu(self, menu_name, contents):
@@ -74,10 +76,10 @@ class AppManager(object):
 
     def overlay_main_menu(self, menu):
         main_menu_help = "ZPUI main menu. Navigate the folders to get to different apps, or press KEY_PROG2 (anywhere in ZPUI) to get to the context menu."
-        tr = TextReader(main_menu_help, self.i, self.o, h_scroll=False)
-        HelpOverlay(tr.activate).apply_to(menu)
-        GridMenuLabelOverlay().apply_to(menu)
+        GridMenuNavOverlay().apply_to(menu)
         GridMenuSidebarOverlay(self.sidebar_cb).apply_to(menu)
+        GridMenuLabelOverlay().apply_to(menu)
+        HelpOverlay(main_menu_help).apply_to(menu)
 
     def register_default_plugins(self):
         self.subdir_menu_creators["apps"] = self.create_main_menu
@@ -143,6 +145,8 @@ class AppManager(object):
             for subdir in subdirs:
                 subdir_path = os.path.join(path, subdir)
                 self.subdir_paths.append(subdir_path)
+            # apps having an "execute_after_contexts" hook
+            after_contexts_apps = {}
             for _module in modules:
                 module_path = os.path.join(path, _module)
                 try:
@@ -154,11 +158,23 @@ class AppManager(object):
                     self.app_list[module_path] = app
                     menu_name = self.get_app_name(app, module_path)
                     self.bind_context(app, module_path, menu_name)
-                except Exception as e:
+                    if self.app_has_after_contexts_hook(app):
+                        after_contexts_apps[module_path] = app
+                except:
                     logger.exception("Failed to load app {}".format(module_path))
                     self.failed_apps[module_path] = traceback.format_exc()
-                    if interactive:
-                        Printer(["Failed to load", os.path.split(module_path)[1]], self.i, self.o, 2)
+            if interactive:
+                if self.failed_apps:
+                    failed_app_names = [os.path.split(p)[1] for p in self.failed_apps.keys()]
+                    Printer(["Failed to load:"]+failed_app_names, self.i, self.o, 0.5)
+            # execute after_context functions
+            for app_path, app in after_contexts_apps.items():
+                try:
+                    self.execute_after_contexts(app)
+                except:
+                    logger.exception("Failed to execute 'after all contexts' hook for {}".format(app_path))
+                else:
+                    logger.info("Executed 'after all contexts' hook for {}".format(app_path))
         base_menu = self.create_menu_structure()
         return base_menu
 
@@ -167,7 +183,6 @@ class AppManager(object):
                (hasattr(app, "on_start") and callable(app.on_start))
 
     def bind_context(self, app, path, menu_name):
-        
         if hasattr(app, "callback") and callable(app.callback):  # for function based apps
             app_callback = app.callback
         elif hasattr(app, "on_start") and callable(app.on_start):  # for class based apps
@@ -178,6 +193,17 @@ class AppManager(object):
         app_path = path.replace('/', '.')
         self.cm.register_context_target(app_path, app_callback)
         self.cm.set_menu_name(app_path, menu_name)
+
+    def execute_after_contexts(self, app):
+        app.execute_after_contexts()
+
+    def app_has_after_contexts_hook(self, app):
+        """
+        Checks whether the app has "execute after all contexts
+        are loaded" hook. A separate method for ease of future
+        changes.
+        """
+        return hasattr(app, "execute_after_contexts")
 
     def get_app_path_for_cmdline(self, cmdline_app_path):
         main_py_string = "/main.py"
@@ -209,7 +235,11 @@ class AppManager(object):
             app_class = get_zeroapp_class_in_module(app)
             app = app_class(i, o)
         else:
-            app.init_app(i, o)
+            if hasattr(app, 'init_app'):
+                app.init_app(i, o)
+            else: #init_app-less function-based app
+                app.i = i
+                app.o = o
         self.pass_context_to_app(app, app_path, context)
         return app
 
@@ -231,7 +261,9 @@ class AppManager(object):
         if hasattr(app, "menu_name"):
             return app.menu_name
         else:
-            return os.path.split(app_path)[-1].capitalize().replace("_", " ")
+            menu_name = os.path.split(app_path)[-1].capitalize().replace("_", " ")
+            app.menu_name = menu_name
+            return menu_name
 
     def get_subdir_menu_name(self, subdir_path):
         """
@@ -329,5 +361,5 @@ if __name__ == "__main__":
     cm.configure_mock(get_io_for_context=lambda x: (x, x))
     am = AppManager("apps/", cm)
     am.o = Mock()
-    am.o.configure_mock(cols=20, rows=8, char_width=6, width=128, height=64, device_mode='1', type=["b&w-pixel"])
+    am.o.configure_mock(cols=20, rows=8, char_width=6, width=128, height=64, device_mode='1', type=["b&w"])
     am.load_all_apps(interactive=False)
