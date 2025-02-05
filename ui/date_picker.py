@@ -224,9 +224,9 @@ class DatePicker(BaseUIElement):
 
 		# Draw lines
 		for x in range(step_width, self.c.width-step_width, step_width):
-			self.c.line((x+1, month_year_text_bounds[1], x+1, step_height*6))
+			self.c.line((x+1, month_year_text_bounds[1], x+1, step_height*6-month_year_text_bounds[1]))
 
-			for y in range(step_height, self.c.height, step_height):
+			for y in range(step_height + month_year_text_bounds[1], self.c.height, step_height):
 				self.c.line((0, y, self.c.width, y))
 
 		# Draw dates
@@ -247,7 +247,7 @@ class DatePicker(BaseUIElement):
 					( (step_width-date_text_bounds[0])//2 )
 			y_cord = ( i//self.GRID_WIDTH)*step_height + \
 					step_height+ \
-					( (step_height-date_text_bounds[1])//2 )
+					( (step_height-date_text_bounds[1])//2 - month_year_text_bounds[1]-1)
 			self.c.text(str(date), (x_cord+1, y_cord+1))
 
 			# Increase the counter and continue to the next date, import for positioning
@@ -255,8 +255,8 @@ class DatePicker(BaseUIElement):
 
 		# Highlight selected option
 		selected_x = (self.selected_option['x'])*step_width
-		selected_y = (self.selected_option['y'])*step_height+step_height
-		self.c.invert_rect((selected_x+1, selected_y+1, selected_x+step_width+1, selected_y+step_height))
+		selected_y = (self.selected_option['y'])*step_height+step_height-month_year_text_bounds[1]
+		self.c.invert_rect((selected_x+1, selected_y-1, selected_x+step_width+1, selected_y+step_height-1))
 
 		self.c.display()
 
