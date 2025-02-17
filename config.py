@@ -66,10 +66,10 @@ preassembled_module_confs = {
 """
 
 preassembled_module_confs = {
-"zerophone_og":'{"input":[{"driver":"custom_i2c"}],"output":[{"driver":"sh1106","kwargs":{"backlight_interval":10}}]}',
-"emulator":'{"input":[{"driver":"pygame_input"}], "output":[{"driver":"pygame_emulator"}] }',
-'zpui_bc_v1_qwiic':'{"input":[{"driver":"pcf8574", "addr":"0x3f"}], "output":[{"driver":"sh1106","kwargs":{"hw":"i2c", "backlight_interval":10}}]}',
-'zpui_bc_v1':'{"input":[{"driver":"pi_gpio","kwargs":{"button_pins":[27, 25, 24, 17, 23, 5, 22, 18]}}], "output":[{"driver":"sh1106","kwargs":{"hw":"i2c", "backlight_interval":10}}]}',
+"zerophone_og":'input: custom_i2c\noutput: sh1106\n',
+"emulator":'input: pygame_input\noutput: pygame_emulator\n'
+'zpui_bc_v1_qwiic':"input:\n  addr: '0x3f'\n  driver: pcf8574\noutput:\n  driver: sh1106\n  hw: i2c\n"
+'zpui_bc_v1':'input:\n  button_pins:\n  - 27\n  - 25\n  - 24\n  - 17\n  - 23\n  - 5\n  - 22\n  - 18\n  driver: pi_gpio\noutput:\n  driver: sh1106\n  hw: i2c\n'
 }
 
 
@@ -183,13 +183,13 @@ def setup():
     print("")
 
     if preassembled_module:
-        f = open('config.json', 'w')
+        f = open('config.yaml', 'w')
         f.write(preassembled_module_confs[preassembled_module])
         print(preassembled_module_confs[preassembled_module])
         f.close()
-        print("Your config.json is set. Run 'python main.py' to start the system and check your hardware.")
+        print("Your config.yaml is set. Run 'python main.py' to start the system and check your hardware.")
     else:
-        print("You'll need to change your config.json according to I/O devices you're using (refer to the documentation!)")
+        print("You'll need to change your config.yaml according to I/O devices you're using (refer to the documentation!)")
 
 if __name__ == "__main__":
     setup()
