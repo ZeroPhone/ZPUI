@@ -1,4 +1,4 @@
-from canvas import Canvas
+from ui.canvas import Canvas
 
 """
 Zone requirements:

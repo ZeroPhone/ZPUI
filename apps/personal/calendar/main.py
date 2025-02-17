@@ -1,7 +1,7 @@
 from apps import ZeroApp
 from ui import DatePicker, TimePicker
 
-def test_callback(ul):
+def callback(ul):
 	print(ul)
 
 class CalendarApp(ZeroApp):
@@ -9,5 +9,5 @@ class CalendarApp(ZeroApp):
 	menu_name = "Calendar"
 
 	def on_start(self):
-		self.dp = DatePicker(self.i, self.o, callback=test_callback)
+		self.dp = DatePicker(self.i, self.o, callback=callback)
 		print(self.dp.activate())

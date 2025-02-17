@@ -5,7 +5,7 @@ from ui import GridMenu, Entry, GridMenuLabelOverlay, GridMenuSidebarOverlay
 
 from PIL import Image
 
-def test_func(x):
+def func_test(x):
     print(x)
 
 class MainMenu(ZeroApp):
@@ -23,7 +23,7 @@ class MainMenu(ZeroApp):
         dir = "resources/"
         icons = [f for f in os.listdir(dir) if f.endswith(".png")]
         icon_paths = [[f, os.path.join(dir, f)] for f in icons]
-        grid_contents = [Entry(f.rsplit('.', 1)[0].capitalize(), icon=Image.open(p), cb=lambda x=f: test_func(x)) \
+        grid_contents = [Entry(f.rsplit('.', 1)[0].capitalize(), icon=Image.open(p), cb=lambda x=f: func_test(x)) \
                                 for f,p in icon_paths]
         self.gm = GridMenu(grid_contents, self.i, self.o, entry_width=32, draw_lines=False)
         self.overlay1 = GridMenuLabelOverlay()
