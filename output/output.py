@@ -183,15 +183,27 @@ class OutputProxy(CharacterOutputDevice, GraphicalOutputDevice):
         if self.current_image:
             self.display_image(self.current_image)
 
-def init(output_config):
+def init(driver_configs):
     # type: (list) -> None
     """ This function is called by main.py to read the output configuration, pick the corresponding drivers and initialize a Screen object. Returns the screen object created. """
+    if isinstance(driver_configs, str):
+        # just a driver name provided, good, we can do that
+        driver_configs = [{"driver":driver_configs}]
+    # allow providing a dict instead of a list if there's only one driver
+    if not isinstance(driver_configs, list):
+        driver_configs = [driver_configs]
     # Currently only the first screen in the config is initialized
-    screen_config = output_config[0]
-    driver_name = screen_config["driver"]
+    driver_config = driver_configs[0]
+    driver_name = driver_config["driver"]
     driver_module = importlib.import_module("output.drivers." + driver_name)
-    args = screen_config["args"] if "args" in screen_config else []
-    kwargs = screen_config["kwargs"] if "kwargs" in screen_config else {}
+    args = driver_config["args"] if "args" in driver_config else []
+    if "kwargs" not in driver_config:
+        # a shortening letting us avoid building yaml or json staircases with magic words
+        kwargs = driver_config # taking the root level dict
+        kwargs.pop("driver") # and removing the driver name from it
+        # that's our kwargs now
+    else:
+        kwargs = driver_config["kwargs"]
     return driver_module.Screen(*args, **kwargs)
 
 if __name__ == "__main__":

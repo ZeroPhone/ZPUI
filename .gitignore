@@ -60,9 +60,10 @@ docs/_build/
 target/
 
 # ZPUI
-# Apps are not supposed to ship config.json
+# Apps are not supposed to ship default config files to avoid creating git conflicts and such
 # Instead, they're supposed to create them on first launch
 config.json
+config.yaml
 # ZPUI logfiles
 /logs/*
 # We ship do_not_load files in some directories, but do not track user-created files
