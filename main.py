@@ -10,7 +10,7 @@ import traceback
 from logging.handlers import RotatingFileHandler
 
 from zpui_lib.helpers import read_config, local_path_gen, logger, env, read_or_create_config, \
-                    zpui_running_as_service, is_emulator
+                    zpui_running_as_service, is_emulator, pidcheck
 from zpui_lib.helpers.logger import LoggingConfig
 if __name__ == "__main__": LoggingConfig().autosave = True # "no log_conf.ini clutter by default" mechanism
 from zpui_lib import hacks
@@ -21,7 +21,6 @@ from input import input
 from output import output
 from actions import ContextSwitchAction
 from ui import Printer
-import pidcheck
 
 rconsole_port = 9377
 
