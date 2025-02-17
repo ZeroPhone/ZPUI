@@ -1,0 +1,2 @@
+input: custom_i2c
+output: sh1106

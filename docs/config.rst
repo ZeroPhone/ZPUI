@@ -6,6 +6,10 @@ ZPUI configuration files
 ZPUI ``config.json``
 ++++++++++++++++++++++++
 
+.. warning::
+
+  TODO A migration to YAML has happened, and this entire section has to be overhauled
+
 .. important::
 
   By default, ZeroPhone SD card images and ZPUI installs ship with config.json files
@@ -36,8 +40,8 @@ ZPUI config format
 
 Here's the default ZPUI config right now:
 
-.. include:: ../default_config.json
-    :code: json
+.. include:: ../default_config.yaml
+    :code: yaml
 
 Here's the config file format: 
 
