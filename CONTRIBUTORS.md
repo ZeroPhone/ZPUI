@@ -1,6 +1,6 @@
 #ZPUI project contributors
 
- - CRImier (Arya)
+ - Arya
  - derivmug
  - monsieur_h
  - Louis Parkerson

@@ -4,15 +4,15 @@ from subprocess import check_output
 from copy import deepcopy
 
 remove_names = ["none", "git stash"]
-replace_contributors =   {"CRImier": "CRImier (Arya)",
+replace_contributors =   {"CRImier": "Arya",
                           "ahub": "monsieur_h",
                           "monsieurh": "monsieur_h",
-                          "Arsenijs": "CRImier (Arya)",
+                          "Arsenijs": "Arya",
                           "samkaufman01": "Sam Kaufman",
-                          "crimier": "CRImier (Arya)",
+                          "crimier": "Arya",
                           "kylemoran138": "KyleMoran138",
                           "Ser2808": "Serge Spraiter",
-                          "CrunchBang LiveUser": "CRImier (Arya)",
+                          "CrunchBang LiveUser": "Arya",
                           "Zero Phone": "Unnamed contributor",
                           "LouisPi": "Louis Parkerson",
                           "Louis Pi": "Louis Parkerson"}
