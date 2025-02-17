@@ -1,14 +1,10 @@
 import json
 import yaml
 import sys
-if len(sys.argv) > 1:
-    config = json.loads(sys.argv[1])
-else:
-    with open("config.json") as f:
-        config = json.load(f)
-print(config)
 # migrations
 # 1. remove kwargs from i/o config for config readability
+# 2. shorten configs if necessary - to a single dict instead of [dict], or even to a name if kwargs is not provided
+# 3. remove backlight_interval:10 old default argument, since it's no longer relevant
 
 def yeet_kwargs(config, section):
     if section in config:
@@ -41,13 +37,21 @@ def yeet_kwargs(config, section):
         config[section] = config[section][0]
     return config # not necessary cuz mutability but hey
 
-config = yeet_kwargs(config, "input")
-config = yeet_kwargs(config, "output")
-print(config)
-# final export
-if len(sys.argv) > 1:
-    print(repr(yaml.safe_dump(config)))
-else:
-    with open("config.yaml", 'w') as f:
-        yaml.safe_dump(config, f)
-    print(yaml.safe_dump(config))
+if __name__ == "__main__":
+    if len(sys.argv) > 1:
+        config = json.loads(sys.argv[1])
+    else:
+        with open("config.json") as f:
+            config = json.load(f)
+    print(config)
+
+    config = yeet_kwargs(config, "input")
+    config = yeet_kwargs(config, "output")
+    print(config)
+    # final export
+    if len(sys.argv) > 1:
+        print(repr(yaml.safe_dump(config)))
+    else:
+        with open("config.yaml", 'w') as f:
+            yaml.safe_dump(config, f)
+        print(yaml.safe_dump(config))
