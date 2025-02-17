@@ -1,1 +1,1 @@
-menu_name = "Raspberry Pi apps"
+_menu_name = "RPi apps"
