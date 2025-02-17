@@ -46,7 +46,7 @@ class BacklightManager(object):
     _backlight_enabled = False
     _backlight_active = Event()
 
-    def init_backlight(self, backlight_active_level=True, backlight_pin = None, backlight_interval = None, **kwargs):
+    def init_backlight(self, backlight_active_level=True, backlight_pin = None, backlight_interval = 10, **kwargs):
         self._backlight_active_level = backlight_active_level
         self._backlight_pin = backlight_pin
         if self._backlight_pin:
