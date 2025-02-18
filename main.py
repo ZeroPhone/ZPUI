@@ -28,11 +28,13 @@ rconsole_port = 9377
 pid_path = '/run/zpui_pid.pid'
 
 local_path = local_path_gen(__name__)
-config_paths = ['/boot/zpui_config.json', '/boot/pylci_config.json'] if not is_emulator() else []
+# /boot/pylci_config.yaml might appear post-migration
+config_paths = ['/boot/zpui_config.yaml', '/boot/zpui_config.json', '/boot/pylci_config.yaml', '/boot/pylci_config.json'] if not is_emulator() else []
 config_paths.append(local_path('config.yaml'))
 config_paths.append(local_path('config.json'))
-#Using the .example config as a last resort
-config_paths.append(local_path('default_config.json'))
+#Using the default config as a last resort
+if not is_emulator():
+    config_paths.append(local_path('default_config.yaml'))
 
 input_processor = None
 input_device_manager = None
