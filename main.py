@@ -21,6 +21,7 @@ from input import input
 from output import output
 from actions import ContextSwitchAction
 from ui import Printer
+import hw_combos
 
 rconsole_port = 9377
 
@@ -93,9 +94,12 @@ def init():
     if config is None:
         sys.exit('Failed to load any config files!')
 
+    # Get hardware manager
+    input_config, output_config = hw_combos.get_io_configs(config)
+
     # Initialize output
     try:
-        screen = output.init(config['output'])
+        screen = output.init(output_config)
     except:
         logging.exception('Failed to initialize the output object')
         logging.exception(traceback.format_exc())
@@ -106,7 +110,7 @@ def init():
     # Initialize input
     try:
         # Now we can show errors on the display
-        input_processor, input_device_manager = input.init(config["input"], cm)
+        input_processor, input_device_manager = input.init(input_config, cm)
     except:
         logging.exception('Failed to initialize the input object')
         logging.exception(traceback.format_exc())

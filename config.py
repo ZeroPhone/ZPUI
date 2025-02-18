@@ -66,10 +66,10 @@ preassembled_module_confs = {
 """
 
 preassembled_module_confs = {
-"zerophone_og":'input: custom_i2c\noutput: sh1106\n',
-"emulator":'input: pygame_input\noutput: pygame_emulator\n',
-'zpui_bc_v1_qwiic':"input:\n  addr: '0x3f'\n  driver: pcf8574\noutput:\n  driver: sh1106\n  hw: i2c\n",
-'zpui_bc_v1':'input:\n  button_pins:\n  - 27\n  - 25\n  - 24\n  - 17\n  - 23\n  - 5\n  - 22\n  - 18\n  driver: pi_gpio\noutput:\n  driver: sh1106\n  hw: i2c\n',
+"zerophone_og":'device: zerophone_og\n',
+"emulator":'device: emulator\n',
+'zpui_bc_v1_qwiic':"device: zpui_bc_v1_qwiic\n",
+'zpui_bc_v1':"device: zpui_bc_v1\n",
 }
 
 
@@ -185,6 +185,7 @@ def setup():
     if preassembled_module:
         f = open('config.yaml', 'w')
         f.write(preassembled_module_confs[preassembled_module])
+        print("Config: ")
         print(preassembled_module_confs[preassembled_module])
         f.close()
         print("Your config.yaml is set. Run 'python main.py' to start the system and check your hardware.")
