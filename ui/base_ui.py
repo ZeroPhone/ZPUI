@@ -281,10 +281,8 @@ class BaseUIElement(object):
         """
         raise NotImplementedError
 
-    def generate_name_if_not_supplied(self):
-        """ Generating a random yet descriptive UI element name if one was not supplied.
-        The name hasa to be random enough so that overlays can be applied properly.
-        The name generated will include the directory where the app is called from."""
+    def determine_location(self):
+        """ Figures out the place in ZPUI where the UI element is summoned from. Pretty cool!"""
         cwd = os.getcwd()
         st = stack()
         last_filename = None
@@ -306,5 +304,15 @@ class BaseUIElement(object):
         else:
             # No suitable frame found? 0_0
             logger.warning("No suitable frame found for UI element {} at {} while generating a name, overlays might not apply correctly!".format(self.__class__.__name__, id(self)))
+        return filename, lineno
+
+    def generate_name_if_not_supplied(self):
+        """ Generating a random yet descriptive UI element name if one was not supplied.
+        The name hasa to be random enough so that overlays can be applied properly.
+        The name generated will include the directory where the app is called from."""
+        filename, lineno = self.determine_location()
+        if filename == None:
+            logger.warning("No suitable frame found for UI element {} at {} while generating a name, overlays might not apply correctly!".format(self.__class__.__name__, id(self)))
+            return False
         self.name = "{} from {}:{}".format(self.__class__.__name__, filename, lineno)
         logger.warning("No name supplied for an UI element {} at {}, generated a new name: {}".format(self.__class__.__name__, id(self), repr(self.name)))
