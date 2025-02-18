@@ -181,8 +181,7 @@ class BaseListUIElement(BaseUIElement):
     def move_down(self):
         """ Moves the pointer one entry down, if possible.
         |Is typically used as a callback from input event processing thread.
-        |TODO: support going from bottom to top when pressing "down" with
-        last entry selected."""
+        """
         if self.pointer < (len(self.contents) - 1):
             logger.debug("moved down")
             self.pointer += 1
