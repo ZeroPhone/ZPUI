@@ -21,7 +21,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE."""
 
 from random import randint, choice, random
-from zpui_lib.helpers import flatten
+from zpui_lib.helpers import flatten, setup_logger
+
+logger = setup_logger(__name__, "debug")
 
 
 class GameOf2048(object):
@@ -50,6 +52,7 @@ class GameOf2048(object):
     def add_random_digit(self):
         if not any([cell == 0 for cell in flatten(self.matrix)]):
             # No place available to add
+            logger.debug("no place")
             return
         a = randint(0, self.y_dim - 1)
         b = randint(0, self.x_dim - 1)

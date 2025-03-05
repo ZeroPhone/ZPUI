@@ -112,7 +112,7 @@ class GameApp(ZeroApp):
         assert len(field) == 4, "Can't display a field that's not 4x4!"
         assert len(field[0]) == 4, "Can't display a field that's not 4x4!"
         display_data = []
-        space_for_each_number = self.o.cols / len(field[0])
+        space_for_each_number = self.o.cols // len(field[0])
         for field_row in field:
             field_row_str = [str(i) if i else "." for i in field_row]
             display_row = "".join(str(i).center(space_for_each_number) for i in field_row_str)
