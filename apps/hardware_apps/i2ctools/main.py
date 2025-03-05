@@ -1,7 +1,7 @@
 menu_name = "I2C tools"
 
 from subprocess import call
-from ui import Menu, Printer, DialogBox, LoadingIndicator, UniversalInput, Refresher, IntegerAdjustInput, fvitg
+from ui import Menu, Printer, PrettyPrinter, DialogBox, LoadingIndicator, UniversalInput, Refresher, IntegerAdjustInput, fvitg
 from zpui_lib.helpers import setup_logger, read_or_create_config, local_path_gen, write_config
 
 from collections import OrderedDict
@@ -35,11 +35,15 @@ def scan_i2c_bus():
     for device in range(*scan_range_args):
       try: #If you try to read and it answers, it's there
          current_bus.read_byte(device)
-      except IOError as e: 
+      except IOError as e:
          if e.errno == 16:
              found_devices[device] = "busy"
          elif e.errno == 121:
              pass
+         elif e.errno == 110:
+             # bus crashout, scan isn't worth continuing
+             logger.exception("Error  {}, bus crashout, stopping scan! {}".format(e.errno, repr(e)))
+             break
          else:
              found_devices[device] = "error unknown"
              logger.error("Errno {} unknown - can be used? {}".format(e.errno, repr(e)))
