@@ -5,6 +5,8 @@ from subprocess import check_output, STDOUT, CalledProcessError
 from time import sleep
 import json
 
+from pkg_resources import packaging # for pip version check
+
 try:
     import httplib
 except:
@@ -267,7 +269,14 @@ class GitUpdater(GenericUpdater):
             conn.close()
 
     def do_install_requirements(self):
-        output = check_output(["pip", "install", "--break-system-packages", "-r", "requirements.txt"])
+        cmdline = ["pip", "install", "-r", "requirements.txt"]
+        output = check_output(["pip", "--version"])
+        if isinstance(output, bytes): output = output.decode("utf-8")
+        pip, ver, other = output.split(' ', 2)
+        #print(pip, ver)
+        if packaging.version.parse(ver) > packaging.version.parse("23.0.0"):
+            cmdline.insert(2, "--break-system-packages")
+        output = check_output(cmdline)
         if isinstance(output, bytes): output = output.decode("utf-8")
         logger.debug("pip output:")
         logger.debug(output)
