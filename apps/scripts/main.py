@@ -125,13 +125,29 @@ def del_history_entry(num):
         config["history"].pop(num)
         save_config(config)
 
+def editnrun_history_entry(entry):
+    command = UniversalInput(i, o, value=entry, message="Command:", name="Script command edit-and-run input").activate()
+    if command:
+        call_command(command)
+
+def menu_history_entry(num):
+    entry = config["history"][num]
+    def get_mc():
+        c = [
+          ["Edit and run", lambda: editnrun_history_entry(entry)],
+          ["Delete", lambda: del_history_entry(num)],
+        ]
+        return c
+    Menu([], i, o, contents_hook=get_mc, name="Scripts app history entry {} menu".format(num)).activate()
+
+
 def history_menu():
     def get_mc():
         c = []
         for i, entry in enumerate(config["history"]):
             exec_e = lambda x=i: exec_history_entry(x)
-            del_e = lambda x=i: del_history_entry(x)
-            c.append([entry, exec_e, del_e])
+            menu_e = lambda x=i: menu_history_entry(x)
+            c.append([entry, exec_e, menu_e])
         return c
     Menu([], i, o, contents_hook=get_mc, name="Scripts app history menu").activate()
 
