@@ -11,7 +11,7 @@ except:
     import http.client as httplib
 
 from ui import Menu, PrettyPrinter, DialogBox, ProgressBar, Listbox, UniversalInput, HelpOverlay
-from zpui_lib.helpers import setup_logger, read_or_create_config, save_config_method_gen, local_path_gen, safely_backup_file
+from zpui_lib.helpers import setup_logger, read_or_create_config, save_config_method_gen, local_path_gen, get_safe_file_backup_path
 
 local_path = local_path_gen(__name__)
 
@@ -23,6 +23,8 @@ menu_name = "Settings"
 logger = setup_logger(__name__, "info")
 
 class GitInterface(object):
+
+    moved_files = []
 
     @classmethod
     def git_available(cls):
@@ -88,9 +90,11 @@ class GitInterface(object):
                             try:
                                 dir, fname = os.path.split(line)
                                 if not dir: dir = '.'
-                                new_path = safely_backup_file(dir, fname)
+                                old_path, new_path = get_safe_file_backup_path(dir, fname)
                                 logger.info("Moving interfering file {} to {}".format(line, new_path))
-                                os.renames(line, new_path)
+                                print("Moving interfering file {} to {}".format(line, new_path))
+                                os.renames(old_path, new_path)
+                                cls.moved_files.append((old_path, new_path))
                             except OSError:
                                 logger.warning("Couldn't remove an interfering file {} while pulling!".format(line))
                         line = next(lines)
@@ -314,6 +318,13 @@ class GitUpdater(GenericUpdater):
         # do_check_revisions already ran, we now have the previous revision's
         # commit hash in self.previous_revision
         GitInterface.command("reset --hard {}".format(self.previous_revision))
+        # if any files were moved, moving them back
+        if GitInterface.moved_files:
+            for old, new in GitInterface.moved_files:
+                logger.info("Moving file back from {} to {}".format(new, old))
+                print("Moving file back from {} to {}".format(new, old))
+                os.renames(old, new)
+            GitInterface.moved_files = []
         # requirements.txt now contains old requirements, let's install them back
         self.do_install_requirements()
 
