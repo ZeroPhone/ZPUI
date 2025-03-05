@@ -189,6 +189,12 @@ class Context(object):
         """
         return self.event_cb(self.name, "is_active")
 
+    def get_current_context(self):
+        """
+        Returns the context name of the currently active context.
+        """
+        return self.event_cb(self.name, "get_current_context")
+
     def get_previous_context_image(self):
         """
         Useful for making screenshots (mainly, for ZeroMenu). Might get deprecated in
@@ -483,6 +489,8 @@ class ContextManager(object):
                     return True
                 else:
                     return False
+        elif event == "get_current_context":
+            return self.current_context
         elif event == "get_previous_context_image":
             # This is a special-case function for screenshots. I'm wondering
             # if there's a better way to express this.
