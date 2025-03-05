@@ -408,7 +408,7 @@ class Canvas(object):
                 elif sign == "-":
                     coords[i] = dim - offset
             elif isinstance(c, float):
-                logger.warning("Received {} as a coordinate - pixel offsets can't be float, converting to int".format(c))
+                logger.info("Received {} as a coordinate - pixel offsets can't be float, converting to int".format(c))
                 coords[i] = int(c)
         # Restoring the status-quo
         coords = tuple(coords)
