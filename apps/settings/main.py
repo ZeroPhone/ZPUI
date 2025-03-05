@@ -229,16 +229,16 @@ class GitUpdater(GenericUpdater):
     config_filename = "git_updater.json"
     safe_branches = ["master", "staging", "devel"]
     # Forming the default config
-    default_config = '{"url":"https://github.com/ZeroPhone/ZPUI", "branches":[]}'
+    default_config = '{"url":"https://github.com/ZeroPhone/ZPUI", "branches":[], "check_revs":true}'
     json_config = json.loads(default_config)
     json_config["branches"] = safe_branches
     default_config = json.dumps(json_config)
 
-    def __init__(self, check_revisions=True):
+    def __init__(self):
         GenericUpdater.__init__(self)
-        self.check_revisions = check_revisions
         self.config = read_or_create_config(local_path(self.config_filename), self.default_config, "Git updater")
         self.save_config = save_config_method_gen(self, local_path(self.config_filename))
+        self.check_revisions = self.config.get("check_revs", True)
 
     def do_check_git(self):
         if not GitInterface.git_available():
@@ -293,11 +293,20 @@ class GitUpdater(GenericUpdater):
             self.save_config()
             PrettyPrinter("Saved new URL!", i, o)
 
-    def settings(self):
+    def toggle_check_revs(self):
+        self.check_revisions = not self.check_revisions
+        self.config["check_revs"] = self.check_revisions
+        self.save_config()
+
+    def settings_contents(self):
         mc = [
         ["Select branch", self.pick_branch],
+        ["Compare_code: {}".format("YES" if self.check_revisions else "NO"), self.toggle_check_revs],
         ["Change URL", self.change_origin_url]]
-        Menu(mc, i, o, name="Git updater settings menu").activate()
+        return mc
+
+    def settings(self):
+        Menu([], i, o, contents_hook=self.settings_contents, name="Git updater settings menu").activate()
 
     def do_pretest_migrations(self):
         import pretest_migration
@@ -350,9 +359,11 @@ class GitUpdater(GenericUpdater):
         if branch:
             try:
                 GitInterface.checkout(branch)
+                # making sure check_revisions is set to False
+                old_check_revs = self.check_revisions
                 self.check_revisions = False
                 updated = self.update()
-                self.check_revisions = True
+                self.check_revisions = old_check_revs
             except:
                 PrettyPrinter("Couldn't check out the {} branch! Try resolving the conflict through the command-line.".format(branch), i, o, 3)
             else:
