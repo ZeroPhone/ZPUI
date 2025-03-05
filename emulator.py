@@ -75,16 +75,19 @@ class EmulatorProxy(object):
         # this method is only there so that I can record the screen
         print("display_data_onto_image")
         cursor_position = kwargs.pop("cursor_position", None)
+        cursor_enabled = kwargs.pop("cursor_enabled", None)
         if not cursor_position:
             cursor_position = None
         args = args[:self.rows]
         draw = canvas(self.device)
         d = draw.__enter__()
         if cursor_position:
-            dims = (cursor_position[0] - 1 + 2,
-                    cursor_position[1] - 1,
-                    cursor_position[0] + self.char_width + 2,
-                    cursor_position[1] + self.char_height + 1)
+            dims = (
+                    cursor_position[1]*self.char_width - 1 + 2,
+                    cursor_position[0]*self.char_height - 1,
+                    cursor_position[1]*self.char_width + self.char_width + 2,
+                    cursor_position[0]*self.char_height + self.char_height + 1
+                    )
             d.rectangle(dims, outline="white")
         for line, arg in enumerate(args):
             y = (line * self.char_height - 1) if line != 0 else 0
