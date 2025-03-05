@@ -49,8 +49,9 @@ def show_linux_info():
     [["Hostname:", linux_info["hostname"]]],
     [["Kernel version:", linux_info["k_release"]]],
     [["Architecture:", linux_info["machine"]]],
-    [["Distribution:", " ".join(linux_info["distribution"])]]
     ]
+    if "distribution" in linux_info:
+        menu_contents.append([["Distribution:", " ".join(linux_info["distribution"])]])
     Menu(menu_contents, i, o, entry_height=2).activate()
 
 callback = None

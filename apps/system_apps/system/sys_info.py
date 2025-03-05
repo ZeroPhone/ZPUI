@@ -19,7 +19,10 @@ def linux_info():
     arguments = ["system", "hostname", "k_release", "version", 'machine', 'cpu']
     for i, element in enumerate(uname):
         info[arguments[i]] = element
-    info["distribution"] = platform.linux_distribution()
+    try:
+        info["distribution"] = platform.linux_distribution()
+    except:
+        pass
     return info
 
 
