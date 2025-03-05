@@ -5,7 +5,7 @@ import subprocess
 from time import sleep
 from datetime import datetime
 
-from zpui_lib.helpers import read_or_create_config, local_path_gen, save_config_gen, setup_logger, safely_backup_file
+from zpui_lib.helpers import read_or_create_config, local_path_gen, save_config_gen, setup_logger, get_safe_file_backup_path
 from ui import Menu, PrettyPrinter as Printer, LoadingIndicator, DialogBox
 from actions import FirstBootAction
 from zpui_lib.libs import systemctl
@@ -20,6 +20,8 @@ local_path = local_path_gen(__name__)
 config_path = local_path(config_filename)
 config = read_or_create_config(config_path, default_config, menu_name + " app")
 save_config = save_config_gen(config_path)
+
+# TODO: support dropbear (like on DietPi)
 
 logger = setup_logger(__name__, "info")
 
@@ -48,6 +50,7 @@ def setup_ssh():
             disable_ssh()
 
 def regenerate_ssh_keys(prompt=True):
+    files_moved = []
     if prompt:
         # if prompt is true, we're being called from a user-accessible menu
         # and if that's the case, we need to add warnings
@@ -66,20 +69,18 @@ def regenerate_ssh_keys(prompt=True):
                 # moving files instead of old removal
                 # this reduces damage if the operation is done by accident
                 # logger.warning("Removing {}".format(f))
-                safely_backup_file(ssh_dir, f)
-                current_path = os.path.join(ssh_dir, f)
-                y = 0
-                name = "{}old{}".format(f, y)
-                while name in os.listdir(ssh_dir):
-                    y += 1
-                    name = "{}_old{}".format(f, y)
-                new_path = os.path.join(ssh_dir, name)
-                os.move(current_path, new_path)
+                current_path, new_path = get_safe_file_backup_path(ssh_dir, f)
+                os.rename(current_path, new_path)
+                files_moved.append((current_path, new_path))
             for command in config["key_regen_commands"]:
                 subprocess.call(command, shell=True)
     except:
         logger.exception("Failed to regenerate keys!")
         Printer("Failed to regenerate keys!", i, o)
+        if files_moved:
+            for old, new in files_moved:
+                logger.info("Moving file back: from {} to {}".format(new, old))
+                os.rename(new, old)
         return False
     else:
         Printer("Regenerated keys!", i, o)
