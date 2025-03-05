@@ -1,11 +1,18 @@
 menu_name = "Screenshots"
 
 import os
+from time import sleep
 from datetime import datetime
+
+from zpui_lib.helpers import setup_logger, BackgroundRunner, BooleanEvent
+
+logger = setup_logger(__name__, "info")
 
 from ui import Menu, PrettyPrinter, GraphicsPrinter
 
 from actions import BackgroundAction as Action
+
+from PIL import ImageChops
 
 i = None
 o = None
@@ -16,16 +23,63 @@ screenshot_folder = "screenshots"
 def take_screenshot():
     image = context.get_previous_context_image()
     if image != None:
-        timestamp = datetime.now().strftime("%y%m%d-%H%M%S")
-        filename = "screenshot_{}.png".format(timestamp)
-        path = os.path.join(screenshot_folder, filename)
-        image.save(path, "PNG")
+        path = save_image(image)
         PrettyPrinter("Screenshot saved to {}".format(path), i, o)
+
+def save_image(image):
+    timestamp = datetime.now().strftime("%y%m%d-%H%M%S:%f")
+    filename = "screenshot_{}.png".format(timestamp)
+    path = os.path.join(screenshot_folder, filename)
+    image.save(path, "PNG")
+    return path
+
+def toggle_record():
+    if not recording_ongoing:
+        runner = BackgroundRunner(record)
+        runner.run()
+    else:
+        recording_ongoing.set(False)
+
+def imgs_are_equal(i1, i2):
+    return ImageChops.difference(i1, i2).getbbox() is None
+
+recording_ongoing = BooleanEvent()
+recording_ongoing.set(False)
+
+def record():
+    recording_ongoing.set(True)
+    logger.info("Recording starting")
+    prev_image = None
+    prev_c = None
+    while recording_ongoing:
+        try:
+            c = context.get_current_context()
+            image = context.get_context_image(c)
+            if image: # not doing anything if the current image isn't at least truthy
+                if not prev_image or not imgs_are_equal(image, prev_image):
+                    path = save_image(image)
+                    logger.info("Image changed, saved to {}!".format(path))
+                    prev_image = image
+            if not recording_ongoing:
+                logger.info("Recording stopped")
+                recording_ongoing.set(False)
+                return True
+            sleep(0.01)
+        except:
+            logger.exception("Recording failed!")
+            recording_ongoing.set(False)
+            return False
+    logger.info("Recording stopped")
+    recording_ongoing.set(False)
+    return True
 
 def set_context(received_context):
     global context
     context = received_context
-    context.register_action(Action("screenshot", take_screenshot, menu_name="Take screenshot", description="Takes a screenshot from previous app"))
+    def menu_name_cb():
+        return "Stop recording screen" if recording_ongoing else "Record screen"
+    context.register_action(Action("screenshot", take_screenshot, menu_name="Screenshot", description="Takes a screenshot from previous app"))
+    context.register_action(Action("record_screen", toggle_record, menu_name=menu_name_cb, description="Records the screen from currently shown app (as series of screenshots)"))
 
 def init_app(input, output):
     global i, o
