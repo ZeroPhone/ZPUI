@@ -52,6 +52,8 @@ class EmulatorProxy(object):
         self.device_mode = mode
         self.device = type("MockDevice", (), {"mode":self.mode, "size":(self.width, self.height)})
         self.parent_conn, self.child_conn = Pipe()
+        self.cols = self.height//self.char_height
+        self.rows = self.width//self.char_width
         self.__base_classes__ = (GraphicalOutputDevice, CharacterOutputDevice)
         self.current_image = None
         self.start_process()
@@ -64,6 +66,30 @@ class EmulatorProxy(object):
         if self.parent_conn.poll(timeout) is True:
             return self.parent_conn.recv()
         return None
+
+    def display_data_onto_image(self, *args, **kwargs):
+        """
+        This method takes lines of text and draws them onto an image,
+        helping emulate a character display API.
+        """
+        # this method is only there so that I can record the screen
+        print("display_data_onto_image")
+        cursor_position = kwargs.pop("cursor_position", None)
+        if not cursor_position:
+            cursor_position = None
+        args = args[:self.rows]
+        draw = canvas(self.device)
+        d = draw.__enter__()
+        if cursor_position:
+            dims = (self.cursor_pos[0] - 1 + 2,
+                    self.cursor_pos[1] - 1,
+                    self.cursor_pos[0] + self.char_width + 2,
+                    self.cursor_pos[1] + self.char_height + 1)
+            d.rectangle(dims, outline="white")
+        for line, arg in enumerate(args):
+            y = (line * self.char_height - 1) if line != 0 else 0
+            d.text((2, y), arg, fill="white")
+        return draw.image
 
     def quit(self):
         DummyCallableRPCObject(self.parent_conn, 'quit')()
@@ -101,6 +127,10 @@ class DummyCallableRPCObject(object):
 
 
 class Emulator(object):
+    """
+    for any future visitors:
+    this runs in a whole different process
+    """
     def __init__(self, child_conn, mode="1", width=128, height=64):
         self.child_conn = child_conn
 
