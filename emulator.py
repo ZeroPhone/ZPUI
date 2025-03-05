@@ -81,10 +81,10 @@ class EmulatorProxy(object):
         draw = canvas(self.device)
         d = draw.__enter__()
         if cursor_position:
-            dims = (self.cursor_pos[0] - 1 + 2,
-                    self.cursor_pos[1] - 1,
-                    self.cursor_pos[0] + self.char_width + 2,
-                    self.cursor_pos[1] + self.char_height + 1)
+            dims = (cursor_position[0] - 1 + 2,
+                    cursor_position[1] - 1,
+                    cursor_position[0] + self.char_width + 2,
+                    cursor_position[1] + self.char_height + 1)
             d.rectangle(dims, outline="white")
         for line, arg in enumerate(args):
             y = (line * self.char_height - 1) if line != 0 else 0
