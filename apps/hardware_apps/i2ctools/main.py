@@ -58,6 +58,7 @@ def scan_i2c_devices():
     except:
         logger.exception("I2C scan failed!")
         PrettyPrinter("I2C scan failed!", i, o, 3)
+        return
     if not devices:
         Printer("No devices found", i, o, 2)
     else:
