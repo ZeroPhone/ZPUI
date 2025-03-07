@@ -46,11 +46,16 @@ def imgs_are_equal(i1, i2):
 recording_ongoing = BooleanEvent()
 recording_ongoing.set(False)
 
+def log_recording(filename, imgpath):
+    path = os.path.join(screenshot_folder, filename)
+    with open(path, 'a') as f:
+        f.write(imgpath+'\n')
+
 def record():
     recording_ongoing.set(True)
     logger.info("Recording starting")
+    log_filename = "recording-{}.log".format(datetime.now().strftime("%y%m%d-%H%M%S"))
     prev_image = None
-    prev_c = None
     while recording_ongoing:
         try:
             c = context.get_current_context()
@@ -59,6 +64,7 @@ def record():
                 if not prev_image or not imgs_are_equal(image, prev_image):
                     path = save_image(image)
                     logger.info("Image changed, saved to {}!".format(path))
+                    log_recording(log_filename, path)
                     prev_image = image
             if not recording_ongoing:
                 logger.info("Recording stopped")
@@ -89,6 +95,7 @@ def show_screenshot(path):
     GraphicsPrinter(path, i, o, 5, invert=False)
 
 def list_screenshots():
+    # TODO exclude recording-produced screenshots
     mc = []
     screenshots = [file for file in os.listdir(screenshot_folder) if file.endswith('.png')]
     for filename in screenshots:
