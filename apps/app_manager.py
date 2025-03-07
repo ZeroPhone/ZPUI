@@ -70,7 +70,7 @@ class AppManager(object):
         return menu
 
     def sidebar_cb(self, c, ui_el, coords):
-        sidebar_image = ImageOps.invert(Image.open("sidebar.png").convert('L'))
+        sidebar_image = ImageOps.invert(Image.open("resources/sidebar.png").convert('L'))
         sidebar_image.convert(c.o.device_mode)
         c.image.paste(sidebar_image, (coords.left+3, coords.top-5))
 
