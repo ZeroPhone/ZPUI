@@ -536,7 +536,7 @@ class Canvas(object):
 #
 #	self.image = self.image.rotate(degrees, expand=expand)
 
-    def paste(self, image_or_path, coords=None, invert=False):
+    def paste(self, image_or_path, coords=None, invert=False, mask="auto"):
         """
         Pastes the supplied image onto the canvas, with optional
         coordinates. Otherwise, you can supply a string path to an image
@@ -555,7 +555,14 @@ class Canvas(object):
             image = Image.open(image_or_path)
         else:
             image = image_or_path
-        self.image.paste(image, box=coords)
+        # mask parameter for alpha channel cognizant pasting
+        if mask == "auto":
+            mask = image.mode == "RGBA"
+        if mask == True:
+            self.image.paste(image, box=coords, mask=image)
+        else:
+            self.image.paste(image, box=coords)
+        # inverted only after drawing
         if invert:
             if not coords: coords = (0, 0)
             coords = coords+(coords[0]+image.width, coords[1]+image.height)
