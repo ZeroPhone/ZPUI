@@ -1,0 +1,4 @@
+name: "Terminal"
+developer: "Allison Chapman"
+version: "1.0.0"
+launch_file: "main.py"
