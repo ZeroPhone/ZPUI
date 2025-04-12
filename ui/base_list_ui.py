@@ -78,6 +78,7 @@ class BaseListUIElement(BaseUIElement):
             "TextView": TextView,
             "EightPtView": EightPtView,
             "SixteenPtView": SixteenPtView,
+            "TwiceSixteenPtView": TwiceSixteenPtView,
             "MainMenuTripletView": MainMenuTripletView,
             "PrettyGraphicalView": SixteenPtView,  # Not a descriptive name - left for compatibility
             "SimpleGraphicalView": EightPtView  # Not a descriptive name - left for compatibility
@@ -117,14 +118,20 @@ class BaseListUIElement(BaseUIElement):
             elif isinstance(view_config, dict):
                 raise NotImplementedError  # Again, this is for fine-tuning
         elif not view:
+            logger.debug("Getting default view for element {}".format(self.name))
             view = self.get_default_view()
         self.view = view(self.o, self)
 
     def get_default_view(self):
         """Decides on the view to use for UI element when config file has
         no information on it."""
+        print("getting default view")
         if "b&w" in self.o.type:
-            return self.views["SixteenPtView"]
+            # typical displays
+            if self.o.width <= 240:
+                return self.views["SixteenPtView"]
+            else:
+                return self.views["TwiceSixteenPtView"]
         elif "char" in self.o.type:
             return self.views["TextView"]
         else:
@@ -629,6 +636,11 @@ class SixteenPtView(EightPtView):
     charwidth = 8
     charheight = 16
     font = ("Fixedsys62.ttf", 16)
+
+class TwiceSixteenPtView(EightPtView):
+    charwidth = 16
+    charheight = 32
+    font = ("Fixedsys62.ttf", 32)
 
 
 class MainMenuTripletView(SixteenPtView):

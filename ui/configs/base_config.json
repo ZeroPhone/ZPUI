@@ -4,7 +4,6 @@
        "Systemctl: filtered unit list menu":"SimpleGraphicalView",
        "NMap: select port types":"SimpleGraphicalView",
        "matrix_messages_menu": "SimpleGraphicalView"
-   },
-   "default":"PrettyGraphicalView"
+   }
  }
 }
