@@ -1,8 +1,10 @@
 import os
+import sys
+sys.exit(0)
 from datetime import datetime
 
 import yaml
-from pyray import *
+#from pyray import *
 
 from resources import ResourceManager
 
