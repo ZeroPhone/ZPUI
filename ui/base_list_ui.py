@@ -125,7 +125,6 @@ class BaseListUIElement(BaseUIElement):
     def get_default_view(self):
         """Decides on the view to use for UI element when config file has
         no information on it."""
-        print("getting default view")
         if "b&w" in self.o.type:
             # typical displays
             if self.o.width <= 240:
