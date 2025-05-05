@@ -21,8 +21,15 @@ except ImportError:
             return utils
         return orig_import(name, *args)
 
-    with patch('__builtin__.__import__', side_effect=import_mock):
-        from canvas import Canvas, expand_coords
+    try:
+        import __builtin__
+    except ImportError:
+        import builtins
+        with patch('builtins.__import__', side_effect=import_mock):
+            from canvas import Canvas, expand_coords
+    else:
+        with patch('__builtin__.__import__', side_effect=import_mock):
+            from canvas import Canvas, expand_coords
 
 
 def get_mock_output(width=128, height=64, mode="1"):
