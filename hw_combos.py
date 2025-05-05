@@ -51,15 +51,26 @@ def get_io_configs(config):
         input_config, output_config = device_fun(config)
         input_config, output_config = update_config(config, input_config, output_config)
         logger.info("created configs, input: {}, output: {}".format(input_config, output_config))
+        # TODO merge 'device' and 'input'/'output' configs!!
         return input_config, output_config
     else:
+        if "input" not in config:
+            raise ValueError("No 'device' or 'input' section found in config - an input device is required!")
+        if "output" not in config:
+            raise ValueError("No 'device' or 'output' section found in config - an output device is required!")
         return config["input"], config["output"]
 
 def config_emulator(config):
     return ("pygame_input", "pygame_emulator")
 
 def config_zpog(config):
-    return ("custom_i2c", "sh1106")
+    io = ["custom_i2c", "sh1106"]
+    if "i2c" in config:
+        io[0] = {"driver":io[0]}
+        io[0]["bus"] = int(config.get("i2c", 1))
+        io[1] = {"driver":io[1]}
+        io[1]["bus"] = int(config.get("i2c", 1))
+    return io
 
 def rotate_zpui_bc(io, config):
     i, o = io
@@ -82,6 +93,9 @@ def rotate_zpui_bc(io, config):
 
 def config_zpui_bc_v1_qwiic(config):
     io = ({"driver":"pcf8574", "addr":0x3f}, {"driver":"sh1106", "hw":"i2c"})
+    if "i2c" in config:
+        io[0]["bus"] = int(config.get("i2c", 1))
+        io[1]["bus"] = int(config.get("i2c", 1))
     if isinstance(config["device"], dict):
         if "rotate" in config["device"]:
             io = rotate_zpui_bc(io, config)
@@ -89,6 +103,8 @@ def config_zpui_bc_v1_qwiic(config):
 
 def config_zpui_bc_v1(config):
     io = ({"driver":"pi_gpio", "button_pins":[27, 25, 24, 17, 23, 5, 22, 18]}, {"driver":"sh1106", "hw":"i2c"})
+    if "i2c" in config:
+        io[1]["bus"] = int(config.get("i2c", 1))
     if isinstance(config["device"], dict):
         if "rotate" in config["device"]:
             io = rotate_zpui_bc(io, config)
@@ -217,6 +233,27 @@ class TestCombination(unittest.TestCase):
         i, o = get_io_configs(config)
         assert(i == [{'driver': 'pygame_input', 'test1': 'test2'}, 'test3'])
         assert(o == [{'driver': 'pygame_emulator', 'test4': 'test5'}, 'test6'])
+
+    def test_zpbc1_i2cbus(self):
+        """tests that it zp businesscard v1 config can be modded with i2c"""
+        config = {"device":"zpui_bc_v1", "i2c":"2"}
+        i, o = get_io_configs(config)
+        assert(i == {'driver': 'pi_gpio', 'button_pins': [27, 25, 24, 17, 23, 5, 22, 18]})
+        assert(o == {'driver': 'sh1106', 'hw': 'i2c', 'bus': 2})
+
+    def test_zpbc1q_i2cbus(self):
+        """tests that it zp businesscard v1 qwiic config parses"""
+        config = {"device":"zpui_bc_v1_qwiic", "i2c":"2"}
+        i, o = get_io_configs(config)
+        assert(i == {'driver': 'pcf8574', 'addr': 63, 'bus': 2})
+        assert(o == {'driver': 'sh1106', 'hw': 'i2c', 'bus': 2})
+
+    def test_zpog_i2cbus(self):
+        """tests that zpog config parses"""
+        config = {"device":"zerophone_og", "i2c": "2"}
+        i, o = get_io_configs(config)
+        assert(o == {"driver": "sh1106", "bus": 2})
+        assert(i == {"driver":"custom_i2c", "bus": 2})
 
 if __name__ == '__main__':
     unittest.main()
