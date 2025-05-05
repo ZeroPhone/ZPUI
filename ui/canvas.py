@@ -7,15 +7,17 @@ from ui.utils import is_sequence_not_string as issequence, Rect
 fonts_dir = "ui/fonts/"
 font_cache = {}
 
+from zpui_lib.helpers import setup_logger
+logger = setup_logger(__name__, "warning")
+
 default_font = None
 def get_default_font():
     global default_font
     if not default_font:
-        default_font = ImageFont.load_default()
+        logger.debug("Loading default font from the font storage directory")
+        path = os.path.join(fonts_dir, 'courB08.pil')
+        default_font = ImageFont.load(path)
     return default_font
-
-from zpui_lib.helpers import setup_logger
-logger = setup_logger(__name__, "warning")
 
 class Canvas(object):
     """
