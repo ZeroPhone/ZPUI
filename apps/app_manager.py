@@ -255,7 +255,7 @@ class AppManager(object):
             except Exception as e:
                 logger.exception("App {}: app class has 'set_context' but raised exception when passed a context".format(app_path))
             else:
-                logger.info("Passed context to app {}".format(app_path))
+                logger.debug("Passed context to app {}".format(app_path))
 
     def get_app_name(self, app, app_path):
         if hasattr(app, "menu_name"):
