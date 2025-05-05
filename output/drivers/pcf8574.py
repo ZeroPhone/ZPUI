@@ -28,10 +28,10 @@ class Screen(HD44780, OutputDevice):
     data_mask = 0x00
 
     def __init__(self, bus=1, addr=0x27, debug=False, **kwargs):
-        """Initialises the ``Screen`` object.  
-                                                                               
-        Kwargs:                                                                  
-                                                                                 
+        """Initialises the ``Screen`` object.
+
+        Kwargs:
+
             * ``bus``: I2C bus number.
             * ``addr``: I2C address of the board.
             * ``debug``: enables printing out LCD commands.
@@ -46,13 +46,13 @@ class Screen(HD44780, OutputDevice):
         self.debug = debug
         HD44780.__init__(self, debug = self.debug, **kwargs)
         self.enable_backlight()
-        
+
     def enable_backlight(self):
         self.data_mask = self.data_mask|self.backlight_mask
-        
+
     def disable_backlight(self):
         self.data_mask = self.data_mask& ~self.backlight_mask
-       
+
     def write_byte(self, data, char_mode = False):
         """Takes a byte and sends the high nibble, then the low nibble (as per HD44780 doc). Passes ``char_mode`` to ``self.write4bits``."""
         if self.debug and not char_mode:
@@ -67,18 +67,18 @@ class Screen(HD44780, OutputDevice):
         value = value & ~ self.enable_mask
         self.expanderWrite(value)
         self.expanderWrite(value | self.enable_mask)
-        self.expanderWrite(value)        
+        self.expanderWrite(value)
 
     def expanderWrite(self, data):
         """Sends data to PCF8574."""
         self.bus.write_byte_data(self.addr, 0, data|self.data_mask)
-       
+
 
 if __name__ == "__main__":
     screen = Screen(bus=1, addr=0x26, cols=16, rows=2, autoscroll=False)
     line = "01234567890123456789"
     while True:
         screen.display_data(line, line[::-1])
-        sleep(1)      
+        sleep(1)
         screen.display_data(line[::-1], line)
-        sleep(1)      
+        sleep(1)
