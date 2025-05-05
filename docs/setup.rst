@@ -17,12 +17,14 @@ Installation
 
     git clone https://github.com/ZeroPhone/ZPUI
     cd ZPUI/
-    #Install main dependencies (apt and pip packages), configure systemd, and create a system-wide ZPUI copy
+    # Install main dependencies (apt and pip packages), configure systemd, and create a system-wide ZPUI copy
     sudo ./setup.sh
-    #Start the system to test your configuration - do screen and buttons work OK?
+    # Run this script to help you configure the IO for ZPUI to use
+    sudo ./config.py
+    # Start the system to test your configuration - do screen and buttons work OK?
     sudo python main.py 
-    #Once tested:
-    sudo ./update.sh #Transfer the working system to your system-wide ZPUI copy
+    # Once tested:
+    sudo ./sync.sh #Transfer the working system to your system-wide ZPUI copy
 
 
 .. _local_system_copy:
@@ -54,7 +56,9 @@ Updating
 --------
 
 To get new ZPUI changes from GitHub, you can run **"Settings"** -> **"Update ZPUI"** 
-from the main ZPUI menu, which will update the system-wide copy by doing ``git pull``.
+from the main ZPUI menu, which will update the system-wide copy by doing things like
+``git pull``, ``pip install -r requirements.txt`` and running tests
+ (way fancier, of course).
 
 If you want to sync your local copy to the system-wide copy, you can run ``update.sh``
 It **1)** automatically pulls new commits from GitHub and **2)** copies all the 
@@ -79,6 +83,7 @@ Launching the system manually
 For testing configuration or development, you will want to launch ZPUI directly 
 so that you will see the logs and will be able to stop it with a simple Ctrl^C. 
 In that case, just run ZPUI with ``sudo python main.py`` from your local (or system-wide) directory. 
+If ZPUI is already running system-wide, run ``systemctl stop zpui`` to stop it.
 
 -----------
 
@@ -121,27 +126,27 @@ Arch Linux installation
 -----------------------
 .. code-block:: bash
 
-    sudo pacman -Si python2-pip git python2-pygame
-    sudo pip2 install luma.emulator
+    sudo pacman -Si python-pip git python-pygame
+    sudo pip install luma.emulator
 
     git clone https://github.com/ZeroPhone/ZPUI
     cd ZPUI
     ./setup_emulator
     #Run the emulator
-    python2 main.py
+    python main.py
 
 OpenSUSE installation
 ---------------------
 
 .. code-block:: bash
 
-    sudo zypper install python2-pip git python2-devel gcc python2-curses python2-pygame #If python2- version is not available, try python- and report on IRC - can't test it now
-    sudo pip2 install luma.emulator
+    sudo zypper install python-pip git python-devel gcc python-curses python-pygame
+    sudo pip install luma.emulator
     git clone https://github.com/ZeroPhone/ZPUI
     cd ZPUI
     ./setup_emulator
     #Run the emulator
-    python2 main.py
+    python main.py
 
 Emulator credits
 ----------------
