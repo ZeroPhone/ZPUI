@@ -73,8 +73,8 @@ class BaseListUIElement(BaseUIElement):
         self.set_contents(contents)
         self.inhibit_refresh = Event()
 
-    def set_views_dict(self):
-        self.views = {
+    def get_views_dict(self):
+        return {
             "TextView": TextView,
             "EightPtView": EightPtView,
             "SixteenPtView": SixteenPtView,
@@ -83,6 +83,9 @@ class BaseListUIElement(BaseUIElement):
             "PrettyGraphicalView": SixteenPtView,  # Not a descriptive name - left for compatibility
             "SimpleGraphicalView": EightPtView  # Not a descriptive name - left for compatibility
         }
+
+    def set_views_dict(self):
+        self.views = self.get_views_dict()
         if self.view_mixin:
             class_name = self.__class__.__name__
             for view_name, view_class in self.views.items():
@@ -440,7 +443,7 @@ class TextView(object):
 
     def get_displayed_text(self, contents):
         """Generates the displayed data for a character-based output device. The output of this function can be fed to the o.display_data function.
-        |Corrects last&first_displayed_entry pointers if necessary, then gets the currently displayed entries' numbers, renders each one 
+        |Corrects last&first_displayed_entry pointers if necessary, then gets the currently displayed entries' numbers, renders each one
         of them and concatenates them into one big list which it returns.
         |Doesn't support partly-rendering entries yet."""
         displayed_data = []
