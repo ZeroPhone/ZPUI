@@ -60,7 +60,7 @@ class UIConfigManager(object):
         try:
             base_config = self.load_config(file_path)
         except Exception as e:
-            logger.error("Exception while loading base config!".format(file_path))
+            logger.error("Exception while loading base config {}!".format(file_path))
             logger.exception(e)
             base_config = {}
         user_configs = []
