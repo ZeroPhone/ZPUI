@@ -520,7 +520,7 @@ class Canvas(object):
         else: # Other mode - invert without workarounds
             image_subset = ImageOps.invert(image_subset)
 
-        self.clear(coords)
+        #self.clear(coords) # results in an unfun bug??
         self.image.paste(image_subset, (coords[0], coords[1]))
 
         self.display_if_interactive()
