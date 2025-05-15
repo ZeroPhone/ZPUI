@@ -202,7 +202,7 @@ class TestOverlays(unittest.TestCase):
 
     def test_gmlo_apply(self):
         overlay = GridMenuLabelOverlay()
-        mu = GridMenu([], get_mock_input(), get_mock_output(), name=ui_name, config={})
+        mu = GridMenu([], get_mock_input(), get_mock_graphical_output(), name=ui_name, config={})
         overlay.apply_to(mu)
         self.assertIsNotNone(overlay)
         self.assertIsNotNone(mu)
