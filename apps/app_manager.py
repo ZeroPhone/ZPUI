@@ -64,7 +64,7 @@ class AppManager(object):
                 pass
         #print([x for x, y, in icon_paths if x not in used_icons])
         font = ("Fixedsys62.ttf", 16)
-        menu = GridMenu(contents, self.i, self.o, font=font, entry_width=32, name="Main menu", draw_lines=False,  exitable=False, navigation_wrap=False)
+        menu = GridMenu(contents, self.i, self.o, font=font, name="Main menu", exitable=False, navigation_wrap=False)
         menu.exit_entry = ["Exit", "exit"]
         menu.process_contents()
         return menu

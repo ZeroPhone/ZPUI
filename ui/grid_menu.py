@@ -2,6 +2,7 @@ from time import sleep
 from math import ceil
 from copy import copy
 
+from ui.base_list_ui import SixteenPtView
 from ui.menu import Menu
 from ui.entry import Entry
 from ui.canvas import Canvas, MockOutput
@@ -11,15 +12,36 @@ class GridMenu(Menu):
     cols = 3
     rows = 3
     font = None
+    config_key = "grid_menu"
 
-    def __init__(self, contents, i, o, rows=3, cols=3, name=None, draw_lines=True, font = None, entry_width=None, **kwargs):
+    def __init__(self, contents, i, o, name=None, font = None, **kwargs):
 
-        self.rows = rows
-        self.cols = cols
         self.font = font
         Menu.__init__(self, contents, i, o, name=name, override_left=False, scrolling=False, **kwargs)
-        self.view.draw_lines = draw_lines
-        self.view.entry_width = entry_width
+        self.rows = self.view.rows
+        self.cols = self.view.cols
+
+    def get_views_dict(self):
+        views = {k:v for k, v in Menu.get_views_dict(self).items()}
+        new = {
+            "GridView": GridView,
+        }
+        views.update(new)
+        return views
+
+    def get_default_view(self):
+        """Decides on the view to use for UI element when config file has
+        no information on it."""
+        if "b&w" in self.o.type:
+            # typical displays
+            if self.o.width:
+                view = self.views["GridView"]
+                view.entry_width = 32
+                return view
+        elif "char" in self.o.type:
+            return self.views["TextView"]
+        else:
+            raise ValueError("Unsupported display type: {}".format(repr(self.o.type)))
 
     def generate_keymap(self):
         keymap = Menu.generate_keymap(self)
@@ -44,8 +66,9 @@ class GridMenu(Menu):
         self.view.wrappers.append(wrapper)
 
 
-class GridViewMixin(object):
-    draw_lines = True
+#class GridViewMixin(SixteenPtView):
+class GridView(SixteenPtView):
+    draw_lines = False # feels like a fugly option lol
     entry_width = None
     fde_increment = 3
     wrappers = []
@@ -53,6 +76,12 @@ class GridViewMixin(object):
 
     def get_entry_count_per_screen(self):
         return self.el.cols*self.el.rows
+
+    def calculate_params(self):
+        self.rows = 3
+        self.fde_increment = 1 # just following the bebblegridview findings honestly
+        self.cols = 3
+        self.sidebar_fits = True
 
     def draw_grid(self):
         contents = self.el.get_displayed_contents()
@@ -137,4 +166,3 @@ class GridViewMixin(object):
         self.o.display_image(image)
 
 
-GridMenu.view_mixin = GridViewMixin
