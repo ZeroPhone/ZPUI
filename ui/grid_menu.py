@@ -6,6 +6,9 @@ from ui.base_list_ui import SixteenPtView
 from ui.menu import Menu
 from ui.entry import Entry
 from ui.canvas import Canvas, MockOutput
+from ui.utils import fit_image_to_dims
+
+from PIL import Image
 
 class GridMenu(Menu):
 
@@ -25,6 +28,7 @@ class GridMenu(Menu):
         views = {k:v for k, v in Menu.get_views_dict(self).items()}
         new = {
             "GridView": GridView,
+            "BebbleGridView": BebbleGridView,
         }
         views.update(new)
         return views
@@ -34,10 +38,13 @@ class GridMenu(Menu):
         no information on it."""
         if "b&w" in self.o.type:
             # typical displays
-            if self.o.width:
+            #if self.o.width:
+            if self.o.width <= 240:
                 view = self.views["GridView"]
                 view.entry_width = 32
                 return view
+            else:
+                return self.views["BebbleGridView"]
         elif "char" in self.o.type:
             return self.views["TextView"]
         else:
@@ -165,4 +172,105 @@ class GridView(SixteenPtView):
             image = wrapper(image)
         self.o.display_image(image)
 
+class BebbleGridView(GridView):
+    MuktaBold = "Mukta-Bold.ttf"
+    MuktaSemiBold = "Mukta-SemiBold.ttf"
+    MuktaRegular = "Mukta-Regular.ttf"
+    font_size = 12
+    entry_width = 100
 
+    def calculate_params(self):
+        self.rows = 2
+        self.fde_increment = 1 # because uhhhhh it glitches out if I do 4? weird lol maybe this needs to be `1` always
+        # width is at least 240
+        self.cols = self.o.width // self.entry_width
+        #print("cols", self.cols)
+        self.sidebar_fits = False
+
+    def draw_grid(self):
+        contents = self.el.get_displayed_contents()
+        pointer = self.el.pointer
+        full_entries_shown = self.get_entry_count_per_screen()
+        entries_shown = min(len(contents), full_entries_shown)
+        disp_entry_positions = list(range(self.first_displayed_entry, self.first_displayed_entry+entries_shown))
+        for i in copy(disp_entry_positions):
+            if i not in range(len(contents)):
+                disp_entry_positions.remove(i)
+
+        c = Canvas(self.o)
+
+        c.rectangle((0, 30, c.width, c.height), fill="white")
+
+        for i, index in enumerate(disp_entry_positions):
+            selected = pointer == index
+            entry = contents[index]
+            ## TODO: Make all of this math for figure out the app x and y actually make sense. Also pagenate
+            ## TODO todo: yeah that's a real todo moment I agree :sob:
+            a = 0
+            if i > 0:
+                a = 5
+            app_x = 8 + (i * 100) - a * i
+            app_y = 37
+
+            # super hacky way to add a second row. cannot math to figure this one out right now
+            if i > self.cols-1:
+                app_y += 95
+                x = i - self.cols
+                app_x = 8 + (x * 100) - a * x
+
+            # set app block colors based on whether the app is selected
+            bg_color = "black" if selected else "white"
+            text_color = "white" if selected else "black"
+            fg_color = text_color
+            icon = None
+            inverted_icon = None
+            if isinstance(entry, Entry):
+                text = entry.text
+                if entry.icon:
+                    icon = entry.icon
+                    if hasattr(entry, "inverted_icon"):
+                        inverted_icon = entry.inverted_icon
+            else:
+                text = entry[0]
+            if icon and inverted_icon:
+                # both inverted and non-inverted icons are present
+                icon = inverted_icon if selected else icon
+            # funni hack
+            """
+            if text == "Beeper":
+                if icon:
+                    if selected:
+                        icon = entry.get("inverse_icon", entry.get("icon", None)).point(lambda x: 255 if x>64 else 0)
+                    else:
+                        icon = entry.get("icon").point(lambda x: 255 if x>200 else 0)
+            """
+
+            # draw border
+            c.rectangle((app_x, app_y, app_x+100, app_y+100), fill="black", outline="black")
+
+            # draw background
+            c.rectangle((app_x + 5, app_y + 5, app_x + 95, app_y + 95), fill=bg_color, outline="black")
+            # get text size so we can center text
+            #text_size = measure_text_ex(res.MuktaSemiBold, entry.get("name"), self.font_size, 0).x
+            font_size = int(self.font_size*1.25) if selected else self.font_size
+            font = c.decypher_font_reference((self.MuktaSemiBold, font_size))
+            _, _, text_size, _ = c.draw.textbbox((0, 0), text, font=font)
+
+            # draw app name
+            c.text(
+                text,
+                (app_x + int((100 - text_size) // 2), app_y + 72),
+                font=(self.MuktaSemiBold, font_size), fill=text_color
+            )
+
+            # draw icon
+            if icon:
+                dim = 50
+                icon = fit_image_to_dims(icon, dim, dim, resampling=Image.BOX)
+                if inverted_icon: # inverted icon present
+                    c.paste(icon, (app_x + 25, app_y + 15)) # means the icon's already how we want it
+                else:
+                    c.paste(icon, (app_x + 25, app_y + 15), invert=not selected) # need to tell to invert it
+                    #c.paste(icon, (app_x + 25, app_y + 15)) # need to tell to invert it
+
+        return c.get_image()
