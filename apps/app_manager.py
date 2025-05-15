@@ -75,11 +75,12 @@ class AppManager(object):
         c.image.paste(sidebar_image, (coords.left+3, coords.top-5))
 
     def overlay_main_menu(self, menu):
-        main_menu_help = "ZPUI main menu. Navigate the folders to get to different apps, or press KEY_PROG2 (anywhere in ZPUI) to get to the context menu."
+        #main_menu_help = "ZPUI main menu. Navigate the folders to get to different apps, or press KEY_PROG2 (anywhere in ZPUI) to get to the context menu."
         GridMenuNavOverlay().apply_to(menu)
-        GridMenuSidebarOverlay(self.sidebar_cb).apply_to(menu)
+        if menu.view.sidebar_fits:
+            GridMenuSidebarOverlay(self.sidebar_cb).apply_to(menu)
         GridMenuLabelOverlay().apply_to(menu)
-        HelpOverlay(main_menu_help).apply_to(menu)
+        #HelpOverlay(main_menu_help).apply_to(menu)
 
     def register_default_plugins(self):
         self.subdir_menu_creators["apps"] = self.create_main_menu
