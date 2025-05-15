@@ -7,7 +7,7 @@ from PIL import ImageOps, Image
 
 from zpui_lib.helpers import setup_logger
 
-logger = setup_logger(__name__, "info")
+logger = setup_logger(__name__, "warning")
 
 
 to_be_foreground_warnings = []
@@ -222,54 +222,69 @@ class Ticker(object):
 
 Rect = namedtuple('Rect', ['left', 'top', 'right', 'bottom'])
 
-def fit_image_to_screen(image, o):
+def fit_image_to_screen(image, o, resampling=Image.BOX):
     """Fits a given image to fit on any sized screen whilst maintaining the aspect ratio.
     Any remaining space is filled with borders. The resized image is returned as ``image``.
 
     Args:
 
         * ``image``: A PIL image to be resized.
-        * ``o``: output device object. Used to find the width and height of the screen. """
+        * ``o``: output device object. Used to find the width and height of the screen.
+        * ``resampling=PIL.Image.BOX``: PIL resampling algorithm to be used during resizing.
+        See https://pillow.readthedocs.io/en/stable/handbook/concepts.html#concept-filters ."""
+    return fit_image_to_dims(image, o.width, o.height, resampling=resampling)
 
+def fit_image_to_dims(image, width, height, resampling=Image.BOX):
+    """Fits a given image to fit on any sized screen whilst maintaining the aspect ratio.
+    Any remaining space is filled with borders. The resized image is returned as ``image``.
+
+    Args:
+
+        * ``image``: A PIL image to be resized.
+        * ``width``: target width.
+        * ``height``: target height.
+        * ``resampling=PIL.Image.BOX``: PIL resampling algorithm to be used during resizing.
+        See https://pillow.readthedocs.io/en/stable/handbook/concepts.html#concept-filters ."""
+    orig_image = image
     image_width, image_height = image.size
-    if o.height > image_height and o.width > image.width: # Checks if the screen dimensions are equal to the image size
-        logger.info("Using resize script")
-        if o.height/image_height < o.width/image_width: # Checks which side is bigger in proportion to the image size
-            logger.info("Using height as multiplier")
-            bigger_side = o.height
+    if height > image_height and width > image.width: # Checks if the screen dimensions are equal to the image size
+        logger.debug("Using resize script")
+        if height/image_height < width/image_width: # Checks which side is bigger in proportion to the image size
+            logger.debug("Using height as multiplier")
+            bigger_side = height
             bigger_image_side = image_height
             smaller_image_side = image_width
         else:
-            logger.info("Using width as multiplier")
-            bigger_side = o.width
+            logger.debug("Using width as multiplier")
+            bigger_side = width
             bigger_image_side = image_width
             smaller_image_side = image_height
         bigger_side_percent = (bigger_side/float(bigger_image_side))
         other_size = int((float(smaller_image_side)*float(bigger_side_percent))) # Working out smaller side length
-        image = image.resize((bigger_side,other_size), Image.LANCZOS) # Resizes the image to the calculated dimensions to fit the screen and stick to the aspect ratio using a $
-    elif (o.width, o.height) == image.size: # Checks if screen dimensions and exactly the same as image dimensions
-        logger.info("Exact same size - no changes needed")
-    elif (o.width == image_width and o.height > image_height) or (o.height == image_height and o.width > image_width):
-        logger.info("One side is the same, the other is bigger - borders needed")
+        image = image.resize((bigger_side,other_size), resampling) # Resizes the image to the calculated dimensions to fit the screen and stick to the aspect ratio using a $
+    elif (width, height) == image.size: # Checks if screen dimensions and exactly the same as image dimensions
+        logger.debug("Exact same size - no changes needed")
+    elif (width == image_width and height > image_height) or (height == image_height and width > image_width):
+        logger.debug("One side is the same, the other is bigger - borders needed")
     else: # This should happen if the screen is smaller on one or both sides than the image
-        logger.info("Using thumbnail script")
-        size = o.width, o.height
-        image.thumbnail(size, Image.LANCZOS) # Resizes the image sticking to the aspect ratio using
-    if (o.width, o.height) != image.size:
-        logger.info("Adding borders")
+        logger.debug("Using thumbnail script")
+        size = width, height
+        image.thumbnail(size, resampling) # Resizes the image sticking to the aspect ratio using
+    if (width, height) != image.size:
+        logger.debug("Adding borders")
         left = top = right = bottom = 0
-        width, height = image.size
-        if o.width > width:
-            logger.info("Adding borders for width")
-            delta = o.width - width
+        iwidth, iheight = image.size
+        if width > iwidth:
+            logger.debug("Adding borders for width")
+            delta = width - iwidth
             left = delta // 2
             right = delta - left
-        if o.height > height:
-            logger.info("Adding borders for height")
-            delta = o.height - height
+        if height > iheight:
+            logger.debug("Adding borders for height")
+            delta = height - iheight
             top = delta // 2
             bottom = delta - top
         image = ImageOps.expand(image, border=(left, top, right, bottom), fill="black")
-        logger.info("Borders added are: top - {}, bottom - {}, left - {} and right - {}".format(top, bottom, left, right))
-    logger.info("All resizing finished")
+        logger.info("Borders added to image {} are: top - {}, bottom - {}, left - {} and right - {}".format(orig_image, top, bottom, left, right))
+    logger.debug("All resizing finished")
     return image
