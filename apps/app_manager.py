@@ -50,7 +50,7 @@ class AppManager(object):
             self.register_default_plugins()
 
     def create_main_menu(self, menu_name, contents):
-        dir = "resources/"
+        dir = "resources/icons/"
         icons = [f for f in os.listdir(dir) if f.endswith(".png")]
         icon_paths = [[f.rsplit('.', 1)[0], os.path.join(dir, f)] for f in icons]
         used_icons = []
