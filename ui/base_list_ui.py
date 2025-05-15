@@ -392,9 +392,12 @@ class TextView(object):
     def __init__(self, o, ui_element):
         self.o = o
         self.el = ui_element
-        self.entry_height = self.el.entry_height
         self.wrappers = []
         self.setup_scrolling()
+        self.calculate_params()
+
+    def calculate_params(self):
+        self.entry_height = self.el.entry_height
 
     def setup_scrolling(self):
         self.el.scrolling_defaults["current_speed"] = self.get_fow_width_in_chars()//self.scrolling_speed_divisor
