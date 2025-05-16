@@ -111,6 +111,18 @@ System requirements
    from the first section don't apply here. This means you won't be using ``setup.sh``, ``update.sh`` or ``sync.sh`` - don't run them.
    The "Update ZPUI" feature in Settings app will still work wonders!
 
+Emulator settings
+-----------------
+
+By default, the emulator uses screen mode '1' (monochrome) and 128x64 resolution.
+You can pass resolution and mode settings to the emulator by editing ``config.yaml``:
+
+.. code-block:: yaml
+
+    device: emulator
+    resolution: 400x240
+    mode: RGBA
+
 Ubuntu/Debian installation
 --------------------------
 
