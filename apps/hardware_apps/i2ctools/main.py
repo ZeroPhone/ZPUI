@@ -26,7 +26,14 @@ scan_ranges = {"conservative":(0x03, 0x77),
 def scan_i2c_bus():
     global current_bus
     Printer("Scanning:", i, o, 0)
-    current_bus = smbus.SMBus(1) # 1 indicates /dev/i2c-1
+    try:
+        current_bus = smbus.SMBus(1) # 1 indicates /dev/i2c-1
+    except PermissionError as e:
+         if e.errno == 13: # permission denied
+             logger.exception("Error {}, permission denied, stopping scan! {}".format(e.errno, repr(e)))
+             return "permission denied"
+         else:
+             raise e
     found_devices = OrderedDict()
     scan_range = config.get("scan_range", "conservative")
     if scan_range not in scan_ranges.keys(): #unknown scan range - config edited manually?
@@ -35,6 +42,13 @@ def scan_i2c_bus():
     for device in range(*scan_range_args):
       try: #If you try to read and it answers, it's there
          current_bus.read_byte(device)
+      except PermissionError as e:
+         if e.errno == 13: # permission denied
+             logger.exception("Error {}, permission denied, stopping scan! {}".format(e.errno, repr(e)))
+             return "permission denied"
+         else:
+             found_devices[device] = "permerr_{}".format(e.errno)
+             logger.error("Errno {} unknown - can be used? {}".format(e.errno, repr(e)))
       except IOError as e:
          if e.errno == 16:
              found_devices[device] = "busy"
@@ -42,10 +56,11 @@ def scan_i2c_bus():
              pass
          elif e.errno == 110:
              # bus crashout, scan isn't worth continuing
-             logger.exception("Error  {}, bus crashout, stopping scan! {}".format(e.errno, repr(e)))
+             logger.exception("Error {}, bus crashout, stopping scan! {}".format(e.errno, repr(e)))
+             return "bus stuck"
              break
          else:
-             found_devices[device] = "error unknown"
+             found_devices[device] = "ioerr_{}".format(e.errno)
              logger.error("Errno {} unknown - can be used? {}".format(e.errno, repr(e)))
       else:
          found_devices[device] = "ok"
@@ -59,6 +74,8 @@ def scan_i2c_devices():
         logger.exception("I2C scan failed!")
         PrettyPrinter("I2C scan failed!", i, o, 3)
         return
+    if isinstance(devices, str):
+        PrettyPrinter("I2C scan failed! ({})".format(devices.capitalize()), i, o, 3)
     if not devices:
         Printer("No devices found", i, o, 2)
     else:
