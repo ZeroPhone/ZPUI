@@ -80,6 +80,7 @@ class GridView(SixteenPtView):
     fde_increment = 3
     wrappers = []
     font = None
+    shows_label = False # helps apply the label mixin dynamically
 
     def get_entry_count_per_screen(self):
         return self.el.cols*self.el.rows
@@ -178,6 +179,7 @@ class BebbleGridView(GridView):
     MuktaRegular = "Mukta-Regular.ttf"
     font_size = 12
     entry_width = 100
+    shows_label = True # helps apply the label mixin dynamically
 
     def calculate_params(self):
         self.rows = 2
@@ -199,6 +201,7 @@ class BebbleGridView(GridView):
 
         c = Canvas(self.o)
 
+        c.text("Status bar will go here", (25, 4), font=(self.MuktaSemiBold, 12))
         c.rectangle((0, 30, c.width, c.height), fill="white")
 
         for i, index in enumerate(disp_entry_positions):

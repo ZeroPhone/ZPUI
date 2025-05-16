@@ -86,7 +86,8 @@ class AppManager(object):
         GridMenuNavOverlay().apply_to(menu)
         if menu.view.sidebar_fits:
             GridMenuSidebarOverlay(self.sidebar_cb).apply_to(menu)
-        GridMenuLabelOverlay().apply_to(menu)
+        if not getattr(menu.view, "shows_label", False):
+            GridMenuLabelOverlay().apply_to(menu)
         #HelpOverlay(main_menu_help).apply_to(menu)
 
     def register_default_plugins(self):
