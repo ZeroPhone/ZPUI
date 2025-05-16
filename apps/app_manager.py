@@ -1,5 +1,6 @@
 import importlib
 import os
+import sys
 import traceback
 
 from apps import ZeroApp
@@ -8,6 +9,12 @@ from ui import Printer, Menu, HelpOverlay, GridMenu, Entry, \
                GridMenuLabelOverlay, GridMenuSidebarOverlay, GridMenuNavOverlay
 
 from PIL import Image, ImageOps
+
+if sys.version_info < (3, 10):
+    from importlib_metadata import entry_points
+else:
+    from importlib.metadata import entry_points
+
 
 logger = setup_logger(__name__, "info")
 
@@ -145,6 +152,7 @@ class AppManager(object):
     def load_all_apps(self, interactive=True):
         apps_blocked_in_config = self.config.get("do_not_load", [])
         self.subdir_paths.append(self.app_directory.rstrip("/"))
+        # first: directory-based discovery
         for path, subdirs, modules in app_walk(self.app_directory):
             for subdir in subdirs:
                 subdir_path = os.path.join(path, subdir)
@@ -179,6 +187,48 @@ class AppManager(object):
                     logger.exception("Failed to execute 'after all contexts' hook for {}".format(app_path))
                 else:
                     logger.info("Executed 'after all contexts' hook for {}".format(app_path))
+        # second: entrypoint-based discovery
+        discovered_apps = entry_points(group='spam.magical')
+        for app_ep in discovered_apps:
+            logger.warning(str(app_ep))
+            try:
+                app = app_ep.load()
+            except:
+                logger.exception("Failing to load entrypoint for external app {}".format(app_ep))
+                continue
+            app_name = app_ep.name
+            try:
+                module_path = getattr(app, "module_path", app_name)
+                if not module_path.startswith("apps"):
+                    if not module_path.startswith('/'): module_path = '/'+module_path
+                    module_path = "apps"+module_path
+                # here we add the subdir path(s) if path(s) not yet known
+                subdir_path = module_path
+                if subdir_path.endswith(app_name):
+                    subdir_path = subdir_path[:-(len(app_name))]
+                # adding recursively
+                subdir_path_els = subdir_path.split("/")
+                for element_len in range(len(subdir_path_els)-1):
+                    this_subdir_path = "/".join(subdir_path_els[:element_len+1])
+                    if this_subdir_path not in self.subdir_paths:
+                        self.subdir_paths.append(this_subdir_path)
+                # now, we make sure that module path ends with app name
+                if not module_path.endswith(app_name):
+                    if not module_path.endswith('/'): module_path += '/'
+                    module_path += app_name
+            except:
+                logger.exception("Can't get module_path or add subdir for external app {}".format(app_ep))
+                continue
+            try:
+                loaded_app = self.load_app(app, app_path=module_path)
+                logger.info("Loaded external app {}".format(module_path))
+                self.app_list[module_path] = app
+                menu_name = self.get_app_name(app, module_path)
+                self.bind_context(app, module_path, menu_name)
+                if self.app_has_after_contexts_hook(app):
+                    after_contexts_apps[module_path] = app
+            except:
+                logger.exception("Failed to load external app {}".format(module_path))
         base_menu = self.create_menu_structure()
         return base_menu
 
