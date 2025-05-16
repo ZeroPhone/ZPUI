@@ -19,4 +19,4 @@ cd ${INSTALL_DIR}
 cp zpui.service /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable zpui.service
-systemctl start zpui.service
+#systemctl start zpui.service
