@@ -104,10 +104,13 @@ class AppManager(object):
         subdir_menu_paths = self.subdir_menu_contents.keys()
         for app_path, app_obj in self.app_list.items():
             if self.app_has_callback(app_obj):
-                subdir_menu_name = max([n for n in subdir_menu_paths if app_path.startswith(n)])
-                menu_name = self.get_app_name(app_obj, app_path)
-                app_entry = Entry(menu_name, type="app", obj=app_obj, path=app_path)
-                self.subdir_menu_contents[subdir_menu_name].append(app_entry)
+                try:
+                    subdir_menu_name = max([n for n in subdir_menu_paths if app_path.startswith(n)])
+                    menu_name = self.get_app_name(app_obj, app_path)
+                    app_entry = Entry(menu_name, type="app", obj=app_obj, path=app_path)
+                    self.subdir_menu_contents[subdir_menu_name].append(app_entry)
+                except:
+                    logger.exception("Couldn't place app {} into a menu!".format(app_path))
         for path, subdir_contents in self.subdir_menu_contents.items():
             ordering = self.get_ordering(path)
             unordered_contents = self.prepare_menu_contents_for_ordering(subdir_contents)
@@ -154,7 +157,7 @@ class AppManager(object):
                     if module_path in apps_blocked_in_config:
                         logger.warning("App {} blocked from config; not loading".format(module_path))
                         continue
-                    app = self.load_app(module_path)
+                    app = self.load_app_by_path(module_path)
                     logger.info("Loaded app {}".format(module_path))
                     self.app_list[module_path] = app
                     menu_name = self.get_app_name(app, module_path)
@@ -223,12 +226,16 @@ class AppManager(object):
         if "__init__.py" not in os.listdir(app_path):
             raise ImportError("Trying to import an app ({}) with no __init__.py in its folder!".format(app_path))
         app_import_path = app_path.replace('/', '.')
-        app = self.load_app(app_import_path, threaded=threaded)
+        app = self.load_app_by_path(app_import_path, threaded=threaded)
         return app_import_path, app
 
-    def load_app(self, path, threaded=True):
+    def load_app_by_path(self, path, threaded=True):
         app_path = path.replace('/', '.')
         app = importlib.import_module(app_path + '.main', package='apps')
+        return self.load_app(app, app_path=app_path, threaded=threaded)
+
+    def load_app(self, app, app_path=None, threaded=True):
+        app_path = app_path.replace('/', '.') # just in case lol
         context = self.cm.create_context(app_path)
         context.threaded = threaded
         i, o = self.cm.get_io_for_context(app_path)
@@ -273,6 +280,10 @@ class AppManager(object):
         If failed to either import __init__.py or get the _menu_name attribute,
         it returns the subdirectory name.
         """
+        # let's not load this if the dir doesn't actually exist)
+        if not os.path.exists(subdir_path):
+            logger.info("Not loading subdir menu name for dir that doesn't exist: {}".format(subdir_path))
+            return os.path.split(subdir_path)[1].capitalize().replace("_", " ")
         subdir_import_path = subdir_path.replace('/', '.')
         try:
             subdir_object = importlib.import_module(subdir_import_path + '.__init__')
@@ -288,18 +299,21 @@ class AppManager(object):
             return self.ordering_cache[path]
         import_path = path.replace('/', '.')
         ordering = []
-        try:
-            imported_module = importlib.import_module(import_path + '.__init__')
-            ordering = imported_module._ordering
-            logger.debug("Found ordering for {} directory!".format(import_path))
-        except ImportError as e:
-            logger.error("Exception while loading __init__.py for directory {}".format(path))
-            logger.debug(e)
-        except AttributeError as e:
-            pass
-        finally:
-            self.ordering_cache[path] = ordering
-            return ordering
+        if not os.path.exists(path):
+            # debug because we'll already have produced an identical exception in get_subdir_menu_name
+            logger.debug("Not loading subdir menu name for dir that doesn't exist: {}".format(path))
+        else:
+            try:
+                imported_module = importlib.import_module(import_path + '.__init__')
+                ordering = imported_module._ordering
+                logger.debug("Found ordering for {} directory!".format(import_path))
+            except ImportError as e:
+                logger.error("Exception while loading __init__.py for directory {}".format(path))
+                logger.debug(traceback.format_exc())
+            except AttributeError as e:
+                pass
+        self.ordering_cache[path] = ordering
+        return ordering
 
 
 def app_walk(base_dir):
