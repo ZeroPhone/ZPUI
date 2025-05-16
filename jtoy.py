@@ -1,6 +1,7 @@
 import json
 import yaml
 import sys
+import os
 # migrations
 # 1. remove kwargs from i/o config for config readability
 # 2. shorten configs if necessary - to a single dict instead of [dict], or even to a name if kwargs is not provided
@@ -38,19 +39,28 @@ def yeet_kwargs(config, section):
     return config # not necessary cuz mutability but hey
 
 if __name__ == "__main__":
+    filename_supplied = False
     if len(sys.argv) > 1:
-        config = json.loads(sys.argv[1])
+        if os.path.exists(sys.argv[1]):
+            filename_supplied = True
+            with open(sys.argv[1]) as f:
+                config = json.load(f)
+        else:
+            config = json.loads(sys.argv[1])
     else:
         with open("config.json") as f:
             config = json.load(f)
-    print(config)
+    #print(config)
 
     config = yeet_kwargs(config, "input")
     config = yeet_kwargs(config, "output")
-    print(config)
+    #print(config)
     # final export
     if len(sys.argv) > 1:
-        print(repr(yaml.safe_dump(config)))
+        if filename_supplied:
+            print(yaml.safe_dump(config))
+        else:
+            print(repr(yaml.safe_dump(config)))
     else:
         with open("config.yaml", 'w') as f:
             yaml.safe_dump(config, f)
