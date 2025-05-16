@@ -61,7 +61,22 @@ def get_io_configs(config):
         return config["input"], config["output"]
 
 def config_emulator(config):
-    return ("pygame_input", "pygame_emulator")
+    io = ["pygame_input", "pygame_emulator"]
+    if "resolution" in config:
+        res_str = config["resolution"]
+        sep = "x" if "x" in res_str else None
+        sep = "*" if "*" in res_str else sep
+        if not sep:
+            raise ValueError("The 'resolution' parameter needs to be in WIDxHEI or WID*HEI format! Got: {}".format(res_str))
+        width, height = map(int, res_str.split(sep))
+        io[1] = {"driver":io[1]}
+        io[1]["width"] = width
+        io[1]["height"] = height
+    if "mode" in config:
+        if not isinstance(io[1], dict):
+            io[1] = {"driver":io[1]}
+        io[1]["mode"] = str(config["mode"]) # str is fix for mode "1"
+    return io
 
 def config_zpog(config):
     io = ["custom_i2c", "sh1106"]
@@ -254,6 +269,33 @@ class TestCombination(unittest.TestCase):
         i, o = get_io_configs(config)
         assert(o == {"driver": "sh1106", "port": 2})
         assert(i == {"driver":"custom_i2c", "bus": 2})
+
+    def test_emulator_resolution(self):
+        """tests that it runs with emulator driver and resolution provided"""
+        config = {"device":"emulator", "resolution":"400x240"}
+        i, o = get_io_configs(config)
+        assert(i == "pygame_input")
+        assert(o == {'driver': 'pygame_emulator', 'width': 400, 'height': 240})
+        config = {"device":"emulator", "resolution":"400*240"}
+        i, o = get_io_configs(config)
+        assert(i == "pygame_input")
+        assert(o == {'driver': 'pygame_emulator', 'width': 400, 'height': 240})
+
+    def test_emulator_mode(self):
+        """tests that it runs with emulator driver and resolution provided"""
+        config = {"device":"emulator", "mode":"RGB"}
+        i, o = get_io_configs(config)
+        assert(i == "pygame_input")
+        assert(o == {'driver': 'pygame_emulator', 'mode': "RGB"})
+        config = {"device":"emulator", "resolution":"400*240", "mode":"RGB"}
+        assert(i == "pygame_input")
+        assert(o == {'driver': 'pygame_emulator', 'mode': "RGB"})
+        # tests for a bug where mode "1" is YAML parsed as integer
+        config = {"device":"emulator", "resolution":"400*240", "mode":1}
+        i, o = get_io_configs(config)
+        assert(i == "pygame_input")
+        assert(o == {'driver': 'pygame_emulator', "mode":"1", 'width': 400, 'height': 240})
+
 
 if __name__ == '__main__':
     unittest.main()
