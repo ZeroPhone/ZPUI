@@ -28,7 +28,7 @@ preassembled_modules ={
 'zerophone_og':{'apt-get':['python3-smbus', 'i2c-tools']},
 'zpui_bc_v1':{'apt-get':['python3-smbus', 'i2c-tools', 'python-rpi.gpio']},
 'zpui_bc_v1_qwiic':{'apt-get':['python3-smbus', 'i2c-tools']},
-'emulator':{},
+'emulator':{'apt-get':["python-pip", "python-dev", "build-essential", "python-pygame"], 'pip':["luma.emulator"]},
 }
 
 """
@@ -189,6 +189,11 @@ def setup():
         print(preassembled_module_confs[preassembled_module])
         f.close()
         print("Your config.yaml is set. Run 'python main.py' to start the system and check your hardware.")
+        if preassembled_module == "emulator":
+            # creating flag file indicating that the device's an emulator
+            filename = "emulator"
+            if not os.path.exists(filename):
+                open(filename, 'a').close()
     else:
         print("You'll need to change your config.yaml according to I/O devices you're using (refer to the documentation!)")
 
