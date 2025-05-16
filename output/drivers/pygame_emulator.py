@@ -28,18 +28,18 @@ class Screen(OutputDevice):
         """ Sets variables for high-level functions."""
         self.char_width = 6
         self.char_height = 8
-        self.cols = 128 // self.char_width
-        self.rows = 64 // self.char_height
 
         self.init_display(**kwargs)
+        self.cols = kwargs.get("width", 128) // self.char_width
+        self.rows = kwargs.get("height", 64) // self.char_height
 
-    def init_display(self):
+    def init_display(self, **kwargs):
         """
         Creates subprocess of a of pygame emulator device
         """
 
         logger.debug('Creating emulator instance')
-        self.emulator = emulator.get_emulator()
+        self.emulator = emulator.get_emulator(**kwargs)
 
     def __getattr__(self, name):
         return getattr(self.emulator, name)

@@ -31,10 +31,10 @@ logger = setup_logger(__name__, "warning")
 # both in the pygame output and pygame input drivers.
 __EMULATOR_PROXY = None
 
-def get_emulator():
+def get_emulator(width=128, height=64, mode="1"):
     global __EMULATOR_PROXY
     if __EMULATOR_PROXY is None:
-        __EMULATOR_PROXY = EmulatorProxy()
+        __EMULATOR_PROXY = EmulatorProxy(width=width, height=height, mode=mode)
     return __EMULATOR_PROXY
 
 
@@ -73,7 +73,6 @@ class EmulatorProxy(object):
         helping emulate a character display API.
         """
         # this method is only there so that I can record the screen
-        print("display_data_onto_image")
         cursor_position = kwargs.pop("cursor_position", None)
         cursor_enabled = kwargs.pop("cursor_enabled", None)
         if not cursor_position:
