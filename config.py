@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 import sys
-from subprocess import Popen
+from subprocess import Popen, check_output
 from time import sleep
+
+from pkg_resources import packaging # for pip version check
 
 print("TODO warning about raspberry pi i2c enable")
 print("TODO i2c bus number config")
@@ -176,7 +178,13 @@ def setup():
         call_interactive(['apt-get', '--ignore-missing', 'install'] + apt_get)
 
     if pip:
-        call_interactive(['pip', 'install'] + pip)
+        cmdline = ["pip", "install"]
+        output = check_output(["pip", "--version"])
+        if isinstance(output, bytes): output = output.decode("utf-8")
+        _, ver, _ = output.split(' ', 2)
+        if packaging.version.parse(ver) > packaging.version.parse("23.0.0"):
+            cmdline.append("--break-system-packages")
+        call_interactive(cmdline + pip)
 
     print("")
     print("-"*30)
