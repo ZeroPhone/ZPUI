@@ -147,7 +147,7 @@ class Canvas(object):
           * ``width``: line width (default: 0, which results in a single-pixel-wide line)
         """
         fill = kwargs.pop("fill", self.default_color)
-        coords = self.check_coordinates(coords)
+        coords = self.check_coordinates(coords, rearrange_coords=False)
         self.draw.line(coords, fill=fill, **kwargs)
         self.display_if_interactive()
 
@@ -330,7 +330,7 @@ class Canvas(object):
 
           * ``fill``: text color (default: white, as default canvas color)
         """
-        coords = self.check_coordinates(coords)
+        coords = self.check_coordinates(coords, rearrange_coords=False)
         fill = kwargs.pop("fill", self.default_color)
         self.draw.arc(coords, start, end, fill=fill, **kwargs)
         self.display_if_interactive()
@@ -386,7 +386,7 @@ class Canvas(object):
         self.rectangle(coords, fill=fill, outline=fill)  # paint the background black first
         self.display_if_interactive()
 
-    def check_coordinates(self, coords, check_count=True):
+    def check_coordinates(self, coords, check_count=True, rearrange_coords=True):
         # type: tuple -> tuple
         """
         A helper function to check and reformat coordinates supplied to
@@ -421,16 +421,16 @@ class Canvas(object):
         if len(coords) == 2:
             return coords
         elif len(coords) == 4:
-            x1, y1, x2, y2 = coords
             # sanity checks for coordinates
-            if (x1 >= x2):
-                x2, x1 = x1, x2
-                logger.info("x1 ({}) is smaller than x2 ({}), rearranging".format(x1, x2))
-            if (y1 >= y2):
-                y2, y1 = y1, y2
-                logger.info("y1 ({}) is smaller than y2 ({}), rearranging".format(y1, y2))
-            coords = x1, y1, x2, y2
-            #assert (y2 >= y1), "y2 ({}) is smaller than y1 ({}), rearrange?".format(y2, y1)
+            if rearrange_coords:
+                x1, y1, x2, y2 = coords
+                if (x1 >= x2):
+                    x2, x1 = x1, x2
+                    logger.info("x1 ({}) is smaller than x2 ({}), rearranging".format(x1, x2))
+                if (y1 >= y2):
+                    y2, y1 = y1, y2
+                    logger.info("y1 ({}) is smaller than y2 ({}), rearranging".format(y1, y2))
+                coords = x1, y1, x2, y2
             return coords
         else:
             if check_count:
