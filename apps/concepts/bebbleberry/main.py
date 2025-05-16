@@ -25,6 +25,11 @@ class BebbleBerryApp(ZeroApp):
         self.c = Canvas(self.o)
         self.res = ResourceManager(self.c)
         self.apps = get_installed_apps()
+        if self.o.device_mode == "1":
+            self.res.wifi = self.res.wifi.point(lambda x: 255 if x>64 else 0)
+            self.res.bluetooth = self.res.bluetooth.point(lambda x: 255 if x>127 else 0)
+            self.res.battery_level[3] = self.res.battery_level[3].point(lambda x: 255 if x>250 else 0)
+            self.res.bell = self.res.bell.point(lambda x: 255 if x>127 else 0)
 
     def draw_noti_bar(self):
         #breakpoint()
@@ -39,15 +44,15 @@ class BebbleBerryApp(ZeroApp):
         #self.c.paste(self.res.wifi.point(lambda x: 255 if x>100 else 0), (230, 8))
         sys.stdout.flush()
         """
-        self.c.paste(self.res.wifi.point(lambda x: 255 if x>64 else 0), (275, 8))
-        self.c.paste(self.res.bluetooth.point(lambda x: 255 if x>127 else 0), (295, 8))
-        self.c.paste(self.res.battery_level[3].point(lambda x: 255 if x>250 else 0), (315, 8))
+        self.c.paste(self.res.wifi, (275, 8))
+        self.c.paste(self.res.bluetooth, (295, 8))
+        self.c.paste(self.res.battery_level[3], (315, 8))
 
         # draw time
         self.c.text(datetime.now().strftime("%I:%M %p"), (335, 5), font=(self.res.MukataSemiBold, self.font_size))
 
         # draw number of notifications
-        self.c.paste(self.res.bell.point(lambda x: 255 if x>127 else 0), (8, 8))
+        self.c.paste(self.res.bell, (8, 8))
         self.c.text(f"{str(len(self.res.noti_q.queue))} notifications", (25, 4), font=(self.res.MukataSemiBold, self.font_size))
         return False
 
@@ -75,9 +80,15 @@ class BebbleBerryApp(ZeroApp):
             icon = app["inverse_icon"] if i == self.selected else app["icon"]
             if app["name"] == "Beeper":
                 if i == self.selected:
-                    icon = app["inverse_icon"].point(lambda x: 255 if x>64 else 0)
+                    if self.o.device_mode == "1":
+                        icon = app["inverse_icon"].point(lambda x: 255 if x>64 else 0)
+                    else:
+                        icon = app["inverse_icon"]
                 else:
-                    icon = app["icon"].point(lambda x: 255 if x>200 else 0)
+                    if self.o.device_mode == "1":
+                        icon = app["icon"].point(lambda x: 255 if x>200 else 0)
+                    else:
+                        icon = app["icon"]
 
             # draw border
             self.c.rectangle((app_x, app_y, app_x+100, app_y+100), fill="black", outline="black")
