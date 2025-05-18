@@ -21,7 +21,10 @@ class VerticalScrollbar(object):
         self._progress = 0  # 0-1 range, 0 is top, 1 is bottom
         self.size = 0  # 0-1 range, 0 is minimum size, 1 is whole screen
 
-    def draw(self, c):
+    def is_visible(self):
+        return True
+
+    def draw(self, c, forced=True):
         # type: (Canvas) -> None
         rect = self.get_coords(c)
         c.rectangle(rect, fill=self.color)
@@ -62,7 +65,7 @@ class HorizontalScrollbar(VerticalScrollbar):
         )
         return rect
 
-    def draw(self, c):
+    def draw(self, c, forced=True):
         rect = self.get_coords(c)
         c.rectangle(
             self.get_background_coords(c),
@@ -77,26 +80,36 @@ class HorizontalScrollbar(VerticalScrollbar):
 
 class HideableVerticalScrollbar(VerticalScrollbar):
 
+    scrollbar_color = "white"
+
     def __init__(self, o, width=1, min_size=1, margin=1, color="white", fade_time=1):
+        self.update_color() # vestigial
         super(HideableVerticalScrollbar, self).__init__(o, width, min_size, margin, color)
         self.fade_time = fade_time
         self.last_activity = -fade_time
 
-    def draw(self, c):
+    def draw(self, c, forced=False):
         # type: (Canvas) -> None
         rect = self.get_coords(c)
-        self.update_color()
-        c.rectangle(rect, fill=self.color, outline=self.color)
+        #self.update_color()
+        if self.is_visible() or forced:
+            c.rectangle(rect, fill=self.color, outline=self.color)
+        return c
 
     def update_color(self):
-        self.color = "white" if time() - self.last_activity < self.fade_time else False
+        self.color = self.scrollbar_color
+        # if self.is_visible() else False
+
+    def is_visible(self):
+        ret = time() < self.last_activity + self.fade_time
+        return ret
 
     # noinspection PyMethodOverriding
     @VerticalScrollbar.progress.setter
     def progress(self, value):
+        self.last_activity = time()
         if value == self.progress:
             return
-        self.last_activity = time()
         self._progress = clamp(value, 0, 1)
 
 
@@ -109,24 +122,17 @@ class HideableHorizontalScrollbar(HorizontalScrollbar, HideableVerticalScrollbar
     def get_coords(self, c):
         return HorizontalScrollbar.get_coords(self, c)
 
-    def draw(self, c):
-        self.update_color()
-        return HorizontalScrollbar.draw(self, c)
-
-    # noinspection PyMethodOverriding
-    @VerticalScrollbar.progress.setter
-    def progress(self, value):
-        if value == self.progress:
-            return
-        self.last_activity = time()
-        self._progress = clamp(value, 0, 1)
+    def draw(self, c, forced=False):
+        #self.update_color()
+        if self.is_visible() or forced:
+            HorizontalScrollbar.draw(self, c)
 
 
 class TextReader(object):
     """A vertical-scrollable ui element used to read text"""
 
     # todo : documentation
-    def __init__(self, text, i, o, name="TextReader", sleep_interval=1, scroll_speed=2, autohide_scrollbars=True,
+    def __init__(self, text, i, o, name="TextReader", sleep_interval=1, scroll_speed=2, autohide_scrollbars=True, fade_time=1,
                  h_scroll=None):
         self.i = i
         self.o = o
@@ -139,8 +145,8 @@ class TextReader(object):
         self.autohide_scrollbars = autohide_scrollbars
 
         if self.autohide_scrollbars:
-            self.v_scrollbar = HideableVerticalScrollbar(self.o, margin=2)
-            self.h_scrollbar = HideableHorizontalScrollbar(self.o, margin=2)
+            self.v_scrollbar = HideableVerticalScrollbar(self.o, margin=2, fade_time=fade_time)
+            self.h_scrollbar = HideableHorizontalScrollbar(self.o, margin=2, fade_time=fade_time)
         else:
             self.v_scrollbar = VerticalScrollbar(self.o)
             self.h_scrollbar = HorizontalScrollbar(self.o)
@@ -178,19 +184,31 @@ class TextReader(object):
         logger.info("{0} activated".format(self.name))
         self.to_foreground()
         while self.in_foreground:  # All the work is done in input callbacks
-            sleep(self.sleep_interval)
-            self.refresh()  # needed to update the hideable scrollbars
+            self.idle_loop()
+            self.check_for_scrollbarhide()
         logger.info("{} exited".format(self.name))
         return None
 
+    def idle_loop(self):
+        sleep(self.sleep_interval)
+
+    def check_for_scrollbarhide(self):
+        if self.autohide_scrollbars:
+            scrollbar_active = self.v_scrollbar.is_visible() or self.h_scrollbar.is_visible()
+            if not scrollbar_active and self.scrollbar_active:
+                logger.debug("{}: scrollbars get hidden".format(self.name))
+                self.refresh(auto_refresh=True)  # needed to update the hideable scrollbars
+                self.scrollbar_active = scrollbar_active
+
     @to_be_foreground
-    def refresh(self):
+    def refresh(self, auto_refresh = False):
         text = self.get_displayed_text()
         c = Canvas(self.o)
         self.draw_text(text, c, self.v_scrollbar.width)
-        self.v_scrollbar.draw(c)
-        self.h_scrollbar.draw(c)
+        self.v_scrollbar.draw(c, forced=not auto_refresh)
+        self.h_scrollbar.draw(c, forced=not auto_refresh)
         self.o.display_image(c.get_image())
+        if not auto_refresh: self.after_move() # refresh is generally called after a move; also, we need this to refresh the scrollbars
 
     def draw_text(self, text, c, x_offset):
         for line, arg in enumerate(text):
@@ -235,30 +253,30 @@ class TextReader(object):
 
     def move_up(self):
         self.h_scroll_index -= self.scroll_speed
-        self.after_move()
+        self.refresh()
 
     def move_down(self):
         self.h_scroll_index += self.scroll_speed
-        self.after_move()
+        self.refresh()
 
     def move_right(self):
         self.v_scroll_index += self.scroll_speed
-        self.after_move()
+        self.refresh()
 
     def move_left(self):
         if self.v_scroll_index == 0:
             self.deactivate()
 
         self.v_scroll_index -= self.scroll_speed
-        self.after_move()
+        self.refresh()
 
     def page_up(self):
         self.h_scroll_index -= self.scroll_speed * 2
-        self.after_move()
+        self.refresh()
 
     def page_down(self):
         self.h_scroll_index += self.scroll_speed * 2
-        self.after_move()
+        self.refresh()
 
     def after_move(self):
         # the if-else sections try to account for "empty string" scenario
