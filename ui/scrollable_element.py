@@ -253,14 +253,17 @@ class TextReader(object):
 
     def move_up(self):
         self.h_scroll_index -= self.scroll_speed
+        self.after_move()
         self.refresh()
 
     def move_down(self):
         self.h_scroll_index += self.scroll_speed
+        self.after_move()
         self.refresh()
 
     def move_right(self):
         self.v_scroll_index += self.scroll_speed
+        self.after_move()
         self.refresh()
 
     def move_left(self):
@@ -268,21 +271,24 @@ class TextReader(object):
             self.deactivate()
 
         self.v_scroll_index -= self.scroll_speed
+        self.after_move()
         self.refresh()
 
     def page_up(self):
         self.h_scroll_index -= self.scroll_speed * 2
+        self.after_move()
         self.refresh()
 
     def page_down(self):
         self.h_scroll_index += self.scroll_speed * 2
+        self.after_move()
         self.refresh()
 
     def after_move(self):
         # the if-else sections try to account for "empty string" scenario
         self.v_scrollbar.size = self.rows // self._content_height if self._content_height else 1
         self.h_scrollbar.size = self.cols // self._content_width if self._content_width else 1
-        self.h_scroll_index = clamp(self.h_scroll_index, 0, self._content_height - self.rows + 1)
+        self.h_scroll_index = clamp(self.h_scroll_index, 0, self._content_height - self.rows - 1)
         self.v_scroll_index = clamp(self.v_scroll_index, 0, self._content_width - self.cols + 1)
         self.v_scrollbar.progress = self.h_scroll_index / self._content_height if self._content_height else 0
         self.h_scrollbar.progress = self.v_scroll_index / self._content_width if self._content_width else 0
