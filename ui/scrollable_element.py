@@ -3,7 +3,7 @@ from __future__ import division
 from textwrap import wrap
 from time import sleep, time
 
-from ui.canvas import Canvas
+from ui.canvas import Canvas, get_default_font
 from ui.funcs import format_for_screen
 from ui.utils import to_be_foreground, clamp
 from zpui_lib.helpers import setup_logger
@@ -130,31 +130,49 @@ class TextReader(object):
                  h_scroll=None):
         self.i = i
         self.o = o
+        self.text = text
         self.name = name
         self.sleep_interval = sleep_interval
         self.scroll_speed = scroll_speed
         self.keymap = dict
+        self.h_scroll = h_scroll
+        self.autohide_scrollbars = autohide_scrollbars
 
-        if autohide_scrollbars:
+        if self.autohide_scrollbars:
             self.v_scrollbar = HideableVerticalScrollbar(self.o, margin=2)
             self.h_scrollbar = HideableHorizontalScrollbar(self.o, margin=2)
         else:
             self.v_scrollbar = VerticalScrollbar(self.o)
             self.h_scrollbar = HorizontalScrollbar(self.o)
 
-        char_width = self.o.char_width
-        text_width = self.o.cols - (self.v_scrollbar.width // char_width)
-
-        self._content = text.splitlines() if h_scroll else format_for_screen(text, text_width)
-        self._content_width = max([len(line) for line in self._content])
-        self.horizontal_scroll = h_scroll if h_scroll is not None else self._content_width > self.o.cols
-        self._content_height = len(self._content)
+        self.calculate_params()
 
         self.in_foreground = False
         self.v_scroll_index = 0
         self.h_scroll_index = 0
 
         self.after_move()
+
+    def calculate_params(self):
+        if self.o.width < 240:
+            self.font = get_default_font()
+            self.char_height = self.o.char_height
+            self.char_width = self.o.char_width
+            self.cols = self.o.cols
+            self.rows = self.o.rows
+        else:
+            self.char_height = 16
+            self.char_width = 8
+            self.font = ("Fixedsys62.ttf", self.char_height)
+            self.cols = self.o.width // self.char_width
+            self.rows = self.o.height // self.char_height
+
+        text_width = (self.o.width - self.v_scrollbar.width) // self.char_width
+
+        self._content = self.text.splitlines() if self.h_scroll else format_for_screen(self.text, text_width)
+        self._content_width = max([len(line) for line in self._content])
+        self.horizontal_scroll = self.h_scroll if self.h_scroll is not None else self._content_width > self.cols
+        self._content_height = len(self._content)
 
     def activate(self):
         logger.info("{0} activated".format(self.name))
@@ -176,15 +194,15 @@ class TextReader(object):
 
     def draw_text(self, text, c, x_offset):
         for line, arg in enumerate(text):
-            y = (line * self.o.char_height)
-            c.text(arg, (x_offset, y))
+            y = (line * self.char_height)
+            c.text(arg, (x_offset, y), font=self.font)
 
     def get_displayed_text(self):
-        start = self.h_scroll_index
-        end = start + self.o.rows
+        start = int(self.h_scroll_index)
+        end = start + self.rows
         displayed_data = self._content[start:end]
         if self.horizontal_scroll:
-            displayed_data = [line[self.v_scroll_index:self.o.cols + self.v_scroll_index] for line in displayed_data]
+            displayed_data = [line[self.v_scroll_index:self.cols + self.v_scroll_index] for line in displayed_data]
 
         return displayed_data
 
@@ -243,10 +261,11 @@ class TextReader(object):
         self.after_move()
 
     def after_move(self):
-        self.v_scrollbar.size = self.o.rows // self._content_height
-        self.h_scrollbar.size = self.o.cols // self._content_width
-        self.h_scroll_index = clamp(self.h_scroll_index, 0, self._content_height - self.o.rows + 1)
-        self.v_scroll_index = clamp(self.v_scroll_index, 0, self._content_width - self.o.cols + 1)
-        self.v_scrollbar.progress = self.h_scroll_index / self._content_height
-        self.h_scrollbar.progress = self.v_scroll_index / self._content_width
-        self.refresh()
+        # the if-else sections try to account for "empty string" scenario
+        self.v_scrollbar.size = self.rows // self._content_height if self._content_height else 1
+        self.h_scrollbar.size = self.cols // self._content_width if self._content_width else 1
+        self.h_scroll_index = clamp(self.h_scroll_index, 0, self._content_height - self.rows + 1)
+        self.v_scroll_index = clamp(self.v_scroll_index, 0, self._content_width - self.cols + 1)
+        self.v_scrollbar.progress = self.h_scroll_index / self._content_height if self._content_height else 0
+        self.h_scrollbar.progress = self.v_scroll_index / self._content_width if self._content_width else 0
+        self.scrollbar_active = True
