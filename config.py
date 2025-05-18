@@ -1,7 +1,9 @@
 #!/usr/bin/env python
+import os
 import sys
 from subprocess import Popen, check_output
 from time import sleep
+import traceback
 
 from pkg_resources import packaging # for pip version check
 
@@ -174,8 +176,20 @@ def setup():
     print(apt_get)
     print(pip)
     if apt_get:
-        call_interactive(['apt-get', 'update'])
-        call_interactive(['apt-get', '--ignore-missing', 'install'] + apt_get)
+        try:
+            call_interactive(['apt', 'update'])
+            call_interactive(['apt', '--ignore-missing', 'install'] + apt_get)
+        except FileNotFoundError:
+            print("#########################################################")
+            print("apt not found on system. this is normal if you're not running a Debian flavour distro.")
+            print("for the reference, here are the packages it would've had tried installing:")
+            print(" ".join(apt_get))
+            print("#########################################################")
+        except:
+            print("#########################################################")
+            print("apt install failed. Exception:")
+            traceback.print_exc()
+            print("#########################################################")
 
     if pip:
         cmdline = ["pip", "install"]
