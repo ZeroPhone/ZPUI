@@ -12,3 +12,4 @@ Examples of texts where the import blocks have been fixed
 (so, tests which are able to be ran from the `ui/tests/` folder):
 
 * `test_canvas.py`
+* `test_text_reader.py`
