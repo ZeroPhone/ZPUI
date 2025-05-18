@@ -40,7 +40,6 @@ class Canvas(object):
     background_color = "black" #: default background color to use for drawing
     default_color = "white" #: default color to use for drawing
     default_font = None #: default font, referenced here to avoid loading it every time
-    fonts_dir = fonts_dir
 
     def __init__(self, o, base_image=None, name="", interactive=False):
         self.o = o
@@ -56,6 +55,7 @@ class Canvas(object):
         else:
             self.image = Image.new(o.device_mode, self.size)
         self.draw = ImageDraw.Draw(self.image)
+        self.fonts_dir = fonts_dir
         if not self.default_font:
             self.default_font = get_default_font()
         self.interactive = interactive

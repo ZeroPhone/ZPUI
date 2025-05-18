@@ -7,3 +7,8 @@ This makes for quicker testing when changing something very simple in UI element
 
 That said, a lot of these "import from anywhere" blocks have broken with Python3.
 Don't throw them out - either leave them be or fix them.
+
+Examples of texts where the import blocks have been fixed
+(so, tests which are able to be ran from the `ui/tests/` folder):
+
+* `test_canvas.py`

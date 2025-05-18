@@ -9,27 +9,41 @@ try:
     from ui import Canvas, expand_coords
 except ImportError:
     print("Absolute imports failed, trying relative imports")
+    from zpui_lib.hacks import basestring_hack; basestring_hack()
     os.sys.path.append(os.path.dirname(os.path.abspath('.')))
     # Store original __import__
     orig_import = __import__
 
-    def import_mock(name, *args):
+    def import_mock(name, *args, **kwargs):
         if name in ['helpers']:
             return Mock()
         elif name == 'ui.utils':
             import utils
             return utils
-        return orig_import(name, *args)
+        elif name == 'ui.canvas':
+            import canvas
+            canvas.fonts_dir = "../fonts/"
+            return canvas
+        elif name == 'ui.funcs':
+            import funcs
+            return funcs
+        return orig_import(name, *args, **kwargs)
 
     try:
         import __builtin__
     except ImportError:
         import builtins
         with patch('builtins.__import__', side_effect=import_mock):
-            from canvas import Canvas, expand_coords
+            import canvas
+            canvas.fonts_dir = "../fonts/"
+            Canvas = canvas.Canvas
+            expand_coords = canvas.expand_coords
     else:
         with patch('__builtin__.__import__', side_effect=import_mock):
-            from canvas import Canvas, expand_coords
+            import canvas
+            canvas.fonts_dir = "../fonts/"
+            Canvas = canvas.Canvas
+            expand_coords = canvas.expand_coords
 
 
 def get_mock_output(width=128, height=64, mode="1"):
