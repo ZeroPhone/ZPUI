@@ -121,7 +121,7 @@ You can pass resolution and mode settings to the emulator by editing ``config.ya
 
     device: emulator
     resolution: 400x240
-    mode: RGBA
+    mode: RGB
 
 Ubuntu/Debian installation
 --------------------------
@@ -131,12 +131,16 @@ Assuming Python 3 is the default Python version:
 .. code-block:: bash
 
     sudo apt-get update
-    sudo apt-get install python-pip git python-dev build-essential python-pygame
+    sudo apt-get install python3-pip git python3-dev build-essential python3-pygame
     git clone https://github.com/ZeroPhone/ZPUI
     cd ZPUI
     # Run the config script and pick "emulator" IO option
     sudo ./config.py
-    #Run the emulator
+    # Install the requirements from pip
+    # If it complains about externally managed packages, pass --break-system-packages before -r,
+    # as none of these packages are system-shipped
+    python3 -m pip install -r requirements.txt
+    # Run the emulator
     python main.py
 
 Arch Linux installation
@@ -148,7 +152,11 @@ Arch Linux installation
     cd ZPUI
     # Run the config script and pick "emulator" IO option
     sudo ./config.py
-    #Run the emulator
+    # Install the requirements from pip
+    # If it complains about externally managed packages, pass --break-system-packages before -r,
+    # as none of these packages are system-shipped
+    python3 -m pip install -r requirements.txt
+    # Run the emulator
     python main.py
 
 OpenSUSE installation
@@ -162,7 +170,11 @@ OpenSUSE installation
     cd ZPUI
     # Run the config script and pick "emulator" IO option
     sudo ./config.py
-    #Run the emulator
+    # Install the requirements from pip
+    # If it complains about externally managed packages, pass --break-system-packages before -r,
+    # as none of these packages are system-shipped
+    python3 -m pip install -r requirements.txt
+    # Run the emulator
     python main.py
 
 Emulator credits
