@@ -25,17 +25,17 @@ def yeet_kwargs(config, section):
                 if not any([key in driver for key in kw]):
                     driver.pop("kwargs")
                     driver.update(kw)
-    # now, shortening the config
-    for i, driver in enumerate(config[section]):
-        # now-unused default key, yeetable
-        if driver.get("backlight_interval", None) == 10:
-            driver.pop("backlight_interval")
-        if len(driver.keys()) == 1:
-            # just replacing with name
-            config[section][i] = driver["driver"]
-    # just one driver? yeet the list
-    if len(config[section]) == 1:
-        config[section] = config[section][0]
+        # now, shortening the config
+        for i, driver in enumerate(config[section]):
+            # now-unused default key, yeetable
+            if driver.get("backlight_interval", None) == 10:
+                driver.pop("backlight_interval")
+            if len(driver.keys()) == 1:
+                # just replacing with name
+                config[section][i] = driver["driver"]
+        # just one driver? yeet the list
+        if len(config[section]) == 1:
+            config[section] = config[section][0]
     return config # not necessary cuz mutability but hey
 
 if __name__ == "__main__":
