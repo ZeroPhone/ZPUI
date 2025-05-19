@@ -22,10 +22,12 @@ class VerticalScrollbar(object):
         self.size = 0  # 0-1 range, 0 is minimum size, 1 is whole screen
 
     def is_visible(self):
-        return True
+        return self.size < 1
 
     def draw(self, c, forced=True):
         # type: (Canvas) -> None
+        if not self.is_visible():
+            return False
         rect = self.get_coords(c)
         c.rectangle(rect, fill=self.color)
 
@@ -66,6 +68,8 @@ class HorizontalScrollbar(VerticalScrollbar):
         return rect
 
     def draw(self, c, forced=True):
+        if not self.is_visible():
+            return False
         rect = self.get_coords(c)
         c.rectangle(
             self.get_background_coords(c),
@@ -101,6 +105,8 @@ class HideableVerticalScrollbar(VerticalScrollbar):
         # if self.is_visible() else False
 
     def is_visible(self):
+        if self.size == 1:
+            return False
         ret = time() < self.last_activity + self.fade_time
         return ret
 
@@ -286,8 +292,12 @@ class TextReader(object):
 
     def after_move(self):
         # the if-else sections try to account for "empty string" scenario
-        self.v_scrollbar.size = self.rows // self._content_height if self._content_height else 1
-        self.h_scrollbar.size = self.cols // self._content_width if self._content_width else 1
+        self.v_scrollbar.size = self.rows / self._content_height if self._content_height else 1
+        self.h_scrollbar.size = self.cols / self._content_width if self._content_width else 1
+        if self.cols > self._content_width:
+            self.h_scrollbar.size = 1
+        if self.rows > self._content_height:
+            self.v_scrollbar.size = 1
         self.h_scroll_index = clamp(self.h_scroll_index, 0, self._content_height - self.rows - 1)
         self.v_scroll_index = clamp(self.v_scroll_index, 0, self._content_width - self.cols + 1)
         self.v_scrollbar.progress = self.h_scroll_index / self._content_height if self._content_height else 0
