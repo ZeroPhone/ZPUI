@@ -167,12 +167,23 @@ class AppManager(object):
                         logger.warning("App {} blocked from config; not loading".format(module_path))
                         continue
                     app = self.load_app_by_path(module_path)
-                    logger.info("Loaded app {}".format(module_path))
-                    self.app_list[module_path] = app
-                    menu_name = self.get_app_name(app, module_path)
-                    self.bind_context(app, module_path, menu_name)
-                    if self.app_has_after_contexts_hook(app):
-                        after_contexts_apps[module_path] = app
+                    has_loaded = True; s = ""
+                    if hasattr(app, "can_load"):
+                        result = app.can_load()
+                        if result != True: # likely, a list of things has been returned
+                            if result == None:
+                                logger.warning("App {} returned None from can_load! Assuming True".format(module_path))
+                            else:
+                                has_loaded, s = result
+                    if has_loaded:
+                        logger.info("Loaded app {}".format(module_path))
+                        self.app_list[module_path] = app
+                        menu_name = self.get_app_name(app, module_path)
+                        self.bind_context(app, module_path, menu_name)
+                        if self.app_has_after_contexts_hook(app):
+                            after_contexts_apps[module_path] = app
+                    else:
+                        self.mark_app_as_unloaded(app, module_path, s)
                 except:
                     logger.exception("Failed to load app {}".format(module_path))
                     self.failed_apps[module_path] = traceback.format_exc()
@@ -301,6 +312,9 @@ class AppManager(object):
                 app.o = o
         self.pass_context_to_app(app, app_path, context)
         return app
+
+    def mark_app_as_unloaded(self, app, app_path, s):
+        logger.info("App {} not loaded. Reason given: {}".format(app_path, repr(s)))
 
     def pass_context_to_app(self, app, app_path, context):
         """
