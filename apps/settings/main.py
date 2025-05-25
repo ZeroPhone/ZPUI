@@ -138,12 +138,13 @@ class GenericUpdater(object):
         logger.info("Starting update process")
         pb = ProgressBar(i, o, message="Updating ZPUI")
         pb.run_in_background()
-        progress_per_step = 100 / len(self.steps)
+        steps = self.get_steps()
+        progress_per_step = 100 / len(steps)
         skip_steps = skip_steps if skip_steps else []
 
         completed_steps = []
         try:
-            for step in self.steps:
+            for step in steps:
                 if step in skip_steps:
                     continue
                 pb.set_message(self.progressbar_messages.get(step, "Loading..."))
@@ -204,7 +205,6 @@ class GenericUpdater(object):
 class GitUpdater(GenericUpdater):
     branch = "master"
 
-    steps = ["check_connection", "check_git", "set_url", "check_revisions", "pull", "install_requirements", "pretest_migrations", "tests"]
     progressbar_messages = {
         "check_connection": "Connection check",
         "check_git": "Running git",
@@ -227,9 +227,10 @@ class GitUpdater(GenericUpdater):
     }
 
     config_filename = "git_updater.json"
-    safe_branches = ["master", "staging", "devel"]
+    #safe_branches = ["master", "staging", "devel"] # commenting out for now because staging and devel are unused
+    safe_branches = ["master"]
     # Forming the default config
-    default_config = '{"url":"https://github.com/ZeroPhone/ZPUI", "branches":[], "check_revs":true}'
+    default_config = '{"url":"https://github.com/ZeroPhone/ZPUI", "branches":[], "check_revs":true, "run_tests":true}'
     json_config = json.loads(default_config)
     json_config["branches"] = safe_branches
     default_config = json.dumps(json_config)
@@ -239,6 +240,13 @@ class GitUpdater(GenericUpdater):
         self.config = read_or_create_config(local_path(self.config_filename), self.default_config, "Git updater")
         self.save_config = save_config_method_gen(self, local_path(self.config_filename))
         self.check_revisions = self.config.get("check_revs", True)
+        self.run_tests = self.config.get("run_tests", True)
+
+    def get_steps(self):
+        steps = ["check_connection", "check_git", "set_url", "check_revisions", "pull", "install_requirements", "pretest_migrations"]
+        if self.config.get("run_tests", True):
+            steps.append("tests")
+        return steps
 
     def do_check_git(self):
         if not GitInterface.git_available():
@@ -298,11 +306,17 @@ class GitUpdater(GenericUpdater):
         self.config["check_revs"] = self.check_revisions
         self.save_config()
 
+    def toggle_run_tests(self):
+        self.run_tests = not self.run_tests
+        self.config["run_tests"] = self.run_tests
+        self.save_config()
+
     def settings_contents(self):
         mc = [
-        ["Select branch", self.pick_branch],
-        ["Compare_code: {}".format("YES" if self.check_revisions else "NO"), self.toggle_check_revs],
-        ["Change URL", self.change_origin_url]]
+            ["Select branch", self.pick_branch],
+            ["Compare_code: {}".format("YES" if self.check_revisions else "NO"), self.toggle_check_revs],
+            ["Run tests: {}".format("YES" if self.run_tests else "NO"), self.toggle_run_tests],
+            ["Change URL", self.change_origin_url]]
         return mc
 
     def settings(self):
