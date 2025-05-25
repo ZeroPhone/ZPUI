@@ -102,6 +102,8 @@ class AppManager(object):
         base_subdir = self.app_directory.rstrip('/')
         for subdir_path in self.subdir_paths:
             self.subdir_menu_contents[subdir_path] = []
+        # ordering by path length so that the longest-path (innermost) directories are in the beginning of the list
+        self.subdir_paths = sorted(self.subdir_paths, key=lambda x:-1*len(x))
         for subdir_path in self.subdir_paths:
             if subdir_path == base_subdir:
                 continue
@@ -119,6 +121,32 @@ class AppManager(object):
                     self.subdir_menu_contents[subdir_menu_name].append(app_entry)
                 except:
                     logger.exception("Couldn't place app {} into a menu!".format(app_path))
+        # now, filtering for empty directories, removing directories up until we're satisfied that none are empty
+        success = False
+        iters = 0
+        empty_dirs = []
+        while not success:
+            sbmc_items = list(self.subdir_menu_contents.items())
+            # again, sorting by path length to process innermost directories first
+            # example: subdir_entry = Entry(menu_name, type="dir", path=subdir_path)
+            sbmc_items = sorted(sbmc_items, key=lambda x:-1*len(x[0]))
+            success = True
+            if iters > 10:
+                logger.error("Too many iterations taken to filter out the menu from empty items, breaking the loop")
+                break
+            for path, subdir_contents in sbmc_items:
+                for entry in subdir_contents:
+                    if entry.path in empty_dirs:
+                        logger.debug("Empty dir {} found in menu for {}, removing".format(entry.path, path))
+                        self.subdir_menu_contents[path].remove(entry)
+                        success = False
+                if not subdir_contents:
+                    success = False
+                    empty_dirs.append(path)
+                    self.subdir_menu_contents.pop(path)
+            iters += 1
+        if empty_dirs:
+            logger.info("Removed empty directories: {}".format(", ".join(empty_dirs)))
         for path, subdir_contents in self.subdir_menu_contents.items():
             ordering = self.get_ordering(path)
             unordered_contents = self.prepare_menu_contents_for_ordering(subdir_contents)
@@ -202,7 +230,7 @@ class AppManager(object):
         # second: entrypoint-based discovery
         discovered_apps = entry_points(group='spam.magical')
         for app_ep in discovered_apps:
-            logger.warning(str(app_ep))
+            logger.info(str(app_ep))
             try:
                 app = app_ep.load()
             except:
