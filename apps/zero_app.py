@@ -18,8 +18,21 @@ class ZeroApp(object):
         if hasattr(self, "init_app"):
             self.init_app()
         if getattr(self, "wants_context", False):
-            # placing the default function in an expected spot
-            self.set_context = self.__set_context
+            if not hasattr(self, "set_context"):
+                # placing the default function in an expected spot
+                self.set_context = self.__set_context
+
+    def can_load(self):
+        """
+        Default function for checking if app can load on this platform.
+        If app shouldn't be loaded, return False and a string detailing the reason for app not loading.
+        Otherwise, return True.
+
+        Can be used for things like hardware-specific apps,
+        apps that only work with certain screen typoes and sizes,
+        and so on.
+        """
+        return True
 
     def __set_context(self, context):
         """
