@@ -11,6 +11,11 @@ menu_name = "Calculator"
 i = None # Input device
 o = None # Output device
 
+def can_load():
+    # currently the app won't work with anything other than zerophone.
+    # also tbqh it's a good lesson in "what mechanisms other people could need to write apps for ZPUI easier"
+    return False, "app mothballed until its code is updated"
+
 # constants
 exit_app = Event()
 do_update = Event()
