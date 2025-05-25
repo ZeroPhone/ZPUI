@@ -318,6 +318,10 @@ help_text = \
 class DrawingApp(ZeroApp):
     menu_name = "Draw"
 
+    def can_load(self):
+        # need to ensure app can be exited (and controlled) on platforms that are not zerophone, lmao
+        return False, "app mothballed until it's ready to be used"
+
     def on_start(self):
         PrettyPrinter("No image saving implemented yet!", self.i, self.o, 3)
         board = DrawingBoard(self.i, self.o)

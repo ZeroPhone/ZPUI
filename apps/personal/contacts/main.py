@@ -14,11 +14,16 @@ logger = setup_logger(__name__, "info")
 
 
 class ContactApp(ZeroApp):
-    def __init__(self, i, o):
-        super(ContactApp, self).__init__(i, o)
-        self.menu_name = "Contacts"
+
+    menu_name = "Contacts"
+
+    def can_load(self):
+        # needs to be updated for and tested on platforms that are not ZP.
+        # also, it might've broken with changes to `flatten` in zpui_lib
+        return False, "app mothballed until it's ready to be used"
+
+    def init_app(self):
         self.address_book = AddressBook()
-        self.menu = None
 
     def on_start(self):
         self.address_book.load_from_file()

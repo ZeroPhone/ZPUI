@@ -28,7 +28,8 @@ from zpui_lib.helpers import setup_logger
 
 logger = setup_logger(__name__, "info")
 
-socks.set_default_proxy(socks.SOCKS5, "127.0.0.1", 9050)
+def setup():
+    socks.set_default_proxy(socks.SOCKS5, "127.0.0.1", 9050)
 
 def getaddrinfo(*args):
   return [(socket.AF_INET, socket.SOCK_STREAM, 6, '', (args[0], args[1]))]
@@ -110,11 +111,10 @@ def main():
     logger.info("My Tor relay has read %s bytes and written %s." % info )
     logger.info(get_external_ip())
     logger.info(get_entry_ips())
-    ddg = get_duckduckgo()	
+    ddg = get_duckduckgo()
     logger.debug(ddg.content[:100])
 
     #desc = controller.get_hidden_service_descriptor('3g2upl4pq6kufc4m') #not supported in Raspbian Tor
-  
 
 if __name__ == "__main__":
     main()

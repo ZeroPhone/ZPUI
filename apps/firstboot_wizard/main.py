@@ -42,6 +42,11 @@ firstboot_action_ordering = \
 ]
 
 class FirstbootWizard(ZeroApp):
+    def can_load(self):
+        # needs to be updated for and tested on platforms that are not ZP
+        # also, its behaviour needs to be checked to be made less annoying
+        return False, "app mothballed until it's ready to be used"
+
     def learn_about_5_buttons(self):
         c = Canvas(self.o)
         c.centered_text("Let's go through\nthe main buttons\nand their meanings")

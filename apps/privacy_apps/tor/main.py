@@ -6,8 +6,13 @@ from time import sleep
 from ui import Menu, Printer, Refresher
 import tor
 
+
 i = None
 o = None
+
+def can_load():
+    # the app is old and long untested, sadly. alas. it's been fun
+    return False, "app mothballed until its code is updated"
 
 def toggle_status():
     if tor.tor_is_available():
@@ -35,7 +40,7 @@ def get_status():
         status_list.append("External IP:")
         status_list.append(external_ip)
     return [s.center(o.cols) for s in status_list]
-    
+
 def status_refresher():
     Printer("Getting Tor status...", i, o, 0, skippable=True)
     Refresher(get_status, i, o, 10).activate()
@@ -75,7 +80,7 @@ def entry_node_info():
 def main_menu_contents():
     #Allows to get a nice menu where labels autoupdate when status changes
     is_available = tor.tor_is_available()
-    contents = [ 
+    contents = [
     ["Refresh", lambda: True], #Just invoking any callback from a menu can refresh it
     ["Status: {}".format("enabled" if is_available else "disabled"), status_refresher],
     ["Turn off" if is_available else "Turn on", toggle_status],
@@ -85,10 +90,7 @@ def main_menu_contents():
     ]
     return contents
 
-def init_app(input, output):
-    global i, o
-    i = input; o = output
-
 def callback():
+    tor.setup()
     Menu([], i, o, "Tor app menu", contents_hook=main_menu_contents).activate()
 

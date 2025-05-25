@@ -10,15 +10,23 @@ logger = setup_logger(__name__, "info")
 
 from __main__ import input_device_manager as device_manager
 
-from zerophone_hw import USB_DCDC
+zerophone_hw = False
+try:
+    from zerophone_hw import USB_DCDC
+except:
+    zerophone_hw = False
+else:
+    zerophone_hw = True
 
 
 class KeyboardFallbackApp(ZeroApp):
 
     do_not_activate_events = ["usb_keyboard_connected"]
 
-    def __init__(self, *args, **kwargs):
-        ZeroApp.__init__(self, *args, **kwargs)
+    def can_load(self):
+        return False, "app mothballed until it's updated and ready to be used"
+
+    def init_app(self):
         self.active = Event()
         self.pop_on_event = Event()
         self.pop_on_event.set()
