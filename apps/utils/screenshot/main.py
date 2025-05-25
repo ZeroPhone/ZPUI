@@ -4,7 +4,8 @@ import os
 from time import sleep
 from datetime import datetime
 
-from zpui_lib.helpers import setup_logger, BackgroundRunner, BooleanEvent
+from zpui_lib.helpers import setup_logger, BackgroundRunner, BooleanEvent, \
+                             read_or_create_config, local_path_gen, save_config_gen
 
 logger = setup_logger(__name__, "info")
 
@@ -16,9 +17,21 @@ from PIL import ImageChops
 
 i = None
 o = None
+
 context = None
 
-screenshot_folder = "screenshots"
+config_filename = "config.json"
+default_config = """{
+"screenshot_folder":"screenshots",
+"auto_record":false
+}"""
+
+local_path = local_path_gen(__name__)
+config_path = local_path(config_filename)
+config = read_or_create_config(config_path, default_config, menu_name + " app")
+save_config = save_config_gen(config_path)
+
+screenshot_folder = config["screenshot_folder"]
 
 def take_screenshot():
     image = context.get_previous_context_image()
@@ -87,9 +100,8 @@ def set_context(received_context):
     context.register_action(Action("screenshot", take_screenshot, menu_name="Screenshot", description="Takes a screenshot from previous app"))
     context.register_action(Action("record_screen", toggle_record, menu_name=menu_name_cb, description="Records the screen from currently shown app (as series of screenshots)"))
 
-def init_app(input, output):
-    global i, o
-    i = input; o = output
+    if not recording_ongoing and config["auto_record"]:
+        toggle_record()
 
 def show_screenshot(path):
     GraphicsPrinter(path, i, o, 5, invert=False)
@@ -105,7 +117,22 @@ def list_screenshots():
     mc = list(reversed(sorted(mc)))
     Menu(mc, i, o, name="Screenshot list ").activate()
 
+def toggle_auto_record():
+    was_recording = config["auto_record"]
+    config["auto_record"] = not config["auto_record"]
+    if was_recording and recording_ongoing:
+        toggle_record()
+    if not was_recording and not recording_ongoing:
+        toggle_record()
+    save_config(config)
+
 def callback():
-    list_screenshots()
-    #mc = [["Screenshots", list_screenshots]]
-    #Menu(mc, i, o, name="Screenshot app main menu").activate()
+
+    def get_contents():
+        mc = [
+            ["Screenshots", list_screenshots],
+            ["Stop recording screen" if recording_ongoing else "Record screen", toggle_record],
+            ["Auto record: {}".format("YES" if config["auto_record"] else "NO"), toggle_auto_record],
+        ]
+        return mc
+    Menu([], i, o, name="Screenshot app main menu", contents_hook=get_contents).activate()
