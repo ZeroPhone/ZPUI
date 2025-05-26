@@ -56,15 +56,20 @@ class LumaScreen(GraphicalOutputDevice, CharacterOutputDevice, BacklightManager)
     default_width = 128
     default_height = 64
 
-    def __init__(self, hw="spi", port=None, address=None, gpio_dc=None, gpio_rst=None, \
+    def __init__(self, hw="spi", port=None, address=None, dc=None, rst=None, \
                       width=None, height=None, **kwargs):
         self.hw = hw
         assert hw in ("spi", "i2c", "dummy"), "Wrong hardware suggested: '{}'!".format(hw)
+        # legacy parameters
+        if "gpio_dc" in kwargs:
+            dc = kwargs.pop("gpio_dc")
+        if "gpio_rst" in kwargs:
+            dc = kwargs.pop("gpio_rst")
         if self.hw == "spi":
-            self.port = port if port else self.default_spi_port
-            self.address = address if address else self.default_spi_address
-            self.gpio_dc = gpio_dc if gpio_dc else self.default_gpio_dc
-            self.gpio_rst = gpio_rst if gpio_rst else self.default_gpio_rst
+            self.port = port if port != None else self.default_spi_port
+            self.address = address if address != None else self.default_spi_address
+            self.gpio_dc = dc if dc != None else self.default_gpio_dc
+            self.gpio_rst = rst if rst != None else self.default_gpio_rst
             try:
                 self.serial = spi(port=self.port, device=self.address, gpio_DC=self.gpio_dc, gpio_RST=self.gpio_rst)
             except TypeError:
