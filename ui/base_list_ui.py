@@ -648,31 +648,35 @@ class TwiceSixteenPtView(EightPtView):
     font = ("Fixedsys62.ttf", 32)
 
 
-class MainMenuTripletView(SixteenPtView):
+class MainMenuTripletView(TwiceSixteenPtView):
     # TODO: enable scrolling
 
     use_mixin = False
-    charwidth = 8
-    charheight = 16
 
     def __init__(self, *args, **kwargs):
-        SixteenPtView.__init__(self, *args, **kwargs)
-        self.charheight = self.o.height / 3
+        TwiceSixteenPtView.__init__(self, *args, **kwargs)
+        #self.charheight = self.o.height // 3
 
     def get_displayed_image(self):
         # This view doesn't have a cursor, instead, the entry that's currently active is in the display center
         contents = self.el.get_displayed_contents()
         pointer = self.el.pointer # A shorthand
         c = Canvas(self.o)
-        central_position = (10, 16)
+        central_position = (self.charheight//8*3, self.charheight)
+        big_font = c.load_font("Fixedsys62.ttf", self.charheight*2)
+        entry = contents[pointer]
+        if isinstance(entry, Entry):
+            text = entry.text
+        else:
+            text = entry[0]
+        c.text(text, central_position, font=big_font)
         font = c.load_font("Fixedsys62.ttf", 32)
-        current_entry = contents[pointer]
-        c.text(current_entry[0], central_position, font=font)
-        font = c.load_font("Fixedsys62.ttf", 16)
         if pointer != 0:
-            line = contents[pointer - 1][0]
-            c.text(line, (2, 0), font=font)
+            entry = contents[pointer - 1]
+            line = entry.text if isinstance(entry, Entry) else entry[0]
+            c.text(line, (2, 0), font=self.font)
         if pointer < len(contents) - 1:
-            line = contents[pointer + 1][0]
-            c.text(line, (2, 48), font=font)
+            entry = contents[pointer + 1]
+            line = entry.text if isinstance(entry, Entry) else entry[0]
+            c.text(line, (2, int(self.charheight*3)), font=self.font)
         return c.get_image()
