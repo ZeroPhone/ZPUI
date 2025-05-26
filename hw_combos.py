@@ -125,6 +125,20 @@ def config_zpui_bc_v1(config):
             io = rotate_zpui_bc(io, config)
     return io
 
+def config_waveshare_oled_hat(config):
+    io = ({"driver":"pi_gpio", "button_pins":[6, 21, 26, 20, 19, 5, 16, 13]}, {"driver":"sh1106", "hw":"spi", "dc":24, "rst":25})
+    if "screen_hw" in config:
+        if config["screen_hw"] == "i2c":
+            io[1]["hw"] = "i2c"
+            io[1].pop("dc")
+            io[1].pop("rst")
+    if "i2c" in config:
+        io[1]["port"] = int(config.get("i2c", 1))
+    if isinstance(config["device"], dict):
+        if "rotate" in config["device"]:
+            io = rotate_zpui_bc(io, config)
+    return io
+
 n_mapping = [
         "KEY_UP",
         "KEY_PROG2",
@@ -171,6 +185,8 @@ devices = {
   "zerophone_og":config_zpog,
   "zpui_bc_v1_qwiic":config_zpui_bc_v1_qwiic,
   "zpui_bc_v1":config_zpui_bc_v1,
+  "waveshare_oled_hat":config_waveshare_oled_hat,
+
 }
 
 
@@ -262,6 +278,21 @@ class TestCombination(unittest.TestCase):
         i, o = get_io_configs(config)
         assert(i == {'driver': 'pcf8574', 'addr': 63, 'bus': 2})
         assert(o == {'driver': 'sh1106', 'hw': 'i2c', 'port': 2})
+
+    def test_waveshare_oled(self):
+        """tests that zp waveshare oled hat config works"""
+        config = {"device":"waveshare_oled_hat"}
+        i, o = get_io_configs(config)
+        print(i, o)
+        assert(i == {'driver': 'pi_gpio', 'button_pins': [6, 21, 26, 20, 19, 5, 16, 13]})
+        assert(o == {'driver': 'sh1106', 'hw': 'spi', 'dc': 24, 'rst': 25})
+
+    def test_waveshare_oled_i2c(self):
+        """tests that waveshare oled hat config with screen hw parses"""
+        config = {"device":"waveshare_oled_hat", "screen_hw":"i2c"}
+        i, o = get_io_configs(config)
+        assert(i == {'driver': 'pi_gpio', 'button_pins': [6, 21, 26, 20, 19, 5, 16, 13]})
+        assert(o == {'driver': 'sh1106', 'hw': 'i2c'})
 
     def test_zpog_i2cbus(self):
         """tests that zpog config parses"""
