@@ -58,7 +58,7 @@ preassembled_module_names ={
 "OG ZeroPhone hardware":'zerophone_og',
 "ZPUI businesscard v1 (QWIIC-only)":'zpui_bc_v1_qwiic',
 "ZPUI businesscard v1 (Pi GPIO header)":'zpui_bc_v1',
-"Waveshare OLED HAT":'waveshare_oled_hat',
+"Waveshare OLED HAT (untested)":'waveshare_oled_hat',
 }
 
 """
