@@ -79,7 +79,10 @@ class LumaScreen(GraphicalOutputDevice, CharacterOutputDevice, BacklightManager)
             self.port = port if port else self.default_i2c_port
             if isinstance(address, basestring): address = int(address, 16)
             self.address = address if address else self.default_i2c_address
-            self.serial = i2c(port=self.port, address=self.address)
+            kw = {}
+            if rst is not None:
+                kw["gpio_RST"] = rst
+            self.serial = i2c(port=self.port, address=self.address, **kw)
         elif hw == "dummy":
             self.port = port
             self.address = address

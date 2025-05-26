@@ -131,7 +131,6 @@ def config_waveshare_oled_hat(config):
         if config["screen_hw"] == "i2c":
             io[1]["hw"] = "i2c"
             io[1].pop("dc")
-            io[1].pop("rst")
     if "i2c" in config:
         io[1]["port"] = int(config.get("i2c", 1))
     if isinstance(config["device"], dict):
@@ -292,7 +291,7 @@ class TestCombination(unittest.TestCase):
         config = {"device":"waveshare_oled_hat", "screen_hw":"i2c"}
         i, o = get_io_configs(config)
         assert(i == {'driver': 'pi_gpio', 'button_pins': [6, 21, 26, 20, 19, 5, 16, 13]})
-        assert(o == {'driver': 'sh1106', 'hw': 'i2c'})
+        assert(o == {'driver': 'sh1106', 'hw': 'i2c', "rst": 25})
 
     def test_zpog_i2cbus(self):
         """tests that zpog config parses"""
