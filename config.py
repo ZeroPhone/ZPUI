@@ -219,6 +219,16 @@ def setup():
             filename = "emulator"
             if not os.path.exists(filename):
                 open(filename, 'a').close()
+        elif preassembled_module == 'waveshare_oled_hat':
+            print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            print("If you've resoldered the OLED HAT to use I2C for the screen,")
+            print("add a `screen_hw: i2c` line to the config.yaml.")
+            print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        elif preassembled_module.startswith('zpui_bc_v1'):
+            print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            print("If you've soldered the OLED in a rotation that's not North,")
+            print("add a `rotate: E` or `rotate: S` or `rotate: W` line to the config.yaml.")
+            print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     else:
         print("You'll need to change your config.yaml according to I/O devices you're using (refer to the documentation!)")
 
