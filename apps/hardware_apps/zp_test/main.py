@@ -33,32 +33,34 @@ def needs_i2c_gpio_expander(func):
 
 class ZPTestApp(ZeroApp):
 
-    menu_name = "Test ZeroPhone"
-    music_url = "http://wiki.zerophone.org/images/b/b5/Otis_McMusic.mp3"
+    menu_name = "Test hardware"
+    #music_url = "http://wiki.zerophone.org/images/b/b5/Otis_McMusic.mp3"
     br = None
 
     expander_ok = False
 
     def __init__(self, *args, **kwargs):
         ZeroApp.__init__(self, *args, **kwargs)
-        if music_filename not in os.listdir(local_path('.')):
-            self.br = BackgroundRunner(self.download_music)
-            self.br.run()
+        #if music_filename not in os.listdir(local_path('.')):
+        #    self.br = BackgroundRunner(self.download_music)
+        #    self.br.run()
 
-    def download_music(self):
-       logger.debug("Downloading music for hardware test app!")
-       call(["wget", self.music_url, "-O", music_path])
+    #def download_music(self):
+    #   logger.debug("Downloading music for hardware test app!")
+    #   call(["wget", self.music_url, "-O", music_path])
 
     def on_start(self):
-        mc = [["Full test", self.full_test],
-              ["Keypad presence", self.test_keypad_presence],
-              ["I2C GPIO expander", self.test_i2c_gpio],
+        mc = [
+              #["Full test", self.full_test],
+              #["Keypad presence", self.test_keypad_presence],
+              #["I2C GPIO expander", self.test_i2c_gpio],
               ["Screen", self.test_screen],
-              ["Keypad", self.test_keypad],
-              ["Charger", self.test_charger],
-              ["RGB LED", self.test_rgb_led],
+              #["Keypad", self.test_keypad],
+              #["Charger", self.test_charger],
+              #["RGB LED", self.test_rgb_led],
               #["USB port", self.test_usb_port],
-              ["Headphone jack", self.test_headphone_jack]]
+              #["Headphone jack", self.test_headphone_jack]
+        ]
         Menu(mc, self.i, self.o, name="Hardware test app main menu").activate()
 
     def full_test(self):
