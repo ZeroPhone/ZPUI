@@ -24,9 +24,9 @@ def set_context(received_context):
     global context
     context = received_context
     if is_emulator():
-        context.request_global_keymap({"KEY_PROG2":context.request_switch})
-    else:
         context.request_global_keymap({"KEY_F1":context.request_switch})
+    else:
+        context.request_global_keymap({"KEY_PROG2":context.request_switch})
     context.threaded = True
     context.set_target(zeromenu.activate)
 
