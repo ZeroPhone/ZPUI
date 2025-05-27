@@ -20,6 +20,7 @@ i = None
 o = None
 context = None
 
+dcdc_state = False
 if zerophone_hw:
     dcdc = USB_DCDC()
     dcdc_state = False
@@ -55,7 +56,8 @@ def set_context(c):
     global context
     context = c
     call_usb_app = lambda: context.request_switch()
-    context.register_action(BackgroundAction("usb_toggle", dcdc_toggle, menu_name=get_menu_name, description="Switches USB port power on or off", aux_cb=call_usb_app))
+    # TODO make the action actually work! sob
+    #context.register_action(BackgroundAction("usb_toggle", dcdc_toggle, menu_name=get_menu_name, description="Switches USB port power on or off", aux_cb=call_usb_app))
 
 def dcdc_off_on():
     global dcdc_state
