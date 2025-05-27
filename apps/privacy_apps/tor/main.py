@@ -12,6 +12,8 @@ o = None
 
 def can_load():
     # the app is old and long untested, sadly. alas. it's been fun
+    if not tor.stem:
+        return False, "STEM library not installed!"
     return False, "app mothballed until its code is updated"
 
 def toggle_status():
