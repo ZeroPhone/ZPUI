@@ -119,7 +119,11 @@ def init_app(input, output):
                 logger.debug("Action {} is a firstboot action, ignoring".format(name))
             elif name not in config["excluded_actions"]:
                 menu_name_or_cb = action.menu_name
-                menu_name = menu_name_or_cb() if callable(menu_name_or_cb) else menu_name_or_cb
+                try:
+                    menu_name = menu_name_or_cb() if callable(menu_name_or_cb) else menu_name_or_cb
+                except:
+                    logger.exception("Action {} menu name callback failed! Skipping the action".format(name))
+                    continue # skipping this action specifically
                 cb = get_cb(action)
                 entry = [menu_name, cb]
                 if hasattr(action, "aux_cb"):
