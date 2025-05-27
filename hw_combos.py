@@ -138,6 +138,17 @@ def config_waveshare_oled_hat(config):
             io = rotate_zpui_bc(io, config)
     return io
 
+def config_beepy(config):
+    io = ({"driver":"pcf8574", "addr":0x3f}, {"driver":"fb", "fb_num":1})
+    if "fb_num" in config:
+        io[1]["fb_num"] = config.get("fb_num", 1)
+    if "i2c" in config:
+        io[0]["bus"] = int(config.get("i2c", 1))
+    #if isinstance(config["device"], dict):
+    #    if "rotate" in config["device"]:
+    #        io = rotate_zpui_bc(io, config)
+    return io
+
 n_mapping = [
         "KEY_UP",
         "KEY_PROG2",
@@ -185,7 +196,7 @@ devices = {
   "zpui_bc_v1_qwiic":config_zpui_bc_v1_qwiic,
   "zpui_bc_v1":config_zpui_bc_v1,
   "waveshare_oled_hat":config_waveshare_oled_hat,
-
+  "beepy":config_beepy,
 }
 
 
