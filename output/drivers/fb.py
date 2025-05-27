@@ -76,7 +76,7 @@ class Screen(GraphicalOutputDevice, CharacterOutputDevice):
         self.disable_cursor = disable_cursor
         if self.disable_cursor:
             with open('/sys/class/graphics/fbcon/cursor_blink', 'wb') as f:
-                f.write('0')
+                f.write(b'0')
             atexit.register(self.atexit)
         self.multiply_x = mul_x
         self.multiply_y = mul_y
@@ -93,7 +93,7 @@ class Screen(GraphicalOutputDevice, CharacterOutputDevice):
     def atexit(self):
         try:
             with open('/sys/class/graphics/fbcon/cursor_blink', 'wb') as f:
-                f.write('1')
+                f.write(b'1')
         except:
             logger.exception("Failed to make the cursor blinky again!")
 
