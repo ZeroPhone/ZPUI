@@ -4,7 +4,7 @@ import sys
 import traceback
 
 from apps import ZeroApp
-from zpui_lib.helpers import setup_logger
+from zpui_lib.helpers import setup_logger, zpui_running_as_service
 from ui import Printer, Menu, HelpOverlay, GridMenu, Entry, \
                GridMenuLabelOverlay, GridMenuSidebarOverlay, GridMenuNavOverlay
 
@@ -59,20 +59,24 @@ class AppManager(object):
     def create_main_menu(self, menu_name, contents):
         dir = "resources/icons/"
         icons = [f for f in os.listdir(dir) if f.endswith(".png")]
-        icon_paths = [[f.rsplit('.', 1)[0], os.path.join(dir, f)] for f in icons]
+        icon_paths = {f.rsplit('.', 1)[0]:os.path.join(dir, f) for f in icons}
         used_icons = []
         for entry in contents:
-            for icon_name, icon_path in icon_paths:
+            for icon_name, icon_path in icon_paths.items():
                 if entry.basename.startswith(icon_name):
                     entry.icon = Image.open(icon_path)
                     used_icons.append(icon_name)
                     continue
             else:
                 pass
+        if zpui_running_as_service():
+            exit_entry = Entry("Restart", "exit", icon=Image.open(icon_paths["exit"]))
+        else:
+            exit_entry = Entry("Exit", "exit", icon=Image.open(icon_paths["exit"]))
         #print([x for x, y, in icon_paths if x not in used_icons])
         font = ("Fixedsys62.ttf", 16)
         menu = GridMenu(contents, self.i, self.o, font=font, name="Main menu", exitable=False, navigation_wrap=False)
-        menu.exit_entry = ["Exit", "exit"]
+        menu.exit_entry = exit_entry
         menu.process_contents()
         return menu
 
