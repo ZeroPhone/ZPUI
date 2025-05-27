@@ -70,7 +70,7 @@ class AppManager(object):
             else:
                 pass
         if zpui_running_as_service():
-            exit_entry = Entry("Restart", "exit", icon=Image.open(icon_paths["exit"]))
+            exit_entry = Entry("Restart ZPUI", "exit", icon=Image.open(icon_paths["exit"]))
         else:
             exit_entry = Entry("Exit", "exit", icon=Image.open(icon_paths["exit"]))
         #print([x for x, y, in icon_paths if x not in used_icons])
