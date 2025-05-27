@@ -49,6 +49,8 @@ class EmulatorProxy(object):
         self.width = width
         self.height = height
         self.mode = mode
+        if self.mode.startswith("RGB"):
+            self.type.append("color")
         self.device_mode = mode
         self.device = type("MockDevice", (), {"mode":self.mode, "size":(self.width, self.height)})
         self.parent_conn, self.child_conn = Pipe()
