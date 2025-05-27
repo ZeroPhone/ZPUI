@@ -25,6 +25,8 @@ try:
     from stem import Signal, CircStatus
 except ModuleNotFoundError:
     stem = False
+else:
+    stem = True
 try:
     import socks
 except ModuleNotFoundError:
