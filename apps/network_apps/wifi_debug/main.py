@@ -10,6 +10,11 @@ from zpui_lib.libs.rpi import vcgencmd, rpiinfo, config as rpi_config
 
 import sdio_debug
 
+def can_load():
+    # currently the app won't work with anything other than zerophone.
+    # so, despite its promising nature, it won't actually repair your wifi meaningfully =(
+    return False, "app mothballed until its code is updated"
+
 logger = setup_logger(__name__, "debug")
 
 try:
