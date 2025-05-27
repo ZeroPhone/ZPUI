@@ -138,13 +138,13 @@ class ZPTestApp(ZeroApp):
                 break
         if "color" in self.o.type: # extra tests for RGB-capable displays
             c = Canvas(self.o)
-            c.fill("red"); c.display()
+            c.clear(fill="red"); c.display()
             for x in range(60):
                 if eh.do_run():
                     if x == 20:
-                        c.fill("green"), c.display()
+                        c.clear(fill="green"), c.display()
                     elif x == 20:
-                        c.fill("blue"), c.display()
+                        c.clear(fill="blue"), c.display()
                     sleep(0.1)
                 else:
                     break
