@@ -13,7 +13,7 @@ except:
     import http.client as httplib
 
 from ui import Menu, PrettyPrinter, DialogBox, ProgressBar, Listbox, UniversalInput, HelpOverlay, TextReader
-from zpui_lib.helpers import setup_logger, read_or_create_config, save_config_method_gen, local_path_gen, get_safe_file_backup_path, BackgroundRunner
+from zpui_lib.helpers import setup_logger, read_or_create_config, save_config_method_gen, local_path_gen, get_safe_file_backup_path, BackgroundRunner, BooleanEvent
 from apps import ZeroApp
 
 local_path = local_path_gen(__name__)
@@ -375,6 +375,8 @@ class GitUpdater(GenericUpdater):
         current_revision, remote_revision = self.get_current_remote_revisions()
         #current_revision = "56bfabefc908b041f9a0e" # for testing
         diff = GitInterface.get_diff(current_revision, remote_revision)
+        if not diff: # empty diff - looks like there's no newer commits in the source! the discrepancy is likely explained by new local commits.
+            return False
         #print(repr(diff))
         lines = []
         # this block is about making commit messages more human-readable; mostly, by reformatting the commit sources
@@ -398,6 +400,12 @@ class GitUpdater(GenericUpdater):
         lines.append("Press Left to exit")
         text = "\n".join(lines)
         #print(text)
+        return text
+
+    def show_updates(self):
+        text = self.list_updates()
+        if not text:
+            return
         TextReader(text, i, o, name="Settings app updates list TextReader").activate()
         self.update_on_firstboot(name="Settings app updates list update dialog", suggest_restart=True)
 
@@ -489,9 +497,14 @@ class SettingsApp(ZeroApp):
         while self.git_updater.config.get('auto_check_update', False): # will immediately exit if auto_check_update is set to false
             try:
                 if self.git_updater.updates_available(): # git fetch and check happens here
-                    logger.info("ZPUI updates available!")
-                    self.updates_available.set(True)
-                    pass # uhhhh emit a notification? lol
+                    logger.debug("ZPUI updates available? Let's check the diff!")
+                    update_result = self.git_updater.list_updates()
+                    if update_result: # non-empty diff - means the remote actually has new commits for us
+                        logger.info("ZPUI updates available! {}".format(update_result))
+                        self.updates_available.set(True)
+                        pass # uhhhh emit a notification? lol
+                    else:
+                        logger.debug("ZPUI update correctly detected as non-applicable!")
             except:
                 logger.exception("Problem when automatically fetching updates!")
             sleep(self.git_updater.config.get('update_interval', 3600)) # checks once an hour by default after the first check
@@ -528,7 +541,7 @@ class SettingsApp(ZeroApp):
              ["About", about.about]]
         #if self.git_updater.config.get('check_update_on_open', False) and self.git_updater.updates_available(): # no longer checks in-place
         if self.updates_available:
-            l = ["Updates available!", self.git_updater.list_updates]
+            l = ["Updates available!", self.git_updater.show_updates]
             c = [l] + c
         menu = Menu(c, self.i, self.o, "ZPUI settings menu")
         #help_text = "Press RIGHT on \"Update ZPUI\" to change OTA update settings (branch or git URL to use)"
