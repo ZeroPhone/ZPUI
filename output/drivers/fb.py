@@ -42,7 +42,7 @@ class Screen(GraphicalOutputDevice, CharacterOutputDevice):
     direct_write = False
     paste_coords = (0, 0)
 
-    def __init__(self, fb_num=1, width=None, height=None, color=True, default_colour="white", mul_x=1, mul_y=1, direct_write=False, **kwargs):
+    def __init__(self, fb_num=1, width=None, height=None, color=True, default_colour="white", mul_x=1, mul_y=1, direct_write=False, out_mode="RGBA", **kwargs):
         self.fb_num = fb_num
         self.fb_path = '/dev/fb'+str(self.fb_num)
         if not self.direct_write:
@@ -70,6 +70,7 @@ class Screen(GraphicalOutputDevice, CharacterOutputDevice):
             self.default_colour == default_colour
         self.multiply_x = mul_x
         self.multiply_y = mul_y
+        self.out_mode = out_mode
         self.direct_write = direct_write
         self.busy_flag = Lock()
         self.cols = self.width // self.char_width
@@ -99,7 +100,10 @@ class Screen(GraphicalOutputDevice, CharacterOutputDevice):
     def _display_image(self, image):
         try:
             if not self.direct_write:
-                buffer = Image.new(mode=self.device_mode, size=self.fb.size)
+                if self.out_mode: # buffer mode overridden
+                    buffer = Image.new(mode=self.out_mode, size=self.fb.size)
+                else: # using the same mode that ZPUI uses for displaying to this screen
+                    buffer = Image.new(mode=self.device_mode, size=self.fb.size)
                 if self.multiply_x > 1 or self.multiply_y > 1:
                     image = image.resize((self.width*self.multiply_x, self.height*self.multiply_y), Image.Resampling.NEAREST)
                 buffer.paste(image, box=self.paste_coords)
