@@ -6,6 +6,8 @@ from zpui_lib.helpers import read_or_create_config, local_path_gen, save_config_
 from ui import Menu, Printer, PrettyPrinter, DialogBox, PathPicker, UniversalInput, TextReader
 
 menu_name = "Scripts"  # App name as seen in main menu while using the system
+i = None
+o = None
 
 # TODO: add no-nonsense string script handling
 
@@ -174,13 +176,3 @@ def callback():
         if relpath not in scripts_in_config:
             script_menu_contents.append([os.path.join(scripts_dir, script), lambda x=relpath: call_external([x])])
     Menu(script_menu_contents, i, o, "Script menu").activate()
-
-
-i = None
-o = None
-
-
-def init_app(input_obj, output_obj):
-    global i, o
-    i = input_obj
-    o = output_obj
