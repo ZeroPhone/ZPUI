@@ -12,8 +12,9 @@ try:
 except:
     import http.client as httplib
 
-from ui import Menu, PrettyPrinter, DialogBox, ProgressBar, Listbox, UniversalInput, HelpOverlay
-from zpui_lib.helpers import setup_logger, read_or_create_config, save_config_method_gen, local_path_gen, get_safe_file_backup_path
+from ui import Menu, PrettyPrinter, DialogBox, ProgressBar, Listbox, UniversalInput, HelpOverlay, TextReader
+from zpui_lib.helpers import setup_logger, read_or_create_config, save_config_method_gen, local_path_gen, get_safe_file_backup_path, BackgroundRunner
+from apps import ZeroApp
 
 local_path = local_path_gen(__name__)
 
@@ -21,8 +22,10 @@ import bugreport_ui
 import logging_ui
 import about
 
-menu_name = "Settings"
 logger = setup_logger(__name__, "info")
+
+i = None
+o = None
 
 class GitInterface(object):
 
@@ -65,6 +68,10 @@ class GitInterface(object):
         return cls.get_head_for_branch("--abbrev-ref HEAD").strip()
 
     @classmethod
+    def get_diff(cls, start, end):
+        return cls.command("log {}..{} --oneline".format(start, end)).strip()
+
+    @classmethod
     def checkout(cls, reference):
         return cls.command("checkout {}".format(reference))
 
@@ -94,7 +101,6 @@ class GitInterface(object):
                                 if not dir: dir = '.'
                                 old_path, new_path = get_safe_file_backup_path(dir, fname)
                                 logger.info("Moving interfering file {} to {}".format(line, new_path))
-                                print("Moving interfering file {} to {}".format(line, new_path))
                                 os.renames(old_path, new_path)
                                 cls.moved_files.append((old_path, new_path))
                             except OSError:
@@ -128,11 +134,11 @@ class GenericUpdater(object):
         else:
             logger.debug("Can't revert step {} - no reverter available.".format(step_name))
 
-    def update_on_firstboot(self):
+    def update_on_firstboot(self, name="ZPUI update app firstboot dialog", suggest_restart=False):
         choice = DialogBox("yn", i, o, message="Update ZPUI?", name="ZPUI update app firstboot dialog").activate()
         if not choice:
             return None
-        return self.update(suggest_restart=False)
+        return self.update(suggest_restart=suggest_restart)
 
     def update(self, suggest_restart=True, skip_steps=None):
         logger.info("Starting update process")
@@ -230,7 +236,7 @@ class GitUpdater(GenericUpdater):
     #safe_branches = ["master", "staging", "devel"] # commenting out for now because staging and devel are unused
     safe_branches = ["master"]
     # Forming the default config
-    default_config = '{"url":"https://github.com/ZeroPhone/ZPUI", "branches":[], "check_revs":true, "run_tests":true}'
+    default_config = '{"url":"https://github.com/ZeroPhone/ZPUI", "branches":[], "check_revs":true, "run_tests":true, "auto_check_update":true, "update_interval":3600}'
     json_config = json.loads(default_config)
     json_config["branches"] = safe_branches
     default_config = json.dumps(json_config)
@@ -253,11 +259,16 @@ class GitUpdater(GenericUpdater):
             logger.exception("Couldn't execute git - not found?")
             raise OSError()
 
-    def do_check_revisions(self):
+    def get_current_remote_revisions(self):
         GitInterface.command("fetch")
         current_branch_name = GitInterface.get_current_branch()
         current_revision = GitInterface.get_head_for_branch(current_branch_name)
         remote_revision = GitInterface.get_head_for_branch("origin/"+current_branch_name)
+        logger.debug("Current: {}, remote: {}".format(current_revision, remote_revision))
+        return current_revision, remote_revision
+
+    def do_check_revisions(self):
+        current_revision, remote_revision = self.get_current_remote_revisions()
         if self.check_revisions and current_revision == remote_revision:
             raise UpdateUnnecessary
         else:
@@ -306,15 +317,91 @@ class GitUpdater(GenericUpdater):
         self.config["check_revs"] = self.check_revisions
         self.save_config()
 
+    def toggle_auto_check_update(self):
+        self.config["auto_check_update"] = not self.config["auto_check_update"]
+        self.save_config()
+
     def toggle_run_tests(self):
         self.run_tests = not self.run_tests
         self.config["run_tests"] = self.run_tests
         self.save_config()
 
+    def human_readable_source(self, name):
+        if name == "/" or name == '.':
+            return "Core"
+        if name == "test_commandline":
+            return "Tests"
+        elif name in logging_ui.logger_alias_map:
+            # We have a defined name for this logger
+            return logging_ui.logger_alias_map[name]
+        elif name.startswith("ui."):
+            # This is an UI element
+            element_name = name[len("ui."):].capitalize()
+            return "UI - {}".format(element_name.replace("_", " "))
+        elif name.startswith("apps."):
+            # This is an app
+            if name.count('.') >= 2:
+                app_name, module_name = name.rsplit(".", 2)[1:]
+                if app_name.endswith("_apps"): app_name = app_name.rsplit('_', 1)[0]
+                app_name = app_name.capitalize().replace("_", " ")
+                return '{} app - {}'.format(app_name, module_name)
+            elif name == "apps.zero_app":
+                return 'ZeroApp'
+            elif name == "apps.app_manager":
+                return 'App manager'
+            else:
+                _, name = name.split('.', 1)
+                return name.replace("_", " ").capitalize()
+        elif name.startswith("input.drivers") or name.startswith("output.drivers"):
+            if name.rstrip('/').endswith("drivers"):
+                return name.replace("_", " ").capitalize()
+            # This is a driver
+            driver_name = name.rsplit(".", 1)[1].capitalize().replace("_", " ")
+            driver_type = name.split(".", 1)[0]
+            return '{} {} driver'.format(driver_name, driver_type)
+        else: # couldn't interpret it
+            return name.strip('.').replace("_", " ").capitalize()
+
+    def updates_available(self):
+        current_revision, remote_revision = self.get_current_remote_revisions()
+        #return True # for testing
+        return current_revision != remote_revision
+
+    def list_updates(self):
+        current_revision, remote_revision = self.get_current_remote_revisions()
+        #current_revision = "56bfabefc908b041f9a0e" # for testing
+        diff = GitInterface.get_diff(current_revision, remote_revision)
+        #print(repr(diff))
+        lines = []
+        # this block is about making commit messages more human-readable; mostly, by reformatting the commit sources
+        for line in diff.split('\n'):
+            line = line.strip()
+            commit, msg = line.split(' ', 1)
+            if ":" in msg: # has a hopefully-properly formatted commit message
+                source, changes = msg.split(':', 1)
+                source = source.replace('/', '.').strip()
+                try:
+                    source = self.human_readable_source(source)
+                except:
+                    logger.exception("Failed to parse commit message {}!".format(repr(line)))
+                    line = line
+                else:
+                    line = "{} {}:{}".format(commit, source, changes)
+            else:
+                line = "{} {}".format(commit, msg) # just leave it be
+            lines.append(line)
+        lines.append("")
+        lines.append("Press Left to exit")
+        text = "\n".join(lines)
+        #print(text)
+        TextReader(text, i, o, name="Settings app updates list TextReader").activate()
+        self.update_on_firstboot(name="Settings app updates list update dialog", suggest_restart=True)
+
     def settings_contents(self):
         mc = [
-            ["Select branch", self.pick_branch],
-            ["Compare_code: {}".format("YES" if self.check_revisions else "NO"), self.toggle_check_revs],
+            #["Select branch", self.pick_branch], # not that useful of an option right now
+            ["Auto check for updates: {}".format("YES" if self.config["auto_check_update"] else "NO"), self.toggle_auto_check_update],
+            ["Compare code: {}".format("YES" if self.check_revisions else "NO"), self.toggle_check_revs],
             ["Run tests: {}".format("YES" if self.run_tests else "NO"), self.toggle_run_tests],
             ["Change URL", self.change_origin_url]]
         return mc
@@ -354,7 +441,6 @@ class GitUpdater(GenericUpdater):
         if GitInterface.moved_files:
             for old, new in GitInterface.moved_files:
                 logger.info("Moving file back from {} to {}".format(new, old))
-                print("Moving file back from {} to {}".format(new, old))
                 os.renames(old, new)
             GitInterface.moved_files = []
         # requirements.txt now contains old requirements, let's install them back
@@ -385,39 +471,58 @@ class GitUpdater(GenericUpdater):
                 self.suggest_restart()
 
 
-i = None  # Input device
-o = None  # Output device
-git_updater = None
-context = None
-update_zpui_fba = None
+class SettingsApp(ZeroApp):
+    update_thread = None
+    git_updater = None
+    context = None
+    update_zpui_fba = None
 
-def set_context(c):
-    global context
-    context = c
-    context.register_firstboot_action(bugreport_ui.autosend_optin_fba)
-    context.register_firstboot_action(update_zpui_fba)
+    menu_name = "Settings"
 
-def init_app(input, output):
-    global i, o, git_updater, update_zpui_fba
-    i = input
-    o = output
-    logging_ui.i = i
-    logging_ui.o = o
-    bugreport_ui.i = i
-    bugreport_ui.o = o
-    bugreport_ui.git_if = GitInterface
-    about.i = i
-    about.o = o
-    about.git_if = GitInterface
-    git_updater = GitUpdater()
-    update_zpui_fba = FirstBootAction("update_zpui", git_updater.update_on_firstboot, depends=["check_connectivity"])
+    def updater(self):
+        while self.git_updater.config.get('auto_check_update', False): # will immediately exit if auto_check_update is set to false
+            try:
+                if self.git_updater.updates_available(): # git fetch and check happens here
+                    logger.info("ZPUI updates available!")
+                    pass # uhhhh emit a notification? lol
+            except:
+                logger.exception("Problem when automatically fetching updates!")
+            sleep(self.git_updater.config.get('update_interval', 3600)) # checks once an hour by default after the first check
 
-def callback():
-    c = [["Update ZPUI", git_updater.update, git_updater.settings],
-         ["Bugreport", bugreport_ui.main_menu],
-         ["Logging settings", logging_ui.config_logging],
-         ["About", about.about]]
-    menu = Menu(c, i, o, "ZPUI settings menu")
-    help_text = "Press RIGHT on \"Update ZPUI\" to change OTA update settings (branch or git URL to use)"
-    HelpOverlay(help_text).apply_to(menu)
-    menu.activate()
+    def set_context(self, c):
+        self.context = c
+        self.context.register_firstboot_action(bugreport_ui.autosend_optin_fba)
+        self.context.register_firstboot_action(self.update_zpui_fba)
+
+    def init_app(self):
+        # globals for the remainder of the UI to use, until it's refactored
+        global i, o
+        i = self.i
+        o = self.o
+        # globals for other modules
+        logging_ui.i = self.i
+        logging_ui.o = self.o
+        bugreport_ui.i = self.i
+        bugreport_ui.o = self.o
+        bugreport_ui.git_if = GitInterface
+        about.i = self.i
+        about.o = self.o
+        about.git_if = GitInterface
+        self.git_updater = GitUpdater()
+        self.update_zpui_fba = FirstBootAction("update_zpui", self.git_updater.update_on_firstboot, depends=["check_connectivity"])
+        self.update_thread = BackgroundRunner(self.updater)
+        if self.git_updater.config.get('auto_check_update', False):
+            self.update_thread.run()
+
+    def on_start(self):
+        c = [["Update ZPUI", self.git_updater.update, self.git_updater.settings],
+             ["Bugreport", bugreport_ui.main_menu],
+             ["Logging settings", logging_ui.config_logging],
+             ["About", about.about]]
+        if self.git_updater.updates_available():
+            l = ["Show updates", self.git_updater.list_updates]
+            c = [l] + c
+        menu = Menu(c, self.i, self.o, "ZPUI settings menu")
+        #help_text = "Press RIGHT on \"Update ZPUI\" to change OTA update settings (branch or git URL to use)"
+        #HelpOverlay(help_text).apply_to(menu)
+        menu.activate()
