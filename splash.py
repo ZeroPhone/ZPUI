@@ -8,7 +8,7 @@ def splash(i, o):
         image = Image.open("resources/splash_big.png").convert('L')
         image = ImageOps.invert(image)
         size = o.width, o.height
-        image.thumbnail(size, Image.ANTIALIAS)
+        image.thumbnail(size, Image.LANCZOS)
         left = top = right = bottom = 0
         width, height = image.size
         if o.width > width:
