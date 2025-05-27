@@ -536,7 +536,7 @@ class SettingsApp(ZeroApp):
 
     def on_start(self):
         c = [["Update ZPUI", self.git_updater.update, self.git_updater.settings],
-             ["Bugreport", bugreport_ui.main_menu],
+             # ["Bugreport", bugreport_ui.main_menu], # no longer working, big sad
              ["Logging settings", logging_ui.config_logging],
              ["About", about.about]]
         #if self.git_updater.config.get('check_update_on_open', False) and self.git_updater.updates_available(): # no longer checks in-place
