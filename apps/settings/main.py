@@ -236,7 +236,7 @@ class GitUpdater(GenericUpdater):
     #safe_branches = ["master", "staging", "devel"] # commenting out for now because staging and devel are unused
     safe_branches = ["master"]
     # Forming the default config
-    default_config = '{"url":"https://github.com/ZeroPhone/ZPUI", "branches":[], "check_revs":true, "run_tests":true, "auto_check_update":true, "update_interval":3600}'
+    default_config = '{"url":"https://github.com/ZeroPhone/ZPUI", "branches":[], "check_revs":true, "run_tests":true, "auto_check_update":true, "check_update_on_open":true, "update_interval":3600}'
     json_config = json.loads(default_config)
     json_config["branches"] = safe_branches
     default_config = json.dumps(json_config)
@@ -321,6 +321,10 @@ class GitUpdater(GenericUpdater):
         self.config["auto_check_update"] = not self.config["auto_check_update"]
         self.save_config()
 
+    def toggle_check_update_on_open(self):
+        self.config["check_update_on_open"] = not self.config["check_update_on_open"]
+        self.save_config()
+
     def toggle_run_tests(self):
         self.run_tests = not self.run_tests
         self.config["run_tests"] = self.run_tests
@@ -401,6 +405,7 @@ class GitUpdater(GenericUpdater):
         mc = [
             #["Select branch", self.pick_branch], # not that useful of an option right now
             ["Auto check for updates: {}".format("YES" if self.config["auto_check_update"] else "NO"), self.toggle_auto_check_update],
+            ["Check updates on app open: {}".format("YES" if self.config["check_update_on_open"] else "NO"), self.toggle_check_update_on_open],
             ["Compare code: {}".format("YES" if self.check_revisions else "NO"), self.toggle_check_revs],
             ["Run tests: {}".format("YES" if self.run_tests else "NO"), self.toggle_run_tests],
             ["Change URL", self.change_origin_url]]
@@ -519,8 +524,8 @@ class SettingsApp(ZeroApp):
              ["Bugreport", bugreport_ui.main_menu],
              ["Logging settings", logging_ui.config_logging],
              ["About", about.about]]
-        if self.git_updater.updates_available():
-            l = ["Show updates", self.git_updater.list_updates]
+        if self.git_updater.config.get('check_update_on_open', False) and self.git_updater.updates_available():
+            l = ["Updates available!", self.git_updater.list_updates]
             c = [l] + c
         menu = Menu(c, self.i, self.o, "ZPUI settings menu")
         #help_text = "Press RIGHT on \"Update ZPUI\" to change OTA update settings (branch or git URL to use)"
