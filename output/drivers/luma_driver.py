@@ -31,6 +31,8 @@ class LumaScreen(GraphicalOutputDevice, CharacterOutputDevice, BacklightManager)
     #redraw_coefficient = 0.5
     current_image = None
 
+    default_font = None
+
     __base_classes__ = (GraphicalOutputDevice, CharacterOutputDevice)
 
     type = ["char", "b&w"]
@@ -165,7 +167,7 @@ class LumaScreen(GraphicalOutputDevice, CharacterOutputDevice, BacklightManager)
             d.rectangle(dims, outline="white")
         for line, arg in enumerate(args):
             y = (line * self.char_height - 1) if line != 0 else 0
-            d.text((2, y), arg, fill="white")
+            d.text((2, y), arg, font=self.default_font, fill="white")
         return draw.image
 
     @activate_backlight_wrapper

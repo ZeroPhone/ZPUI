@@ -21,10 +21,13 @@ from output.drivers.framebuffer_lib import Framebuffer
 
 function_mock = lambda *a, **k: True
 
+
 class Screen(GraphicalOutputDevice, CharacterOutputDevice):
     """An object that provides high-level functions for interaction with display. It contains all the high-level logic and exposes an interface for system and applications to use."""
 
     current_image = None
+
+    default_font = None
 
     __base_classes__ = (GraphicalOutputDevice, CharacterOutputDevice)
 
@@ -138,7 +141,7 @@ class Screen(GraphicalOutputDevice, CharacterOutputDevice):
             d.rectangle(dims, outline=self.default_colour)
         for line, arg in enumerate(args):
             y = (line * self.char_height - 1) if line != 0 else 0
-            d.text((2, y), arg, fill=self.default_colour)
+            d.text((2, y), arg, font=self.default_font, fill=self.default_colour)
         return draw.image
 
     #@activate_backlight_wrapper

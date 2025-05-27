@@ -102,6 +102,8 @@ def init():
     # Initialize output
     try:
         screen = output.init(output_config)
+        from ui import canvas
+        screen.default_font = canvas.get_default_font()
     except:
         logging.exception('Failed to initialize the output object')
         logging.exception(traceback.format_exc())
