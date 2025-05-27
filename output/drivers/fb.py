@@ -65,9 +65,9 @@ class Screen(GraphicalOutputDevice, CharacterOutputDevice):
             self.device_mode = '1'
         # 'default_colour' argument handling
         if "default_color" in kwargs:
-            self.default_colour == kwargs["default_color"]
+            self.default_colour = kwargs["default_color"]
         else:
-            self.default_colour == default_colour
+            self.default_colour = default_colour
         self.multiply_x = mul_x
         self.multiply_y = mul_y
         self.out_mode = out_mode
