@@ -143,7 +143,7 @@ class ZPTestApp(ZeroApp):
                 if eh.do_run():
                     if x == 20:
                         c.clear(fill="green"), c.display()
-                    elif x == 20:
+                    elif x == 40:
                         c.clear(fill="blue"), c.display()
                     sleep(0.1)
                 else:
