@@ -9,6 +9,8 @@ from threading import Lock
 from luma.core.render import canvas
 from PIL import ImageChops, Image
 
+import atexit
+
 from zpui_lib.helpers import setup_logger
 logger = setup_logger(__name__, "info")
 
@@ -45,7 +47,7 @@ class Screen(GraphicalOutputDevice, CharacterOutputDevice):
     direct_write = False
     paste_coords = (0, 0)
 
-    def __init__(self, fb_num=1, width=None, height=None, color=True, default_colour="white", mul_x=1, mul_y=1, direct_write=False, out_mode="RGBA", **kwargs):
+    def __init__(self, fb_num=1, width=None, height=None, color=True, default_colour="white", mul_x=1, mul_y=1, direct_write=False, out_mode="RGBA", disable_cursor=True, **kwargs):
         self.fb_num = fb_num
         self.fb_path = '/dev/fb'+str(self.fb_num)
         if not self.direct_write:
@@ -71,6 +73,11 @@ class Screen(GraphicalOutputDevice, CharacterOutputDevice):
             self.default_colour = kwargs["default_color"]
         else:
             self.default_colour = default_colour
+        self.disable_cursor = disable_cursor
+        if self.disable_cursor:
+            with open('/sys/class/graphics/fbcon/cursor_blink', 'wb') as f:
+                f.write('0')
+            atexit.register(self.atexit)
         self.multiply_x = mul_x
         self.multiply_y = mul_y
         self.out_mode = out_mode
@@ -82,6 +89,13 @@ class Screen(GraphicalOutputDevice, CharacterOutputDevice):
         self.device = type("FBDevice", (), {"mode":self.device_mode, "size":(self.width, self.height), "display": function_mock, "hide": function_mock, "show": function_mock, "real":False})
         #getattr(self.device, "mode", self.device_mode)
         #BacklightManager.init_backlight(self, **kwargs)
+
+    def atexit(self):
+        try:
+            with open('/sys/class/graphics/fbcon/cursor_blink', 'wb') as f:
+                f.write('1')
+        except:
+            logger.exception("Failed to make the cursor blinky again!")
 
     def get_fbnum_from_path(self, fb_path):
         # function is unused for now
