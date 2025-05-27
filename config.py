@@ -134,19 +134,31 @@ def setup():
 
     options = []
     preassembled_module = None
+    module_supplied = False
 
-    #if yes_or_no("Do you use any of pre-assembled I/O modules, such as PiFaceCAD, one of character LCD&button shields or others?"):
-    print("Ctrl^C if your module is not found")
-    pretty_names = preassembled_module_names.keys()
-    answer = radio_choice(pretty_names)
-    if answer is not None:
-        module_pname = list(pretty_names)[answer]
-        module_name = preassembled_module_names[module_pname]
-        preassembled_module = module_name
-        options.append(module_name)
-    else:
-        print("You might still be able to use ZPUI! Just, please, configure it manually =D")
-        import sys;sys.exit(0)
+    if len(sys.argv) > 1: # a name supplied
+        module = sys.argv[1]
+        if module in preassembled_module_confs:
+            module_name = module
+            preassembled_module = module_name
+            options.append(module_name)
+            module_supplied = True
+        else:
+            print("Module {} not found!".format(repr(module)))
+            sys.exit(1)
+    if not module_supplied: # no module supplied
+        #if yes_or_no("Do you use any of pre-assembled I/O modules, such as PiFaceCAD, one of character LCD&button shields or others?"):
+        print("Ctrl^C if your module is not found")
+        pretty_names = preassembled_module_names.keys()
+        answer = radio_choice(pretty_names)
+        if answer is not None:
+            module_pname = list(pretty_names)[answer]
+            module_name = preassembled_module_names[module_pname]
+            preassembled_module = module_name
+            options.append(module_name)
+        else:
+            print("You might still be able to use ZPUI! Just, please, configure it manually =D")
+            sys.exit(0)
     #. Do open an issue on GitHub, or, alternatively, try GPIO driver if it's based on GPIO")
     """
     if yes_or_no("Do you connect any of your I/O devices by I2C?"):
