@@ -128,8 +128,8 @@ class InputDevice(InputSkeleton):
             if data_difference & 1<<i:
                 changed_buttons.append(i)
         for button_number in changed_buttons:
-            if not data & 1<<button_number:
-                print(self.mapping[button_number])
+            if data & 1<<button_number:
+                #print(self.mapping[button_number])
                 self.send_key(self.mapping[button_number])
 
 
