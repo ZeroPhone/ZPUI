@@ -136,6 +136,18 @@ class ZPTestApp(ZeroApp):
                 sleep(0.1)
             else:
                 break
+        if "color" in self.o.type: # extra tests for RGB-capable displays
+            c = Canvas(self.o)
+            c.fill("red"); c.display()
+            for x in range(60):
+                if eh.do_run():
+                    if x == 20:
+                        c.fill("green"), c.display()
+                    elif x == 20:
+                        c.fill("blue"), c.display()
+                    sleep(0.1)
+                else:
+                    break
 
     def test_keypad(self):
         #Launching key_test app from app folder, that's symlinked from example app folder
