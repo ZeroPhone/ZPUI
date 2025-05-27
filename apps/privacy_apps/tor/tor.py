@@ -17,14 +17,18 @@ as well as to discuss application UX."""
 #http://stackoverflow.com/questions/18561778/how-do-i-get-the-ip-address-of-the-tor-entry-node-in-use
 #... some other places - lost links =(
 
+import requests
+import socket
+
 try:
     from stem.control import Controller
     from stem import Signal, CircStatus
 except ModuleNotFoundError:
     stem = False
-import requests
-import socks
-import socket
+try:
+    import socks
+except ModuleNotFoundError:
+    socks = False
 
 from zpui_lib.helpers import setup_logger
 
