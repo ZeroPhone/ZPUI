@@ -481,6 +481,7 @@ class SettingsApp(ZeroApp):
     git_updater = None
     context = None
     update_zpui_fba = None
+    updates_available = BooleanEvent()
 
     menu_name = "Settings"
 
@@ -489,6 +490,7 @@ class SettingsApp(ZeroApp):
             try:
                 if self.git_updater.updates_available(): # git fetch and check happens here
                     logger.info("ZPUI updates available!")
+                    self.updates_available.set(True)
                     pass # uhhhh emit a notification? lol
             except:
                 logger.exception("Problem when automatically fetching updates!")
@@ -524,7 +526,8 @@ class SettingsApp(ZeroApp):
              ["Bugreport", bugreport_ui.main_menu],
              ["Logging settings", logging_ui.config_logging],
              ["About", about.about]]
-        if self.git_updater.config.get('check_update_on_open', False) and self.git_updater.updates_available():
+        #if self.git_updater.config.get('check_update_on_open', False) and self.git_updater.updates_available(): # no longer checks in-place
+        if self.updates_available:
             l = ["Updates available!", self.git_updater.list_updates]
             c = [l] + c
         menu = Menu(c, self.i, self.o, "ZPUI settings menu")
