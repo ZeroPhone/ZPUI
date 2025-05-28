@@ -120,7 +120,7 @@ class LumaScreen(GraphicalOutputDevice, CharacterOutputDevice, BacklightManager)
                 logger.warning("couldn't write to the display")
 
     @activate_backlight_wrapper
-    def display_image(self, image, actually_output=False):
+    def display_image(self, image):
         """Displays a PIL Image object onto the display
         Also saves it for the case where display needs to be refreshed"""
         with self.busy_flag:

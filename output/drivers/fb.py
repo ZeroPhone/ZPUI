@@ -105,7 +105,7 @@ class Screen(GraphicalOutputDevice, CharacterOutputDevice):
             i -= 1
         return int(self.fb_path[i]) # in most cases, i == -1, which returns the last character (`0` for /dev/fb0 or `1` for /dev/fb1)
 
-    def display_image(self, image, actually_output=False):
+    def display_image(self, image, backlight_only_on_new=None):
         """
         Displays a PIL Image object onto the display.
         Also saves it for the case where display needs to be refreshed
