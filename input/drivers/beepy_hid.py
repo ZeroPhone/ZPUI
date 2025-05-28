@@ -9,7 +9,7 @@ logger = setup_logger(__name__, "warning")
 class InputDevice(HIDDevice):
     """ A driver for Beepy HID. Supports the keyboard and the touchpad in arrow key mode."""
 
-    default_name_mapping = {"KEY_KPENTER":"KEY_ENTER", "KEY_PAGEUP":"KEY_F3", "KEY_PAGEDOWN":"KEY_F4"}
+    default_name_mapping = {"KEY_KPENTER":"KEY_ENTER", "KEY_PAGEUP":"KEY_F3", "KEY_PAGEDOWN":"KEY_F4", "KEY_ESC":"KEY_LEFT", "KEY_LEFTCTRL":"KEY_PROG2"}
     touchpad_keys = ["KEY_UP", "KEY_DOWN", "KEY_LEFT", "KEY_RIGHT"]
 
     tt_path = "/sys/module/beepy_kbd/parameters/touch_threshold"
