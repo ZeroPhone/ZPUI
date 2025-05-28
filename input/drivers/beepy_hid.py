@@ -15,7 +15,7 @@ class InputDevice(HIDDevice):
     tt_path = "/sys/module/beepy_kbd/parameters/touch_threshold"
     orig_tt = None
 
-    def __init__(self, name="beepy-kbd", tt=24, **kwargs):
+    def __init__(self, name="beepy-kbd", tt=64, **kwargs):
         """Initialises the ``InputDevice`` object.
 
         Kwargs:
