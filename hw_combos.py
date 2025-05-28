@@ -139,16 +139,13 @@ def config_waveshare_oled_hat(config):
     return io
 
 def config_beepy(config):
-    io = [{"driver":"pcf8574", "addr":0x3f}, {"driver":"fb", "fb_num":1}]
+    io = [{"driver":"pcf8574", "addr":0x3f}, {"driver":"fb", "fb_num":1}] # by default, the pcf driver is used as a backup, same config as the ZPUI businesscard
     if "fb_num" in config:
         io[1]["fb_num"] = config.get("fb_num", 1)
     if "i2c" in config:
         io[0]["bus"] = int(config.get("i2c", 1))
     io[0] = [io[0]]
     io[0].append({"driver":"beepy_hid"})
-    #if isinstance(config["device"], dict):
-    #    if "rotate" in config["device"]:
-    #        io = rotate_zpui_bc(io, config)
     return io
 
 n_mapping = [
@@ -295,7 +292,6 @@ class TestCombination(unittest.TestCase):
         """tests that zp waveshare oled hat config works"""
         config = {"device":"waveshare_oled_hat"}
         i, o = get_io_configs(config)
-        print(i, o)
         assert(i == {'driver': 'pi_gpio', 'button_pins': [6, 21, 26, 20, 19, 5, 16, 13]})
         assert(o == {'driver': 'sh1106', 'hw': 'spi', 'dc': 24, 'rst': 25})
 
@@ -338,6 +334,13 @@ class TestCombination(unittest.TestCase):
         i, o = get_io_configs(config)
         assert(i == "pygame_input")
         assert(o == {'driver': 'pygame_emulator', "mode":"1", 'width': 400, 'height': 240})
+
+    def test_beepy(self):
+        """tests that beepy config works"""
+        config = {"device":"beepy"}
+        i, o = get_io_configs(config)
+        assert(i == [{'driver': 'pcf8574', 'addr': 63}, {'driver': 'beepy_hid'}])
+        assert(o == {'driver': 'fb', 'fb_num': 1})
 
 
 if __name__ == '__main__':

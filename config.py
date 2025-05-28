@@ -60,7 +60,7 @@ preassembled_module_names ={
 "ZPUI businesscard v1 (QWIIC-only)":'zpui_bc_v1_qwiic',
 "ZPUI businesscard v1 (Pi GPIO header)":'zpui_bc_v1',
 "Waveshare OLED HAT (untested)":'waveshare_oled_hat',
-"Beepy (untested)":'beepy',
+"Beepy":'beepy',
 }
 
 """
