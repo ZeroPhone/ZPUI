@@ -12,12 +12,11 @@ logger = setup_logger(__name__, "warning")
 
 
 class VerticalScrollbar(object):
-    def __init__(self, o, width=1, min_size=1, margin=1, color="white"):
+    def __init__(self, o, width=1, min_size=1, margin=1):
         self.o = o
         self._width = width
         self.margin = margin
         self.min_size = min_size
-        self.color = color
         self._progress = 0  # 0-1 range, 0 is top, 1 is bottom
         self.size = 0  # 0-1 range, 0 is minimum size, 1 is whole screen
 
@@ -29,7 +28,7 @@ class VerticalScrollbar(object):
         if not self.is_visible():
             return False
         rect = self.get_coords(c)
-        c.rectangle(rect, fill=self.color)
+        c.rectangle(rect, fill=c.default_color)
 
     def get_coords(self, c):
         height_px = c.height * self.size
@@ -76,7 +75,7 @@ class HorizontalScrollbar(VerticalScrollbar):
             fill=c.background_color,
             outline=c.background_color,
         )
-        c.rectangle(rect, fill=self.color)
+        c.rectangle(rect, fill=c.default_color)
 
     def get_background_coords(self, c):
         return 0, c.height - self.width, c.width, c.height
@@ -84,25 +83,17 @@ class HorizontalScrollbar(VerticalScrollbar):
 
 class HideableVerticalScrollbar(VerticalScrollbar):
 
-    scrollbar_color = "white"
-
-    def __init__(self, o, width=1, min_size=1, margin=1, color="white", fade_time=1):
-        self.update_color() # vestigial
-        super(HideableVerticalScrollbar, self).__init__(o, width, min_size, margin, color)
+    def __init__(self, o, width=1, min_size=1, margin=1, fade_time=1):
+        super(HideableVerticalScrollbar, self).__init__(o, width, min_size, margin)
         self.fade_time = fade_time
         self.last_activity = -fade_time
 
     def draw(self, c, forced=False):
         # type: (Canvas) -> None
         rect = self.get_coords(c)
-        #self.update_color()
         if self.is_visible() or forced:
             c.rectangle(rect, fill=c.default_color, outline=c.default_color)
         return c
-
-    def update_color(self):
-        self.color = self.scrollbar_color
-        # if self.is_visible() else False
 
     def is_visible(self):
         if self.size == 1:
@@ -121,15 +112,14 @@ class HideableVerticalScrollbar(VerticalScrollbar):
 
 class HideableHorizontalScrollbar(HorizontalScrollbar, HideableVerticalScrollbar):
 
-    def __init__(self, o, width=1, min_size=1, margin=1, color="white", fade_time=1):
-        HorizontalScrollbar.__init__(self, o, width, min_size, margin, color)
-        HideableVerticalScrollbar.__init__(self, o, width, min_size, margin, color, fade_time)
+    def __init__(self, o, width=1, min_size=1, margin=1, fade_time=1):
+        HorizontalScrollbar.__init__(self, o, width, min_size, margin)
+        HideableVerticalScrollbar.__init__(self, o, width, min_size, margin, fade_time)
 
     def get_coords(self, c):
         return HorizontalScrollbar.get_coords(self, c)
 
     def draw(self, c, forced=False):
-        #self.update_color()
         if self.is_visible() or forced:
             HorizontalScrollbar.draw(self, c)
 
