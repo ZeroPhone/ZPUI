@@ -26,8 +26,9 @@ def init_app(i, o):
 
 def set_context(c):
     global context
-    context = c
-    context.register_action(Action("flashlight_toggle", callback, menu_name=get_state_message, description="Flashlight toggle"))
+    if can_load() == True:
+        context = c
+        context.register_action(Action("flashlight_toggle", callback, menu_name=get_state_message, description="Flashlight toggle"))
 
 def get_state_message():
     if state:
