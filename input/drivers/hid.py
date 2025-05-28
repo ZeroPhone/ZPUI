@@ -117,7 +117,7 @@ class InputDevice(InputSkeleton):
             key = ecodes.keys[event.code]
             value = event.value
             if self.enabled:
-                key = self.keycode_mapping.get(key, key)
+                key = self.name_mapping.get(key, key)
                 self.map_and_send_key(key, state = value)
 
     def atexit(self):
