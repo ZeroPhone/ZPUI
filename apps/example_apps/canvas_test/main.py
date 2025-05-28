@@ -20,7 +20,7 @@ def callback():
     i2 = o.height // 5
     canvas_2.clear(fill="cyan")
     canvas_2.rectangle((0, i2, o.width-1, str(-1*i2)), fill="pink", outline="pink")
-    canvas_2.rectangle((0, cy-i1//2, o.width-1, cy+i1//2), fill="white")
+    canvas_2.rectangle((0, cy-i2//2, o.width-1, cy+i2//2), fill="white")
     while True:
         canvas_1.display()
         canvas_2.display()
