@@ -614,6 +614,7 @@ def edit_password(net_id):
     try:
         conf_data = read_conf_data.read_data()
     except:
+        logger.exception("Cannot read wpa conf file!")
         conf_data = {}
         conf_fail = True
     ssid = wpa_cli.get_network(net_id, "ssid")

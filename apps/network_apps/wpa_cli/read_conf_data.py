@@ -16,7 +16,11 @@ def read_data(conf=None):
         # Normalizing values a bit - just some of them
         psk = data.get("psk", None)
         if psk:
-            data["psk"] = literal_eval(psk)
+            try:
+                data["psk"] = literal_eval(psk)
+            except ValueError: # if the password is unquoted, things are so-so =( that'll be the raw hash, sadly.
+                # but it's worth at least not erroring out on.
+                pass
         disabled = data.get("disabled", False)
         if disabled == "1" or int(disabled):
             data["disabled"] = True
