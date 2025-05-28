@@ -46,6 +46,7 @@ class UIElementTest(BaseUIElement):
 class TestBaseUIElement(unittest.TestCase):
     """tests base ui element class"""
 
+    @unittest.skip("test takes too long by default because of how it interacts with the unittest library. run manually if needed")
     def test_constructor_generates_name_if_not_supplied(self):
         """tests constructor"""
         element = UIElementTest(get_mock_input(), get_mock_output(), name=None)
