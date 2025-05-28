@@ -14,7 +14,7 @@ consider helping us with it - this way, we could be free from all the
 hardcoded values in EmulatorProxy =)
 """
 
-from multiprocessing import Process, Pipe
+from multiprocessing import Process, Pipe, Lock as MLock, Queue as MQueue # m'lock... m'queue
 from threading import Lock
 from time import sleep
 
@@ -54,6 +54,8 @@ class EmulatorProxy(object):
         self.device_mode = mode
         self.device = type("MockDevice", (), {"mode":self.mode, "size":(self.width, self.height)})
         self.parent_conn, self.child_conn = Pipe()
+        self.child_queue = MQueue()
+        self.o_lock = MLock()
         self.cols = self.height//self.char_height
         self.rows = self.width//self.char_width
         self.__base_classes__ = (GraphicalOutputDevice, CharacterOutputDevice)
@@ -61,7 +63,7 @@ class EmulatorProxy(object):
         self.start_process()
 
     def start_process(self):
-        self.proc = Process(target=Emulator, args=(self.child_conn,), kwargs={"mode":self.mode, "width":self.width, "height":self.height})
+        self.proc = Process(target=Emulator, args=(self.child_conn, self.child_queue, self.o_lock), kwargs={"mode":self.mode, "width":self.width, "height":self.height})
         self.proc.start()
 
     def poll_input(self, timeout=1):
@@ -96,7 +98,7 @@ class EmulatorProxy(object):
         return draw.image
 
     def quit(self):
-        DummyCallableRPCObject(self.parent_conn, 'quit')()
+        DummyCallableRPCObject(self.child_queue, 'quit', self.o_lock)()
         self.proc.join()
 
     def __getattr__(self, name):
@@ -107,7 +109,7 @@ class EmulatorProxy(object):
         # attribute of the Emulator - for now, only callables
         # are supported, and you can't get the result of a
         # callable.
-        return DummyCallableRPCObject(self.parent_conn, name)
+        return DummyCallableRPCObject(self.child_queue, name, self.o_lock)
 
 
 class DummyCallableRPCObject(object):
@@ -118,16 +120,18 @@ class DummyCallableRPCObject(object):
     which should also allow us to get rid of hard-coded parameters
     in the EmulatorProxy object.
     """
-    def __init__(self, parent_conn, name):
+    def __init__(self, parent_conn, name, lock):
         self.parent_conn = parent_conn
         self.__name__ = name
+        self.o_lock = lock
 
     def __call__(self, *args, **kwargs):
-        self.parent_conn.send({
-            'func_name': self.__name__,
-            'args': args,
-            'kwargs': kwargs
-        })
+        with self.o_lock:
+            self.parent_conn.put({
+                'func_name': self.__name__,
+                'args': args,
+                'kwargs': kwargs
+            })
 
 
 class Emulator(object):
@@ -135,8 +139,10 @@ class Emulator(object):
     for any future visitors:
     this runs in a whole different process
     """
-    def __init__(self, child_conn, mode="1", width=128, height=64):
+    def __init__(self, child_conn, child_queue, o_lock, mode="1", width=128, height=64):
         self.child_conn = child_conn
+        self.child_queue = child_queue
+        self.o_lock = o_lock
 
         self.width = width
         self.height = height
@@ -161,6 +167,7 @@ class Emulator(object):
         }
 
         self.busy_flag = Lock()
+        self.recv_busy_flag = Lock()
         self.pressed_keys = []
         self.init_hw()
         self.runner()
@@ -199,8 +206,13 @@ class Emulator(object):
             self.child_conn.send({'key': key, 'state':state})
 
     def _poll_parent(self):
-        if self.child_conn.poll() is True:
-            event = self.child_conn.recv()
+        if not self.child_queue.empty():
+            try:
+                event = self.child_queue.get()
+            except:
+                import traceback; traceback.print_exc()
+                return
+            #with self.o_lock: # no more writing while the current arg is being processed? aaaaaaaaaaa lmao
             func = getattr(self, event['func_name'])
             try:
                 func(*event['args'], **event['kwargs'])
