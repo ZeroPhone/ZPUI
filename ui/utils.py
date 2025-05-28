@@ -234,7 +234,7 @@ def fit_image_to_screen(image, o, resampling=Image.BOX):
         See https://pillow.readthedocs.io/en/stable/handbook/concepts.html#concept-filters ."""
     return fit_image_to_dims(image, o.width, o.height, resampling=resampling)
 
-def fit_image_to_dims(image, width, height, resampling=Image.BOX):
+def fit_image_to_dims(image, width, height, resampling=Image.BOX, fill_color = "black"):
     """Fits a given image to fit on any sized screen whilst maintaining the aspect ratio.
     Any remaining space is filled with borders. The resized image is returned as ``image``.
 
@@ -284,7 +284,7 @@ def fit_image_to_dims(image, width, height, resampling=Image.BOX):
             delta = height - iheight
             top = delta // 2
             bottom = delta - top
-        image = ImageOps.expand(image, border=(left, top, right, bottom), fill="black")
+        image = ImageOps.expand(image, border=(left, top, right, bottom), fill=fill_color)
         logger.info("Borders added to image {} are: top - {}, bottom - {}, left - {} and right - {}".format(orig_image, top, bottom, left, right))
     logger.debug("All resizing finished")
     return image

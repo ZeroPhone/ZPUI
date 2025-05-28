@@ -114,8 +114,8 @@ class TimePicker(BaseUIElement):
 		triangle_bottom = ((bx+width_padding+6, self.c.height-height_padding+5), (bx+self.c.width/2-10, self.c.height-height_padding+5), 
 			(bx+width_padding-2+((self.c.width/2-width_padding)/2), self.c.height-height_padding+15))
 
-		self.c.polygon(triangle_top, fill="white")
-		self.c.polygon(triangle_bottom, fill="white")
+		self.c.polygon(triangle_top, fill=c.default_color)
+		self.c.polygon(triangle_bottom, fill=c.default_color)
 
 		self.c.display()
 

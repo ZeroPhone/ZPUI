@@ -202,7 +202,7 @@ class BebbleGridView(GridView):
         c = Canvas(self.o)
 
         c.text("Status bar will go here", (25, 4), font=(self.MuktaSemiBold, 12))
-        c.rectangle((0, 30, c.width, c.height), fill="white")
+        c.rectangle((0, 30, c.width, c.height), fill=c.default_color)
 
         for i, index in enumerate(disp_entry_positions):
             selected = pointer == index
@@ -222,8 +222,8 @@ class BebbleGridView(GridView):
                 app_x = 8 + (x * 100) - a * x
 
             # set app block colors based on whether the app is selected
-            bg_color = "black" if selected else "white"
-            text_color = "white" if selected else "black"
+            bg_color = c.background_color if selected else c.default_color
+            text_color = c.default_color if selected else c.background_color
             fg_color = text_color
             icon = None
             inverted_icon = None
@@ -249,10 +249,10 @@ class BebbleGridView(GridView):
             """
 
             # draw border
-            c.rectangle((app_x, app_y, app_x+100, app_y+100), fill="black", outline="black")
+            c.rectangle((app_x, app_y, app_x+100, app_y+100), fill=c.background_color, outline=c.background_color)
 
             # draw background
-            c.rectangle((app_x + 5, app_y + 5, app_x + 95, app_y + 95), fill=bg_color, outline="black")
+            c.rectangle((app_x + 5, app_y + 5, app_x + 95, app_y + 95), fill=bg_color, outline=c.background_color)
             # get text size so we can center text
             #text_size = measure_text_ex(res.MuktaSemiBold, entry.get("name"), self.font_size, 0).x
             font_size = int(self.font_size*1.25) if selected else self.font_size

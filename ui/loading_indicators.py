@@ -141,7 +141,7 @@ class Throbber(BaseLoadingIndicator):
         # type: (Canvas) -> None
         bounds = c.get_centered_text_bounds(self.message)
         # Drawn top-centered
-        c.text(self.message, (bounds.left, 0), fill="white")
+        c.text(self.message, (bounds.left, 0), fill=c.default_color)
 
     def draw_throbber(self, c):
         x, y = c.size
@@ -153,7 +153,7 @@ class Throbber(BaseLoadingIndicator):
             ),
             start=(self._current_angle - self._current_range // 2) % 360,
             end=(self._current_angle + self._current_range // 2) % 360,
-            fill="white"
+            fill=c.default_color
         )
 
     def update_throbber_angle(self):
@@ -197,7 +197,7 @@ class CircularProgressBar(ProgressIndicator):
         x, y = c.size
         radius = min(x, y) // 4
         center_coordinates = (x // 2 - radius, y // 2 - radius, x // 2 + radius, y // 2 + radius)
-        c.arc(center_coordinates, start=0, end=360 * (self.progress / 100.0), fill="white")
+        c.arc(center_coordinates, start=0, end=360 * (self.progress / 100.0), fill=c.default_color)
         if self.show_percentage:
             c.centered_text(str(self.progress)+"%")
 
@@ -275,7 +275,7 @@ class GraphicalProgressBar(ProgressIndicator):
         if self.show_percentage:
             percentage_text = "{}%".format(self.progress)
             coords = c.get_centered_text_bounds(percentage_text)
-            c.text(percentage_text, (coords.left, self.percentage_margin), fill="white")  # Drawn top-centered (with margin)
+            c.text(percentage_text, (coords.left, self.percentage_margin), fill=c.default_color)  # Drawn top-centered (with margin)
             bar_top_min = self.margin + (coords.bottom - coords.top)
             bar_top = bar_top_min if self.margin < bar_top_min else self.margin
         else:
@@ -311,8 +311,8 @@ class GraphicalProgressBar(ProgressIndicator):
             outline_coords.bottom - self.padding
         )
 
-        c.rectangle(outline_coords, fill="black", outline="white")
-        c.rectangle(bar_coords, fill="white", outline="black")
+        c.rectangle(outline_coords, fill=c.background_color, outline=c.default_color)
+        c.rectangle(bar_coords, fill=c.default_color, outline=c.background_color)
 
 
 # noinspection PyPep8Naming

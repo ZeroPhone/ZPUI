@@ -73,8 +73,8 @@ class HorizontalScrollbar(VerticalScrollbar):
         rect = self.get_coords(c)
         c.rectangle(
             self.get_background_coords(c),
-            fill="black",
-            outline="black",
+            fill=c.background_color,
+            outline=c.background_color,
         )
         c.rectangle(rect, fill=self.color)
 
@@ -97,7 +97,7 @@ class HideableVerticalScrollbar(VerticalScrollbar):
         rect = self.get_coords(c)
         #self.update_color()
         if self.is_visible() or forced:
-            c.rectangle(rect, fill=self.color, outline=self.color)
+            c.rectangle(rect, fill=c.default_color, outline=c.default_color)
         return c
 
     def update_color(self):
