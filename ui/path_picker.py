@@ -29,7 +29,7 @@ class PathPicker(Menu):
             * ``display_hidden``: if True, PathPicker will display hidden files
 
         """
-        Menu.__init__(self, [], i, o, entry_height=1, scrolling=True, append_exit=False, catch_exit=False, contents_hook=None, **kwargs)
+        Menu.__init__(self, [], i, o, entry_height=1, name="PathPicker - placeholder", scrolling=True, append_exit=False, catch_exit=False, contents_hook=None, **kwargs)
         if not os.path.isdir(path):
              if os.path.exists(path):
                  path, filename = os.path.split(path)
