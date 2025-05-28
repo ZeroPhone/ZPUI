@@ -139,11 +139,13 @@ def config_waveshare_oled_hat(config):
     return io
 
 def config_beepy(config):
-    io = ({"driver":"pcf8574", "addr":0x3f}, {"driver":"fb", "fb_num":1})
+    io = [{"driver":"pcf8574", "addr":0x3f}, {"driver":"fb", "fb_num":1}]
     if "fb_num" in config:
         io[1]["fb_num"] = config.get("fb_num", 1)
     if "i2c" in config:
         io[0]["bus"] = int(config.get("i2c", 1))
+    io[0] = [io[0]]
+    io[0].append({"driver":"beepy_hid"})
     #if isinstance(config["device"], dict):
     #    if "rotate" in config["device"]:
     #        io = rotate_zpui_bc(io, config)
