@@ -33,10 +33,10 @@ class InputDevice(HIDDevice):
         """Stores and replaces beepy kbd driver touch threshold"""
         with open(self.tt_path, 'rb') as f:
            self.orig_tt = f.read().strip()
-        tt_bytes = bytes(str(self.tt))
+        tt_bytes = bytes(str(self.tt), "ascii")
         logger.info("replacing the original touch threshold {} with {}".format( repr(self.orig_tt), repr(tt_bytes) ))
         with open(self.tt_path, 'wb') as f:
-           f.write(tt_bytes, "ascii")
+           f.write(tt_bytes)
 
     def set_available_keys(self):
         if hasattr(self, 'device'):
