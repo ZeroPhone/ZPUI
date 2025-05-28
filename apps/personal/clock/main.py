@@ -137,7 +137,7 @@ class ClockApp(ZeroApp, Refresher):
         clock_x = eval(clock_x)
         clock_y = eval(clock_y)
         radius = eval(radius)
-        c.ellipse((clock_x - radius, clock_y - radius, clock_x + radius, clock_y + radius), fill="black", outline="white")
+        c.ellipse((clock_x - radius, clock_y - radius, clock_x + radius, clock_y + radius), fill=c.background_color, outline=c.default_color)
         self.draw_needle(c, 60 - time.second / 60, eval(s_len), clock_x, clock_y, 1)
         self.draw_needle(c, 60 - time.minute / 60, eval(m_len), clock_x, clock_y, 1)
         self.draw_needle(c, 24 - time.hour / 24, eval(h_len), clock_x, clock_y, 1)
@@ -153,7 +153,7 @@ class ClockApp(ZeroApp, Refresher):
         centered_coords = c.get_centered_text_bounds(string)
         x = eval(countdown_x)
         y = eval(countdown_y)
-        c.text((x, y), string, fill="white")
+        c.text((x, y), string, fill=c.default_color)
 
     def draw_text(self, c, time, text_x="10", text_y="center_y-5", time_format = "%H:%M:%S", **kwargs):
         """Draws the digital clock, with parameters configurable through config.json."""
@@ -188,7 +188,7 @@ class ClockApp(ZeroApp, Refresher):
                 int(y + radius * math.cos(hour_angle))
             ),
             width=width,
-            fill="white"
+            fill=c.default_color
         )
 
     def on_start(self):
