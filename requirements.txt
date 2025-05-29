@@ -19,3 +19,4 @@ PyRIC
 wpasupplicantconf==0.1.0
 zpui_lib>=0.3.4
 pyyaml
+qrcode

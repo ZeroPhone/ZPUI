@@ -5,7 +5,7 @@ from threading import Thread, Event
 from traceback import format_exc
 
 from zpui_lib.libs.linux import wpa_cli
-from zpui_lib.helpers import setup_logger
+from zpui_lib.helpers import setup_logger, ExitHelper
 from actions import FirstBootAction as FBA
 from zpui_lib.libs.linux.wpa_monitor import WpaMonitor
 from ui import Menu, PrettyPrinter as Printer, MenuExitException, UniversalInput, \
@@ -13,6 +13,14 @@ from ui import Menu, PrettyPrinter as Printer, MenuExitException, UniversalInput
 
 import net_ui
 import read_conf_data
+
+logger = setup_logger(__name__, "info")
+
+try:
+    import qrcode
+except:
+    qrcode = False
+    logger.error("qrcode library not found! won't be able to show network password")
 
 from pyric import pyw
 
@@ -41,8 +49,6 @@ net_menu = None
 # a global for SpinnerOverlay applied to the menu
 # so that we can make it active/inactive when scan is started/finished
 net_spinner = None
-
-logger = setup_logger(__name__, "info")
 
 interval_between_scans_in_wizard = 10 # seconds
 connect_timeout = 10 # seconds
@@ -104,6 +110,7 @@ def get_network_info_menu_contents(network_info):
           ["Disable", lambda x=id: disable_network(x)],
           ["Select", lambda x=id: select_network(x)],
           ["Remove", lambda x=id: remove_network(x)],
+          ["Show password", lambda x=id: show_password(x)],
           ["Edit password", lambda x=id: edit_password(x)],
         ]
     else:
@@ -550,6 +557,7 @@ def get_saved_network_menu_contents(network_id):
       ["Enable", lambda x=id: enable_network(x)],
       ["Disable", lambda x=id: disable_network(x)],
       ["Remove", lambda x=id: remove_network(x)],
+      ["Show password", lambda x=id: show_password(x)],
       ["Edit password", lambda x=id: edit_password(x)],
       ["BSSID", lambda x=bssid: Printer(x, i, o, 5, skippable=True)]
     ]
@@ -608,6 +616,73 @@ def remove_network(net_id):
         wpa_cli.save_config()
         Printer('Removed network '+str(net_id), i, o, skippable=True)
         raise MenuExitException
+
+def show_password(net_id):
+    if qrcode == False: # ohno, a cop-out
+        Printer("qrcode library isn't installed, can't show password!", i, o)
+        # in the future, I better show the password regardless, in biiiig letters. TODO
+        return
+    conf_fail = False
+    try:
+        conf_data = read_conf_data.read_data()
+    except:
+        logger.exception("Cannot read wpa conf file!")
+        conf_data = {}
+        conf_fail = True
+    if not conf:
+        if conf_fail:
+            Printer("Configuration file can't be read, can't get current password!", i, o)
+        else:
+            Printer("Network not found in the configuration file, can't get current password!", i, o)
+        return # password not found
+    ssid = wpa_cli.get_network(net_id, "ssid")
+    conf = conf_data.get(ssid, None)
+    psk = conf.get("psk", "")
+    if conf.get("key_mgmt", None) == "NONE" or not psk:
+        net_type = "nopass" # open network
+    elif conf.get("key_mgmt", "None").lower().startswith("wep"):
+        net_type = "WEP" # WEP, alrighty lol
+    else:
+        net_type = "WPA" # default ig. sure hope it doesnt fail us here lol WEP, alrighty lol
+    str = "WIFI:S:{}:T:WPA;P:{};;".format(ssid, net_type, psk)
+    c = Canvas(o)
+    def get_code(s, fill="white", bg="black", box_size=1, border=0):
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=box_size,
+            border=border,
+        )
+        qr.add_data(str)
+        qr.make(fit=True)
+        img = qr.make_image(fill_color=fill, back_color=bg)
+        return img
+    # checking qr code size at box size 1 (smallest)
+    img = get_code(str)
+    iw, ih = img.size
+    text_height = 20
+    width = o.width; height = o.height - text_height*2
+    dw, dh = width/iw, height/ih
+    print(dw, dh)
+    mul = int(min(dw, dh))
+    # max qrcode size found, generating the largest QR code possible
+    img = get_code(str, box_size=mul)
+    cx, cy = c.get_center()
+    coord_x = cx - img.size[0]//2
+    coord_y = cy - img.size[1]//2
+    c.paste(img, (coord_x, coord_y))
+    font=("Fixedsys62.ttf", 16)
+    ssid_str = "SSID: {}".format(ssid)
+    b = c.get_centered_text_bounds(ssid_str, y=20, font=font)
+    c.text(ssid_str, b, font=font)
+    psk_str = "PSK: {}".format(psk)
+    b = c.get_centered_text_bounds(psk_str, y=20, font=font)
+    top = o.height-20
+    c.text(psk_str, (b.left, top), font=font)
+    c.display()
+    eh = ExitHelper(self.i, ["KEY_ENTER", "KEY_LEFT"]).start()
+    while eh.do_run():
+        sleep(0.5)
 
 def edit_password(net_id):
     conf_fail = False
