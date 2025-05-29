@@ -644,7 +644,7 @@ def show_password(net_id):
         net_type = "WEP" # WEP, alrighty lol
     else:
         net_type = "WPA" # default ig. sure hope it doesnt fail us here lol WEP, alrighty lol
-    str = "WIFI:S:{}:T:WPA;P:{};;".format(ssid, net_type, psk)
+    str = "WIFI:S:{};T:{};P:{};;".format(ssid, net_type, psk)
     c = Canvas(o)
     def get_code(s, fill="white", bg="black", box_size=1, border=0):
         qr = qrcode.QRCode(
