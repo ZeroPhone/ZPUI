@@ -680,7 +680,7 @@ def show_password(net_id):
     top = o.height-20
     c.text(psk_str, (b.left, top), font=font)
     c.display()
-    eh = ExitHelper(self.i, ["KEY_ENTER", "KEY_LEFT"]).start()
+    eh = ExitHelper(i, ["KEY_ENTER", "KEY_LEFT"]).start()
     while eh.do_run():
         sleep(0.5)
 
