@@ -9,7 +9,7 @@ from zpui_lib.helpers import setup_logger, ExitHelper
 from actions import FirstBootAction as FBA
 from zpui_lib.libs.linux.wpa_monitor import WpaMonitor
 from ui import Menu, PrettyPrinter as Printer, MenuExitException, UniversalInput, \
-               Refresher, DialogBox, ellipsize, Entry, LoadingBar, SpinnerOverlay. Canvas
+               Refresher, DialogBox, ellipsize, Entry, LoadingBar, SpinnerOverlay, Canvas
 
 import net_ui
 import read_conf_data
