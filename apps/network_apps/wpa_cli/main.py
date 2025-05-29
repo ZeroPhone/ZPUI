@@ -9,7 +9,7 @@ from zpui_lib.helpers import setup_logger, ExitHelper
 from actions import FirstBootAction as FBA
 from zpui_lib.libs.linux.wpa_monitor import WpaMonitor
 from ui import Menu, PrettyPrinter as Printer, MenuExitException, UniversalInput, \
-               Refresher, DialogBox, ellipsize, Entry, LoadingBar, SpinnerOverlay
+               Refresher, DialogBox, ellipsize, Entry, LoadingBar, SpinnerOverlay. Canvas
 
 import net_ui
 import read_conf_data
@@ -629,14 +629,14 @@ def show_password(net_id):
         logger.exception("Cannot read wpa conf file!")
         conf_data = {}
         conf_fail = True
+    ssid = wpa_cli.get_network(net_id, "ssid")
+    conf = conf_data.get(ssid, None)
     if not conf:
         if conf_fail:
             Printer("Configuration file can't be read, can't get current password!", i, o)
         else:
             Printer("Network not found in the configuration file, can't get current password!", i, o)
         return # password not found
-    ssid = wpa_cli.get_network(net_id, "ssid")
-    conf = conf_data.get(ssid, None)
     psk = conf.get("psk", "")
     if conf.get("key_mgmt", None) == "NONE" or not psk:
         net_type = "nopass" # open network
@@ -666,7 +666,7 @@ def show_password(net_id):
     print(dw, dh)
     mul = int(min(dw, dh))
     # max qrcode size found, generating the largest QR code possible
-    img = get_code(str, box_size=mul)
+    img = get_code(str, box_size=mul).convert(o.device_mode)
     cx, cy = c.get_center()
     coord_x = cx - img.size[0]//2
     coord_y = cy - img.size[1]//2
