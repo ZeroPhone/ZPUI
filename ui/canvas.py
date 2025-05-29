@@ -341,13 +341,18 @@ class Canvas(object):
         """
         return self.image
 
-    def get_center(self):
+    def get_center(self, x=None, y=None):
         """
         Get center coordinates. Will not represent the physical center -
         especially with those displays having even numbers as width and height
         in pixels (that is, the absolute majority of them).
+
+        You can substitute width and height of your choice as ``x`` and ``y``,
+        purely so you can quickly center things in arbitrary areas.
         """
-        return self.width // 2, self.height // 2
+        cx = self.width // 2 if x == None else x // 2
+        cy = self.height // 2 if y == None else y // 2
+        return cx, cy
 
     def invert(self):
         """
@@ -482,7 +487,7 @@ class Canvas(object):
         w, h = r-l, b-t
         return w, h
 
-    def get_centered_text_bounds(self, text, cw=None, ch=None, font=None):
+    def get_centered_text_bounds(self, text, cw=None, ch=None, x=None, y=None, font=None):
         # type: str -> Rect
         """
         Returns the coordinates for the text to be centered on the screen.
@@ -496,7 +501,7 @@ class Canvas(object):
         tcw = w // 2
         tch = h // 2
         # Real center width and height
-        rcw, rch = self.get_center()
+        rcw, rch = self.get_center(x=x, y=y)
         # If no values supplied as arguments (likely), using the real ones
         cw = cw if (cw is not None) else rcw
         ch = ch if (ch is not None) else rch
