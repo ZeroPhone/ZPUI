@@ -139,7 +139,7 @@ def config_waveshare_oled_hat(config):
     return io
 
 def config_beepy(config):
-    io = [{"driver":"pcf8574", "addr":0x3f}, {"driver":"fb", "fb_num":1}] # by default, the pcf driver is used as a backup, same config as the ZPUI businesscard
+    io = [{"driver":"pcf8574", "addr":0x3f}, {"driver":"beepy_fb", "fb_num":1}] # by default, the pcf driver is used as a backup, same config as the ZPUI businesscard
     if "fb_num" in config:
         io[1]["fb_num"] = config.get("fb_num", 1)
     if "i2c" in config:
@@ -340,7 +340,7 @@ class TestCombination(unittest.TestCase):
         config = {"device":"beepy"}
         i, o = get_io_configs(config)
         assert(i == [{'driver': 'pcf8574', 'addr': 63}, {'driver': 'beepy_hid'}])
-        assert(o == {'driver': 'fb', 'fb_num': 1})
+        assert(o == {'driver': 'beepy_fb', 'fb_num': 1})
 
 
 if __name__ == '__main__':
