@@ -32,9 +32,16 @@ def UniversalInput(i, o, *args, **kwargs):
     all_available_keys = sum(i.available_keys.values(), [])
 
     ascii_keys = ["KEY_{}".format(c.upper()) for c in list("abcdefghijklmnopqrstuvwxyz123456789") + ["SPACE"]]
+    logger.debug("{}: ascii keys: {}".format(name, ascii_keys))
     ascii_keys_available = all([ascii_key in all_available_keys for ascii_key in ascii_keys])
+    if not ascii_keys_available:
+        missing_keys = [ascii_key not in all_available_keys for ascii_key in ascii_keys]
+        logger.info("{}: missing ascii keys: {}".format(name, missing_keys))
     action_keys = ["KEY_F1", "KEY_F2"]
     action_keys_available = all([action_key in all_available_keys for action_key in action_keys])
+    if not action_keys_available:
+        missing_keys = [action_key not in all_available_keys for action_key in action_keys]
+        logger.info("{}: missing action keys: {}".format(name, missing_keys))
     logger.debug("{}: ascii: {}, action: {}".format(name, ascii_keys_available, action_keys_available))
     if ascii_keys_available and action_keys_available:
         # All required ASCII and action keys are supported
@@ -46,6 +53,9 @@ def UniversalInput(i, o, *args, **kwargs):
     number_keys.append("KEY_#")
     number_keys_available = all([number_key in all_available_keys for number_key in number_keys ])
     logger.debug("{}: number: {}".format(name, number_keys_available))
+    if not number_keys_available:
+        missing_keys = [number_key not in all_available_keys for number_key in number_keys]
+        logger.info("{}: missing number keys: {}".format(name, missing_keys))
     if number_keys_available and action_keys_available:
         # All number and action keys are supported
         logger.info("{}: All number and action keys are supported; returning the uhhh {}?".format(name, str(numpadinput_cls)))
