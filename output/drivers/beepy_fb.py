@@ -2,6 +2,7 @@
 
 # luma.core library used: https://github.com/rm-hull/luma.core
 
+import os
 import traceback
 from mock import Mock
 from threading import Lock
@@ -47,7 +48,7 @@ class Screen(FBScreen):
                f.write(mc_bytes)
 
     def atexit(self):
-        FBScreen.atexit(self, **kwargs)
+        FBScreen.atexit(self)
         try:
             if self.orig_mc != None:
                 with open(self.mc_path, 'wb') as f:
