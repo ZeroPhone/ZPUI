@@ -14,6 +14,7 @@ def UniversalInput(i, o, *args, **kwargs):
     """
     charmap = kwargs.pop("charmap", "full")
     name = kwargs.get("name", "!!!noname!!!")
+    logger.debug("{}: available_keys: {}".format(name, i.available_keys))
     # Determining which input is necessary, according to the charmap requested
     numpadinputs = {"full":NumpadCharInput, "number":NumpadNumberInput, "hex":NumpadHexInput, "password":NumpadPasswordInput}
     numpadinput_cls = numpadinputs[charmap]
@@ -24,7 +25,7 @@ def UniversalInput(i, o, *args, **kwargs):
     arrowkeyinput_map = arrowkeyinput_maps[charmap]
     # First, checking if any of the drivers with None as available_keys is present
     if None in i.available_keys.values():
-        # HID driver (or other driver with "any key is possible" is likely used
+        # HID driver (or other driver with "any key is possible") is likely used
         # Let's use the most fully-functional input available at the moment
         logger.info("{}: None in available_keys found; returning the NumpadKeyboardInput".format(name, charmap))
         return numpadinput_cls(i, o, *args, **kwargs)
