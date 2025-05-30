@@ -42,6 +42,7 @@ class InputDevice(HIDDevice):
         if hasattr(self, 'device'):
             keys = [ecodes.keys[x] for x in self.device.capabilities()[ecodes.EV_KEY] \
                              if isinstance(ecodes.keys[x], basestring) ]
+            keys.append("KEY_3") # funni missing beepis key sob
             self.available_keys = keys
         else:
             self.available_keys = None
