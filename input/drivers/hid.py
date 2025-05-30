@@ -117,8 +117,11 @@ class InputDevice(InputSkeleton):
             key = ecodes.keys[event.code]
             value = event.value
             if self.enabled:
-                key = self.name_mapping.get(key, key)
-                self.map_and_send_key(key, state = value)
+                try:
+                    key = self.name_mapping.get(key, key)
+                    self.map_and_send_key(key, state = value)
+                except:
+                    logger.exception("{}: failed to map and send a key {}".format(self.name, key))
 
     def atexit(self):
         InputSkeleton.atexit(self)

@@ -52,11 +52,14 @@ class InputDevice(HIDDevice):
             key = ecodes.keys[event.code]
             value = event.value
             if self.enabled:
-                #if key in self.touchpad_keys:
-                #    pass # funni algorithm goes here
-                #else: # keyboard key?
-                key = self.name_mapping.get(key, key)
-                self.map_and_send_key(key, state = value)
+                try:
+                    #if key in self.touchpad_keys:
+                    #    pass # funni algorithm goes here
+                    #else: # keyboard key?
+                    key = self.name_mapping.get(key, key)
+                    self.map_and_send_key(key, state = value)
+                except:
+                    logger.exception("{}: failed to map and send a key {}".format(self.name, key))
 
     def atexit(self):
         try:
