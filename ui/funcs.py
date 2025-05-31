@@ -19,6 +19,8 @@ def ellipsize(string, length, ellipsis="..."):
     return string+ellipsis
 
 def format_for_screen(data, screen_width, break_words=False, linebreak=None):
+    if '\r\n' in data: # anti-\r-aktion
+        data = data.replace('\r\n', '\n')
     strings = data.split('\n')
     #Filter \n's
     data = ' \n '.join(strings) #Making sure linebreaks are surrounded by space characters so that when splitting by space you don't have to scan for linebreaks and just can compare

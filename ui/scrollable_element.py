@@ -171,7 +171,8 @@ class TextReader(object):
 
         text_width = (self.o.width - self.v_scrollbar.width) // self.char_width
 
-        self._content = self.text.splitlines() if self.h_scroll else format_for_screen(self.text, text_width)
+        text = self.text if '\r\n' not in self.text else self.text.replace('\r\n', '\n')
+        self._content = text.splitlines() if self.h_scroll else format_for_screen(text, text_width)
         self._content_width = max([len(line) for line in self._content])
         self.horizontal_scroll = self.h_scroll if self.h_scroll is not None else self._content_width > self.cols
         self._content_height = len(self._content)
