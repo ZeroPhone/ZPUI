@@ -5,7 +5,7 @@ from zpui_lib.helpers import setup_logger
 
 menu_name = "UPnP/SSDP scan"
 
-from ui import Menu, Printer, IntegerAdjustInput, PrettyPrinter
+from ui import Menu, Printer, IntegerAdjustInput, PrettyPrinter, TextReader
 from zpui_lib.helpers import read_or_create_config, write_config, local_path_gen
 
 from collections import OrderedDict
@@ -14,7 +14,6 @@ from time import sleep
 import socket
 import sys
 import os
-
 
 logger = setup_logger(__name__, "warning")
 
@@ -56,13 +55,21 @@ def run_scan():
             found_devices[ip_str] = data
 
     if not found_devices:
-        Printer("No devices found", i, o, 2)
+        PrettyPrinter("No devices found", i, o, 2)
     else:
         data = [[ip, lambda x=ip, y=d: read_info(x, y)] for ip, d in found_devices.items()]
         Menu(data, i, o).activate()
 
 def read_info(ip_str, data):
-    PrettyPrinter("[+] {}\n{}".format(ip_str, data), i, o, 5)
+    try:
+        data = data.decode("ascii")
+    except:
+        logger.exception("Error decoding data: {}".format(data))
+        data = str(data)
+    text = "[+] {}\n{}".format(ip_str, data)
+    logger.info("Scan data: "+repr(text))
+    TextReader(text, i, o, h_scroll=True, name="UPnP/SSDP app {} results TextReader".format(ip_str)).activate()
+    # todo: saving scan results
 
 def adjust_timeout():
     global config
@@ -77,10 +84,6 @@ main_menu_contents = [
 ["Scan", run_scan],
 ["Change timeout", adjust_timeout]
 ]
-
-def init_app(input, output):
-    global i, o
-    i = input; o = output
 
 def callback():
     Menu(main_menu_contents, i, o, "UPnP/SSDP app menu").activate()
