@@ -6,11 +6,10 @@ from ui.utils import Chronometer
 
 
 class StopwatchApp(ZeroApp):
-    def __init__(self, i, o):
-        super(StopwatchApp, self).__init__(i, o)
-        self.menu_name = "Stopwatch"
+    menu_name = "Stopwatch"
+
+    def init_app(self):
         self.counter = Chronometer()
-        self.refresher = None
         self.__instructions = ["", "UP/ENTER to start/pause", "RIGHT : restart", "DOWN : reset"]
 
     def on_start(self):
@@ -24,7 +23,7 @@ class StopwatchApp(ZeroApp):
 
     def refresh_function(self):
         self.counter.update()
-        text_rows = ["{} {}".format(self.get_char(), round(self.counter.elapsed, 2)).center(self.o.cols)]
+        text_rows = ["{} {}".format(self.get_char(), "{:.2f}".format(round(self.counter.elapsed, 2))).center(self.o.cols)]
         text_rows.extend([instruction.center(self.o.cols) for instruction in self.__instructions])
         return text_rows
 
