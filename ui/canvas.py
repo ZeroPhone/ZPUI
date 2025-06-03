@@ -597,12 +597,18 @@ class MockOutput(object):
       * ``type``: ZPUI output device type list (``["b&w"]`` by default)
       * ``device_mode``: PIL device.mode attribute (by default, ``'1'``)
     """
+    default_width = 128
+    default_height = 128
+    default_type = ["b&w"]
+    default_device_mode = '1'
 
-    def __init__(self, width=128, height=64, type=None, device_mode='1'):
-        self.width = width
-        self.height = height
-        self.type = type if type else ["b&w"]
-        self.device_mode = device_mode
+    def __init__(self, width=None, height=None, type=None, device_mode=None, o=None):
+        # now overriding parameters
+        # first supplied arguments, then o. parameters, then defaults
+        self.width = width if width else (o.width if o else self.default_width)
+        self.height = height if height else (o.height if o else self.default_height)
+        self.type = type if type else (o.type if o else self.default_type)
+        self.device_mode = device_mode if device_mode else (o.device_mode if o else self.default_device_mode)
 
     def display_image(self, *args):
         return True
