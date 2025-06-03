@@ -187,14 +187,76 @@ class BebbleGridView(GridView):
         self.fde_increment = 1 # because uhhhhh it glitches out if I do 4? weird lol maybe this needs to be `1` always
         # width is at least 240
         self.cols = self.o.width // self.entry_width
-        #print("cols", self.cols)
         self.sidebar_fits = False
 
     def process_contents(self, contents):
+        self.rendered_entries = [[], []]
         for entry in contents:
             if getattr(entry, "icon", None):
                 if entry.icon.size[0] < self.dim or entry.icon.size[1] < self.dim:
                     entry.icon = fit_image_to_dims(entry.icon, self.dim, self.dim, resampling=Image.BOX)
+
+        # Create a special canvas for drawing icons
+        c = Canvas(MockOutput(self.entry_width, self.entry_width))
+
+        # pre-rendering icons
+        for entry in contents:
+            # fetching/calculating parameters
+            icon = None
+            inverted_icon = None
+            if isinstance(entry, Entry):
+                text = entry.text
+                if entry.icon:
+                    icon = entry.icon
+                    if hasattr(entry, "inverted_icon"):
+                        inverted_icon = entry.inverted_icon
+            else:
+                text = entry[0]
+            # now actually rendering
+            for i in range(2):
+                selected = bool(i)
+                # set app block colors based on whether the app is selected
+                bg_color = c.background_color if selected else c.default_color
+                text_color = c.default_color if selected else c.background_color
+                fg_color = text_color
+                if icon and inverted_icon:
+                    # both inverted and non-inverted icons are present
+                    icon = inverted_icon if selected else icon
+
+                app_x = 0
+                app_y = 0
+
+                # draw border
+                c.rectangle((app_x, app_y, app_x+100, app_y+100), fill=c.background_color, outline=c.background_color)
+
+                # draw background
+                c.rectangle((app_x + 5, app_y + 5, app_x + 95, app_y + 95), fill=bg_color, outline=c.background_color)
+                # get text size so we can center text
+                #text_size = measure_text_ex(res.MuktaSemiBold, entry.get("name"), self.font_size, 0).x
+                font_size = int(self.font_size*1.25) if selected else self.font_size
+                font = c.decypher_font_reference((self.MuktaSemiBold, font_size))
+                _, _, text_size, _ = c.draw.textbbox((0, 0), text, font=font)
+
+                # draw app name
+                c.text(
+                    text,
+                    (app_x + int((100 - text_size) // 2), app_y + 72),
+                    font=(self.MuktaSemiBold, font_size), fill=text_color
+                )
+
+                # draw icon
+                if icon:
+                    if inverted_icon: # inverted icon present
+                        c.paste(icon, (app_x + 25, app_y + 15)) # means the icon's already how we want it
+                    else:
+                        c.paste(icon, (app_x + 25, app_y + 15), invert=not selected) # need to tell to invert it
+                        #c.paste(icon, (app_x + 25, app_y + 15)) # need to tell to invert it
+
+                # icon rendered: storing it
+                from copy import copy
+                self.rendered_entries[i].append(copy(c.get_image()))
+                c.clear()
+
         return contents
 
     def draw_grid(self):
@@ -229,57 +291,7 @@ class BebbleGridView(GridView):
                 x = i - self.cols
                 app_x = 8 + (x * 100) - a * x
 
-            # set app block colors based on whether the app is selected
-            bg_color = c.background_color if selected else c.default_color
-            text_color = c.default_color if selected else c.background_color
-            fg_color = text_color
-            icon = None
-            inverted_icon = None
-            if isinstance(entry, Entry):
-                text = entry.text
-                if entry.icon:
-                    icon = entry.icon
-                    if hasattr(entry, "inverted_icon"):
-                        inverted_icon = entry.inverted_icon
-            else:
-                text = entry[0]
-            if icon and inverted_icon:
-                # both inverted and non-inverted icons are present
-                icon = inverted_icon if selected else icon
-            """
-            # funni hack
-            if text == "Beeper":
-                if icon:
-                    if selected:
-                        icon = entry.get("inverse_icon", entry.get("icon", None)).point(lambda x: 255 if x>64 else 0)
-                    else:
-                        icon = entry.get("icon").point(lambda x: 255 if x>200 else 0)
-            """
-
-            # draw border
-            c.rectangle((app_x, app_y, app_x+100, app_y+100), fill=c.background_color, outline=c.background_color)
-
-            # draw background
-            c.rectangle((app_x + 5, app_y + 5, app_x + 95, app_y + 95), fill=bg_color, outline=c.background_color)
-            # get text size so we can center text
-            #text_size = measure_text_ex(res.MuktaSemiBold, entry.get("name"), self.font_size, 0).x
-            font_size = int(self.font_size*1.25) if selected else self.font_size
-            font = c.decypher_font_reference((self.MuktaSemiBold, font_size))
-            _, _, text_size, _ = c.draw.textbbox((0, 0), text, font=font)
-
-            # draw app name
-            c.text(
-                text,
-                (app_x + int((100 - text_size) // 2), app_y + 72),
-                font=(self.MuktaSemiBold, font_size), fill=text_color
-            )
-
-            # draw icon
-            if icon:
-                if inverted_icon: # inverted icon present
-                    c.paste(icon, (app_x + 25, app_y + 15)) # means the icon's already how we want it
-                else:
-                    c.paste(icon, (app_x + 25, app_y + 15), invert=not selected) # need to tell to invert it
-                    #c.paste(icon, (app_x + 25, app_y + 15)) # need to tell to invert it
+            # now, simply pasting pre-rendered entries. so so very fast!!
+            c.paste(self.rendered_entries[1 if selected else 0][index], (app_x, app_y))
 
         return c.get_image()
