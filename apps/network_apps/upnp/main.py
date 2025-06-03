@@ -68,7 +68,7 @@ def read_info(ip_str, data):
         data = str(data)
     text = "[+] {}\n{}".format(ip_str, data)
     logger.info("Scan data: "+repr(text))
-    TextReader(text, i, o, h_scroll=True, name="UPnP/SSDP app {} results TextReader".format(ip_str)).activate()
+    TextReader(text, i, o, h_scroll=False, name="UPnP/SSDP app {} results TextReader".format(ip_str)).activate()
     # todo: saving scan results
 
 def adjust_timeout():
