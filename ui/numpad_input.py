@@ -74,6 +74,8 @@ class NumpadCharInput(BaseUIElement):
 
     value = ""
     position = 0
+    shifted = False
+    alted = False
     value_lock = None
     pending_character = None
     pending_counter = 0
@@ -146,17 +148,26 @@ class NumpadCharInput(BaseUIElement):
     @check_value_lock
     @cb_needs_key_state
     def process_streaming_keycode(self, key_name, state=None, *args):
+        print(key_name, state)
         # This function processes all keycodes - both number keycodes and action keycodes
         header = "KEY_"
         key = key_name[len(header):]
         if state == KEY_RELEASED:
-            # We don't do anything on "key released" for now
+            if key in ["LEFTSHIFT", "RIGHTSHIFT"]:
+                print("shift unset")
+                self.shifted = False
+            if key in ["LEFTALT", "RIGHTALT"]:
+                print("alt unset")
+                self.alted = False
+            # We don't do anything on other "key released" events for now
             return
         elif state == KEY_HELD:
             # "Key held" behaviour: pick a character out of the mapping and advancing input
             # That is, if the character is in the mapping at all, action keys are still
             # processed by this loop (for whatever reason, I thought I split them out?)
-            if self.pending_character and key in self.mapping:
+            if key == "BACKSPACE":
+                self.backspace()
+            elif self.pending_character and key in self.mapping:
                 self.pending_character = None
                 self.pending_counter = self.pending_counter_start
                 # Picking a "suitable" character
@@ -175,6 +186,12 @@ class NumpadCharInput(BaseUIElement):
                 self.position += 1
                 self.refresh()
             return
+        elif key in ["LEFTSHIFT", "RIGHTSHIFT"] and state == KEY_PRESSED:
+            print("shift set")
+            self.shifted = True
+        elif key in ["LEFTALT", "RIGHTALT"] and state == KEY_PRESSED:
+            print("alt set")
+            self.alted = True
         if state not in (None, KEY_PRESSED):
             logger.error("Unknown key state: {}! Can't process".format(key))
             return
@@ -188,6 +205,10 @@ class NumpadCharInput(BaseUIElement):
                 #Starting with first letter in the mapping for current key
                 self.current_letter_num = 0
                 letter = self.mapping[key][0]
+                if self.shifted:
+                    letter = self.shift_letter(letter)
+                if self.alted:
+                    letter = self.alt_letter(letter)
                 self.insert_letter_in_value(letter)
                 if len(self.mapping[key]) == 1:
                     #No other characters that could be entered by using "pending character" function
@@ -207,6 +228,10 @@ class NumpadCharInput(BaseUIElement):
                 #Starting with first letter in the mapping for current key
                 self.current_letter_num = 0
                 letter = self.mapping[key][0]
+                if self.shifted:
+                    letter = self.shift_letter(letter)
+                if self.alted:
+                    letter = self.alt_letter(letter)
                 self.insert_letter_in_value(letter)
                 if len(self.mapping[key]) == 1:
                     #No other characters that could be entered
@@ -229,6 +254,10 @@ class NumpadCharInput(BaseUIElement):
                     self.current_letter_num = 0
                 letter = self.mapping[key][self.current_letter_num]
                 #Replacing the current character
+                if self.shifted:
+                    letter = self.shift_letter(letter)
+                if self.alted:
+                    letter = self.alt_letter(letter)
                 self.update_letter_in_value(letter)
                 #For fast typists, not resetting the counter could be an option in the future
                 #That'd mean there'd be only 1 second in total to choose from all letters, so it needs to be tested
@@ -236,7 +265,19 @@ class NumpadCharInput(BaseUIElement):
             #Finally, output all changes to display
             self.refresh()
 
-    def backspace(self):
+    def shift_letter(self, letter):
+        try:
+            return letter.upper()
+        except:
+            return letter
+
+    def alt_letter(self, letter):
+        return letter
+
+    @cb_needs_key_state # backspace can be held :pleading:
+    def backspace(self, state):
+        if state not in (None, KEY_PRESSED, KEY_HELD):
+            return # do not react on RELEASE
         self.remove_letter_in_value()
         self.refresh()
 
@@ -244,6 +285,7 @@ class NumpadCharInput(BaseUIElement):
 
     @check_position_overflow(">")
     def insert_letter_in_value(self, letter):
+        #print("inserting letter", letter)
         if self.position in range(len(self.value)):
             #Inserting character in the middle of the string
             value_before_letter = self.value[:self.position]
@@ -434,6 +476,7 @@ class NumpadKeyboardInput(NumpadCharInput):
 
     default_mapping = {}
     keys = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+    shiftable_letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".lower()
 
     action_keys = {
        "KEY_ENTER":"accept_value",
@@ -446,6 +489,69 @@ class NumpadKeyboardInput(NumpadCharInput):
 
     for c in keys:
         default_mapping[c] = c.lower()
-        default_mapping[c] += c
+    #    default_mapping[c] += c
 
     default_mapping["SPACE"] = " "
+    # mapping keys to characters: starting off with Beepy mapping
+    # first row
+    default_mapping["HASH"] = "#"
+    default_mapping["LEFTPAREN"] = "("
+    default_mapping["RIGHTPAREN"] = ")"
+    default_mapping["UNDERSCORE"] = "_"
+    default_mapping["MINUS"] = "-"
+    default_mapping["PLUS"] = "+"
+    default_mapping["AT"] = "@"
+    # second row
+    default_mapping["ASTERISK"] = "*"
+    default_mapping["SLASH"] = "/"
+    default_mapping["COLON"] = ":"
+    default_mapping["SEMICOLON"] = ";"
+    default_mapping["QUOTE"] = "'"
+    default_mapping["DOUBLEQUOTE"] = '"'
+    # second row
+    default_mapping["QUESTION"] = "?"
+    default_mapping["EXCLAMATION"] = "!"
+    default_mapping["COMMA"] = ","
+    default_mapping["DOT"] = "."
+    default_mapping["DOLLAR"] = "$"
+    # other, misc
+    default_mapping["LEFTBRACE"] = "["
+    default_mapping["RIGHTBRACE"] = "]"
+
+    def shift_letter(self, letter):
+        # there is a shift keymap! aayyy lmao
+        # that's my own keymap basically
+        if letter in self.shiftable_letters:
+            return letter.upper()
+        if letter == "'":
+            return "`"
+        if letter == "/":
+            return "\\"
+        if letter in [":", "["]:
+            return "{"
+        if letter in [";", "]"]:
+            return "}"
+        if letter == "(":
+            return "["
+        if letter == ")":
+            return "]"
+        if letter == "_":
+            return "<"
+        if letter == "-":
+            return ">"
+        if letter == "*":
+            return "^"
+        if letter == "#":
+            return "%"
+        if letter == "?":
+            return "$"
+        if letter == "!":
+            return "|"
+        if letter == "+":
+            return "="
+        return letter
+
+    def alt_letter(self, letter):
+        # hmmm todo
+        # beepy layer would be useful
+        return letter
