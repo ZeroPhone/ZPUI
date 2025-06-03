@@ -79,7 +79,7 @@ def draw_pinout(c, o, t, ph=10, pw=30, lo=3, to=None, tto=0, reversed=False):
     lx = lo + pw
     if reversed:
         c.rectangle((str(-lo), to, str(-(lo+pw*cols)), to+ph*rows))
-        c.rectangle((str(-lo-1), to, str(-lo+1), to+ph), fill="white")
+        c.rectangle((str(-lo-1), to, str(-lo+1), to+ph), fill=c.default_color)
         c.line((str(-lx), to, str(-lx), to+ph*rows))
         for x in range(rows-1):
             c.line((str(-lo), to+ph*x+ph, str(-(lo+pw*cols)), to+ph*x+ph))
@@ -89,7 +89,7 @@ def draw_pinout(c, o, t, ph=10, pw=30, lo=3, to=None, tto=0, reversed=False):
             c.text(t[x][0], (str(-lo-pw+5), to+ph*x+tto))
     else:
         c.rectangle((lo, to, lo+pw*cols, to+ph*rows))
-        c.rectangle((lo+1, to, lo-1, to+ph), fill="white")
+        c.rectangle((lo+1, to, lo-1, to+ph), fill=c.default_color)
         c.line((lx, to, lx, to+ph*rows))
         for x in range(rows-1):
             c.line((lo, to+ph*x+ph, lo+pw*cols, to+ph*x+ph))
@@ -102,11 +102,11 @@ def draw_pinout(c, o, t, ph=10, pw=30, lo=3, to=None, tto=0, reversed=False):
 def make_image_from_status(o, status, success_message=None):
     c = Canvas(o)
     if status[0] == "Success":
-        c.bitmap((44, 3), get_yes_icon(), fill=c.default_color)
+        c.bitmap((44, 3), get_yes_icon(o=o), fill=c.default_color)
         if success_message:
             status.append(success_message)
     else:
-        c.bitmap((44, 3), get_no_icon(), fill=c.default_color)
+        c.bitmap((44, 3), get_no_icon(o=o), fill=c.default_color)
     top_start = 45
     top_increment = 10
     for i, s in enumerate(status[1:]):
@@ -114,20 +114,20 @@ def make_image_from_status(o, status, success_message=None):
         c.text(s, (ctb.left, top_start+top_increment*i))
     return c.get_image()
 
-def get_no_icon(width=40, height=40):
-    o = MockOutput(width, height)
+def get_no_icon(width=40, height=40, o=None):
+    o = MockOutput(width, height, o=o)
     c = Canvas(o)
     cx, cy = c.get_center()
-    c.circle((cx, cy, min(width/2, height/2)-1), fill="white")
-    c.line((cx-10, cy-10, cx+10, cy+10), fill="black", width=5)
-    c.line((cx+10, cy-10, cx-10, cy+10), fill="black", width=5)
+    c.circle((cx, cy, min(width/2, height/2)-1), fill=c.default_color)
+    c.line((cx-10, cy-10, cx+10, cy+10), fill=c.background_color, width=5)
+    c.line((cx+10, cy-10, cx-10, cy+10), fill=c.background_color, width=5)
     return c.get_image()
 
-def get_yes_icon(width=40, height=40):
-    o = MockOutput(width, height)
+def get_yes_icon(width=40, height=40, o=None):
+    o = MockOutput(width, height, o=o)
     c = Canvas(o)
     cx, cy = c.get_center()
-    c.circle((cx, cy, min(width/2, height/2)-1), fill="white")
-    c.line((cx-15, cy, cx, cy+15), fill="black", width=5)
-    c.line((cx-1, cy+15, cx+10, cy-12), fill="black", width=4)
+    c.circle((cx, cy, min(width/2, height/2)-1), fill=c.default_color)
+    c.line((cx-15, cy, cx, cy+15), fill=c.background_color, width=5)
+    c.line((cx-1, cy+15, cx+10, cy-12), fill=c.background_color, width=4)
     return c.get_image()
