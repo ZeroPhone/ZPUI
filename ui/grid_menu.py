@@ -108,7 +108,7 @@ class GridView(SixteenPtView):
         step_height = c.height // self.el.rows
 
         # Create a special canvas for drawing text - making sure it's cropped
-        text_c = Canvas(MockOutput(step_width, step_height))
+        text_c = Canvas(MockOutput(step_width, step_height, o=self.o))
 
         # Calculate grid index
         item_x = (pointer-self.first_displayed_entry)%self.el.cols
@@ -197,7 +197,7 @@ class BebbleGridView(GridView):
                     entry.icon = fit_image_to_dims(entry.icon, self.dim, self.dim, resampling=Image.BOX)
 
         # Create a special canvas for drawing icons
-        c = Canvas(MockOutput(self.entry_width, self.entry_width))
+        c = Canvas(MockOutput(height=self.entry_width, width=self.entry_width, o=self.o))
 
         # pre-rendering icons
         for entry in contents:
