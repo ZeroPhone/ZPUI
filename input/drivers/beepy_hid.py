@@ -10,6 +10,45 @@ class InputDevice(HIDDevice):
     """ A driver for Beepy HID. Supports the keyboard and the touchpad in arrow key mode."""
 
     default_name_mapping = {"KEY_KPENTER":"KEY_ENTER", "KEY_PAGEUP":"KEY_F3", "KEY_PAGEDOWN":"KEY_F4", "KEY_ESC":"KEY_LEFT", "KEY_LEFTCTRL":"KEY_PROG2"}
+
+    beepy_mapping = {
+        # numpad
+        "KEY_FIND":"KEY_1",
+        "KEY_CUT":"KEY_2",
+        "KEY_HELP":"KEY_3",
+        "KEY_WWW":"KEY_4",
+        "KEY_MSDOS":"KEY_5",
+        "KEY_COFFEE+KEY_SCREENLOCK":"KEY_6",
+        "KEY_NEXTSONG":"KEY_7",
+        "KEY_PLAYPAUSE":"KEY_8",
+        "KEY_PREVIOUSSONG":"KEY_9",
+        "KEY_PROPS":"KEY_0",
+        # first row (except numpad)
+        "KEY_PASTE":"KEY_HASH", # one left of numpad
+        "KEY_MENU":"KEY_LEFTPAREN",
+        "KEY_CALC":"KEY_RIGHTPAREN",
+        "KEY_SETUP":"KEY_UNDERSCORE",
+        "KEY_SLEEP":"KEY_MINUS",
+        "KEY_WAKEUP":"KEY_PLUS",
+        "KEY_FILE":"KEY_AT",
+        # second row (except numpad)
+        "KEY_PROG2":"KEY_ASTERISK", # one key left of numpad
+        "KEY_DIRECTION+KEY_ROTATE_DISPLAY":"KEY_SLASH",
+        "KEY_CYCLEWINDOWS":"KEY_COLON",
+        "KEY_MAIL":"KEY_SEMICOLON",
+        "KEY_BOOKMARKS":"KEY_QUOTE",
+        "KEY_COMPUTER":"KEY_DOUBLEQUOTE",
+        "KEY_COPY":"KEY_BACKSPACE", # mapping backspace even when alt-modified
+        "KEY_XFER":"KEY_ENTER", # mapping enter even when alt-modified
+        # third row (except numpad)
+        "KEY_STOPCD":"KEY_QUESTION",
+        "KEY_RECORD":"KEY_EXCLAMATION",
+        "KEY_REWIND":"KEY_COMMA",
+        "KEY_PHONE":"KEY_DOT",
+        "KEY_REPLY":"KEY_UNMUTE",
+        "KEY_0":"KEY_MUTE",
+        "KEY_MIN_INTERESTING+KEY_MUTE":"KEY_DOLLAR",
+    }
     touchpad_keys = ["KEY_UP", "KEY_DOWN", "KEY_LEFT", "KEY_RIGHT"]
 
     tt_path = "/sys/module/beepy_kbd/parameters/touch_threshold"
@@ -20,14 +59,15 @@ class InputDevice(HIDDevice):
 
         Kwargs:
 
-            * ``path``: path to the input device. If not specified, you need to specify ``name``.
-            * ``name``: input device name
+            * ``name``: beepy input device name to expect
+            * ``tt``: touch threshold that the driver will set. the driver will revert to the previous touch threshold when ZPUI exits.
 
         """
         self.name = name
         self.tt = tt
         HIDDevice.__init__(self, name=self.name, **kwargs)
         self.store_and_replace_tt()
+        self.filter_held_keys = False
 
     def store_and_replace_tt(self):
         """Stores and replaces beepy kbd driver touch threshold"""
@@ -56,8 +96,12 @@ class InputDevice(HIDDevice):
                     #if key in self.touchpad_keys:
                     #    pass # funni algorithm goes here
                     #else: # keyboard key?
-                    key = self.name_mapping.get(key, key)
-                    self.map_and_send_key(key, state = value)
+                    if isinstance(key, list):
+                        key = "+".join(key)
+                    beepy_key = self.beepy_mapping.get(key, key)
+                    mapped_key = self.name_mapping.get(beepy_key, beepy_key)
+                    print(key, beepy_key, mapped_key)
+                    self.map_and_send_key(mapped_key, state = value)
                 except:
                     logger.exception("{}: failed to map and send a key {}".format(self.name, key))
 
