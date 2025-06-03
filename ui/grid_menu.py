@@ -179,6 +179,7 @@ class BebbleGridView(GridView):
     MuktaRegular = "Mukta-Regular.ttf"
     font_size = 12
     entry_width = 100
+    dim = 50
     shows_label = True # helps apply the label mixin dynamically
 
     def calculate_params(self):
@@ -188,6 +189,13 @@ class BebbleGridView(GridView):
         self.cols = self.o.width // self.entry_width
         #print("cols", self.cols)
         self.sidebar_fits = False
+
+    def process_contents(self, contents):
+        for entry in contents:
+            if getattr(entry, "icon", None):
+                if entry.icon.size[0] < self.dim or entry.icon.size[1] < self.dim:
+                    entry.icon = fit_image_to_dims(entry.icon, self.dim, self.dim, resampling=Image.BOX)
+        return contents
 
     def draw_grid(self):
         contents = self.el.get_displayed_contents()
@@ -238,8 +246,8 @@ class BebbleGridView(GridView):
             if icon and inverted_icon:
                 # both inverted and non-inverted icons are present
                 icon = inverted_icon if selected else icon
-            # funni hack
             """
+            # funni hack
             if text == "Beeper":
                 if icon:
                     if selected:
@@ -268,8 +276,6 @@ class BebbleGridView(GridView):
 
             # draw icon
             if icon:
-                dim = 50
-                icon = fit_image_to_dims(icon, dim, dim, resampling=Image.BOX)
                 if inverted_icon: # inverted icon present
                     c.paste(icon, (app_x + 25, app_y + 15)) # means the icon's already how we want it
                 else:
