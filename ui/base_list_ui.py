@@ -358,6 +358,8 @@ class BaseListUIElement(BaseUIElement):
                     if len(entry) > 1 and entry[1] == 'exit':
                         self.contents.remove(entry)
             self.contents.append(self.exit_entry)
+        if hasattr(self.view, "process_contents"):
+            self.contents = self.view.process_contents(self.contents)
         logger.debug("{}: contents processed".format(self.name))
 
     def get_displayed_contents(self):
