@@ -38,7 +38,10 @@ def execute_key_sequence(ni, key_sequence):
     for key in key_sequence:
         key = "KEY_{}".format(key)
         if key in ni.action_keys:
-            ni.keymap[key]()
+            if key == "KEY_F2": # backspace
+                ni.keymap[key](state=None) # passing state
+            else:
+                ni.keymap[key]()
         else:
             ni.process_streaming_keycode(key)
 

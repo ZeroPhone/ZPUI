@@ -388,7 +388,7 @@ class NumpadCharInput(BaseUIElement):
     @to_be_foreground
     def refresh(self):
         """Function that is called each time data has to be output on display"""
-        if self.o.width < 240 or self.o.height < 240: # small displays get the text output
+        if "b&w" not in self.o.type or self.o.width < 240 or self.o.height < 240: # small displays get the text output
             cursor_y, cursor_x = divmod(self.position, self.o.cols)
             cursor_y += 1
             self.o.setCursor(cursor_y, cursor_x)
