@@ -150,16 +150,16 @@ class NumpadCharInput(BaseUIElement):
     @check_value_lock
     @cb_needs_key_state
     def process_streaming_keycode(self, key_name, state=None, *args):
-        print(key_name, state)
+        #print(key_name, state)
         # This function processes all keycodes - both number keycodes and action keycodes
         header = "KEY_"
         key = key_name[len(header):]
         if state == KEY_RELEASED:
             if key in ["LEFTSHIFT", "RIGHTSHIFT"]:
-                print("shift unset")
+                #print("shift unset")
                 self.shifted = False
             if key in ["LEFTALT", "RIGHTALT"]:
-                print("alt unset")
+                #print("alt unset")
                 self.alted = False
             # We don't do anything on other "key released" events for now
             return
@@ -189,10 +189,10 @@ class NumpadCharInput(BaseUIElement):
                 self.refresh()
             return
         elif key in ["LEFTSHIFT", "RIGHTSHIFT"] and state == KEY_PRESSED:
-            print("shift set")
+            #print("shift set")
             self.shifted = True
         elif key in ["LEFTALT", "RIGHTALT"] and state == KEY_PRESSED:
-            print("alt set")
+            #print("alt set")
             self.alted = True
         if state not in (None, KEY_PRESSED):
             logger.error("Unknown key state: {}! Can't process".format(key))
