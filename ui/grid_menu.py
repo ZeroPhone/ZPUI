@@ -8,7 +8,8 @@ from ui.entry import Entry
 from ui.canvas import Canvas, MockOutput
 from ui.utils import fit_image_to_dims
 
-from PIL import Image
+from PIL import Image, ImageColor
+import numpy as np
 
 class GridMenu(Menu):
 
@@ -173,6 +174,38 @@ class GridView(SixteenPtView):
             image = wrapper(image)
         self.o.display_image(image)
 
+def replace_color(icon, fromc, toc):
+    icon = icon.convert("RGBA")
+    # from https://stackoverflow.com/questions/3752476/python-pil-replace-a-single-rgba-color
+    if isinstance(fromc, str):
+        fromc = ImageColor.getrgb(fromc)
+    data = np.array(icon)
+    r, g, b, a = data.T
+    areas = (r == fromc[0]) & (g == fromc[1]) & (b == fromc[2])
+    if isinstance(toc, str):
+        toc = ImageColor.getrgb(toc)
+    data[..., :-1][areas.T] = toc
+    return Image.fromarray(data)
+
+def swap_colors(icon, fromc1, toc1, fromc2, toc2):
+    icon = icon.convert("RGBA")
+    # from https://stackoverflow.com/questions/3752476/python-pil-replace-a-single-rgba-color
+    if isinstance(fromc1, str):
+        fromc1 = ImageColor.getrgb(fromc1)
+    if isinstance(fromc2, str):
+        fromc2 = ImageColor.getrgb(fromc2)
+    data = np.array(icon)
+    r, g, b, a = data.T
+    areas1 = (r == fromc1[0]) & (g == fromc1[1]) & (b == fromc1[2])
+    areas2 = (r == fromc2[0]) & (g == fromc2[2]) & (b == fromc2[2])
+    if isinstance(toc1, str):
+        toc1 = ImageColor.getrgb(toc1)
+    if isinstance(toc2, str):
+        toc2 = ImageColor.getrgb(toc2)
+    data[..., :-1][areas1.T] = toc1
+    data[..., :-1][areas2.T] = toc2
+    return Image.fromarray(data)
+
 class BebbleGridView(GridView):
     MuktaBold = "Mukta-Bold.ttf"
     MuktaSemiBold = "Mukta-SemiBold.ttf"
@@ -190,14 +223,19 @@ class BebbleGridView(GridView):
         self.sidebar_fits = False
 
     def process_contents(self, contents):
+        # Create a special canvas for drawing icons
+        c = Canvas(MockOutput(height=self.entry_width, width=self.entry_width, o=self.o))
+
         self.rendered_entries = [[], []]
         for entry in contents:
             if getattr(entry, "icon", None):
                 if entry.icon.size[0] < self.dim or entry.icon.size[1] < self.dim:
-                    entry.icon = fit_image_to_dims(entry.icon, self.dim, self.dim, resampling=Image.BOX)
-
-        # Create a special canvas for drawing icons
-        c = Canvas(MockOutput(height=self.entry_width, width=self.entry_width, o=self.o))
+                    icon = fit_image_to_dims(entry.icon, self.dim, self.dim, resampling=Image.BOX, fill_color=c.background_color)
+                    if c.default_color != "white": # default color has been changed
+                        color = c.default_color
+                        icon = replace_color(icon, "white", color).convert(self.o.device_mode)
+                    # probably assign icons to an internal list instead?
+                    entry.icon = icon
 
         # pre-rendering icons
         for entry in contents:
@@ -249,12 +287,16 @@ class BebbleGridView(GridView):
                     if inverted_icon: # inverted icon present
                         c.paste(icon, (app_x + 25, app_y + 15)) # means the icon's already how we want it
                     else:
-                        c.paste(icon, (app_x + 25, app_y + 15), invert=not selected) # need to tell to invert it
+                        do_invert = not selected
+                        used_icon = icon
+                        if do_invert:
+                            used_icon = swap_colors(icon, c.default_color, c.background_color, c.background_color, c.default_color).convert(self.o.device_mode)
+                        c.paste(used_icon, (app_x + 25, app_y + 15)) # need to tell to invert it
                         #c.paste(icon, (app_x + 25, app_y + 15)) # need to tell to invert it
 
                 # icon rendered: storing it
                 from copy import copy
-                self.rendered_entries[i].append(copy(c.get_image()))
+                self.rendered_entries[i].append(copy(c.get_image().convert(self.o.device_mode)))
                 c.clear()
 
         return contents
