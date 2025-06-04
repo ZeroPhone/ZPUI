@@ -1,3 +1,4 @@
+import math
 from copy import copy
 from time import sleep
 from threading import Lock, Event
@@ -5,6 +6,7 @@ from functools import wraps
 
 from ui.base_ui import BaseUIElement
 from ui.utils import to_be_foreground, check_value_lock
+from ui.canvas import Canvas
 from zpui_lib.helpers import setup_logger, remove_left_failsafe, cb_needs_key_state, \
                     KEY_PRESSED, KEY_RELEASED, KEY_HELD
 
@@ -386,11 +388,31 @@ class NumpadCharInput(BaseUIElement):
     @to_be_foreground
     def refresh(self):
         """Function that is called each time data has to be output on display"""
-        cursor_y, cursor_x = divmod(self.position, self.o.cols)
-        cursor_y += 1
-        self.o.setCursor(cursor_y, cursor_x)
-        self.o.display_data(*self.get_displayed_data())
+        if self.o.width < 240 or self.o.height < 240: # small displays get the text output
+            cursor_y, cursor_x = divmod(self.position, self.o.cols)
+            cursor_y += 1
+            self.o.setCursor(cursor_y, cursor_x)
+            self.o.display_data(*self.get_displayed_data())
+        else:
+            image = self.get_graphic()
+            self.o.display_image(image)
         logger.debug("{}: refreshed data on display".format(self.name))
+
+    def get_graphic(self):
+        charwidth = 8
+        charheight = 16
+        font = ("Fixedsys62.ttf", charheight)
+        c = Canvas(self.o)
+        x_offset = 5
+        y_offset = 5
+        c.text(self.message, (x_offset, y_offset), font=font)
+        cols = (self.o.width - x_offset) // charwidth
+        value = self.get_displayed_value()
+        screenfuls = int(math.ceil( len(value)/cols ))
+        for i in range(screenfuls):
+            line = value[i*cols:][:cols]
+            c.text(line, (x_offset, y_offset+(i+1)*charheight), font=font)
+        return c.get_image()
 
     #Debug-related functions.
 
