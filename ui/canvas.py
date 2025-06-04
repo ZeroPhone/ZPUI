@@ -45,6 +45,8 @@ class Canvas(object):
         self.o = o
         if "b&w" not in o.type:
             raise ValueError("The output device supplied doesn't support pixel graphics!")
+        if "color" in o.type:
+            self.default_color = "lightseagreen"
         self.width = o.width
         self.height = o.height
         self.name = name
