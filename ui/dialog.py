@@ -58,7 +58,10 @@ class DialogBox(BaseUIElement):
 
     def set_view(self):
         if "b&w" in self.o.type:
-            view_class = GraphicalView
+            if self.o.width < 240 or self.o.height < 240:
+                view_class = GraphicalView
+            else: # screen large enough!
+                view_class = pt16GraphicalView
         elif "char" in self.o.type:
             view_class = TextView
         else:
@@ -159,11 +162,15 @@ class GraphicalView(TextView):
 
     scroll_is_vertical = True
 
+    char_height = 8
+    char_width = 6
+    font=None
+
     def process_values(self):
         self.positions = []
         labels = [label for label, value in self.el.values]
         for label in labels:
-            label_width = len(label)*self.o.char_width
+            label_width = len(label)*self.char_width
             label_start = (self.o.width - label_width)//2
             if label_start < 0: label_start = 0
             self.positions.append(label_start)
@@ -172,26 +179,27 @@ class GraphicalView(TextView):
         c = Canvas(self.o)
         #Drawing text
         chunk_y = 0
+        cols = self.o.cols
         formatted_message = ffs(self.el.message, self.o.cols)
-        if len(formatted_message)*(self.o.char_height+2) > self.o.height - self.o.char_height - 2:
+        if len(formatted_message)*(self.char_height+2) > self.o.height - self.char_height - 2:
             raise ValueError("DialogBox {}: message is too long to fit on the screen: {}".format(self.el.name, formatted_message))
         for line in formatted_message:
-            c.text(line, (0, chunk_y))
-            chunk_y += self.o.char_height + 2
+            c.text(line, (0, chunk_y), font=self.font)
+            chunk_y += self.char_height + 2
         first_label_y = chunk_y
         for i, value in enumerate(self.el.values):
             label = value[0]
             label_start = self.positions[i]
-            c.text(label, (label_start, chunk_y))
-            chunk_y += self.o.char_height + 2
+            c.text(label, (label_start, chunk_y), font=self.font)
+            chunk_y += self.char_height + 2
 
         #Calculating the cursor dimensions
         first_char_x = self.positions[self.el.selected_option]
-        option_length = len( self.el.values[self.el.selected_option][0] ) * self.o.char_width
+        option_length = len( self.el.values[self.el.selected_option][0] ) * self.char_width
         c_x1 = first_char_x - 2
         c_x2 = c_x1 + option_length + 2
-        c_y1 = first_label_y + self.el.selected_option*(2 + self.o.char_height)
-        c_y2 = c_y1 + self.o.char_height
+        c_y1 = first_label_y + self.el.selected_option*(2 + self.char_height)
+        c_y2 = c_y1 + self.char_height
         #Some readability adjustments
         cursor_dims = ( c_x1, c_y1, c_x2 + 2, c_y2 + 2 )
 
@@ -201,3 +209,12 @@ class GraphicalView(TextView):
 
     def refresh(self):
         self.o.display_image(self.get_image())
+
+class pt16GraphicalView(GraphicalView):
+
+    scroll_is_vertical = True
+
+    char_height = 16
+    char_width = 8
+    font = ("Fixedsys62.ttf", char_height)
+
