@@ -5,11 +5,10 @@ from copy import copy
 from ui.base_list_ui import SixteenPtView
 from ui.menu import Menu
 from ui.entry import Entry
-from ui.canvas import Canvas, MockOutput
+from ui.canvas import Canvas, MockOutput, replace_color, swap_colors
 from ui.utils import fit_image_to_dims
 
-from PIL import Image, ImageColor
-import numpy as np
+from PIL import Image
 
 class GridMenu(Menu):
 
@@ -174,37 +173,6 @@ class GridView(SixteenPtView):
             image = wrapper(image)
         self.o.display_image(image)
 
-def replace_color(icon, fromc, toc):
-    icon = icon.convert("RGBA")
-    # from https://stackoverflow.com/questions/3752476/python-pil-replace-a-single-rgba-color
-    if isinstance(fromc, str):
-        fromc = ImageColor.getrgb(fromc)
-    data = np.array(icon)
-    r, g, b, a = data.T
-    areas = (r == fromc[0]) & (g == fromc[1]) & (b == fromc[2])
-    if isinstance(toc, str):
-        toc = ImageColor.getrgb(toc)
-    data[..., :-1][areas.T] = toc
-    return Image.fromarray(data)
-
-def swap_colors(icon, fromc1, toc1, fromc2, toc2):
-    icon = icon.convert("RGBA")
-    # from https://stackoverflow.com/questions/3752476/python-pil-replace-a-single-rgba-color
-    if isinstance(fromc1, str):
-        fromc1 = ImageColor.getrgb(fromc1)
-    if isinstance(fromc2, str):
-        fromc2 = ImageColor.getrgb(fromc2)
-    data = np.array(icon)
-    r, g, b, a = data.T
-    areas1 = (r == fromc1[0]) & (g == fromc1[1]) & (b == fromc1[2])
-    areas2 = (r == fromc2[0]) & (g == fromc2[2]) & (b == fromc2[2])
-    if isinstance(toc1, str):
-        toc1 = ImageColor.getrgb(toc1)
-    if isinstance(toc2, str):
-        toc2 = ImageColor.getrgb(toc2)
-    data[..., :-1][areas1.T] = toc1
-    data[..., :-1][areas2.T] = toc2
-    return Image.fromarray(data)
 
 class BebbleGridView(GridView):
     MuktaBold = "Mukta-Bold.ttf"
@@ -219,6 +187,10 @@ class BebbleGridView(GridView):
     #font_size = 27
     #entry_width = 220
     #dim = 110
+    # 480x320 test
+    #font_size = 16
+    #entry_width = 140
+    #dim = 70
     shows_label = True # helps apply the label mixin dynamically
 
     def calculate_params(self):

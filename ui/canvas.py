@@ -1,6 +1,7 @@
 import os
 
-from PIL import Image, ImageDraw, ImageOps, ImageFont
+from PIL import Image, ImageDraw, ImageOps, ImageFont, ImageColor
+import numpy as np
 
 from ui.utils import is_sequence_not_string as issequence, Rect
 
@@ -654,3 +655,35 @@ def convert_flat_list_into_pairs(l):
     for i in range(len(l)//2):
         pl.append((l[i*2], l[i*2+1]))
     return pl
+
+def replace_color(icon, fromc, toc):
+    icon = icon.convert("RGBA")
+    # from https://stackoverflow.com/questions/3752476/python-pil-replace-a-single-rgba-color
+    if isinstance(fromc, str):
+        fromc = ImageColor.getrgb(fromc)
+    data = np.array(icon)
+    r, g, b, a = data.T
+    areas = (r == fromc[0]) & (g == fromc[1]) & (b == fromc[2])
+    if isinstance(toc, str):
+        toc = ImageColor.getrgb(toc)
+    data[..., :-1][areas.T] = toc
+    return Image.fromarray(data)
+
+def swap_colors(icon, fromc1, toc1, fromc2, toc2):
+    icon = icon.convert("RGBA")
+    # from https://stackoverflow.com/questions/3752476/python-pil-replace-a-single-rgba-color
+    if isinstance(fromc1, str):
+        fromc1 = ImageColor.getrgb(fromc1)
+    if isinstance(fromc2, str):
+        fromc2 = ImageColor.getrgb(fromc2)
+    data = np.array(icon)
+    r, g, b, a = data.T
+    areas1 = (r == fromc1[0]) & (g == fromc1[1]) & (b == fromc1[2])
+    areas2 = (r == fromc2[0]) & (g == fromc2[2]) & (b == fromc2[2])
+    if isinstance(toc1, str):
+        toc1 = ImageColor.getrgb(toc1)
+    if isinstance(toc2, str):
+        toc2 = ImageColor.getrgb(toc2)
+    data[..., :-1][areas1.T] = toc1
+    data[..., :-1][areas2.T] = toc2
+    return Image.fromarray(data)
