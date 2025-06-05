@@ -302,7 +302,13 @@ if __name__ == '__main__':
         else:
             is_interactive = not zpui_running_as_service()
             do_kill = zpui_running_as_service()
-            pidcheck.check_and_create_pid(pid_path, interactive=is_interactive, kill_not_stop=do_kill)
+            try:
+                pidcheck.check_and_create_pid(pid_path, interactive=is_interactive, kill_not_stop=do_kill)
+            except:
+                logger.error("PID check failed! Proceeding to launch nevertheless")
+                logger.debug(traceback.format_exc())
+                # one reason this happens is that pid_path is not available on i.e. Armbian, when running as non-root user
+                # will have to maybe iterate through paths in the future? that does need the systemctl file to be modified, sadly
 
     # Launch ZPUI
     launch(**vars(args))
