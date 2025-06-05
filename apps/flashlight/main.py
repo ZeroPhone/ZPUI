@@ -1,5 +1,6 @@
 menu_name = "Flashlight"
 
+import os
 from time import sleep
 
 from ui import Canvas
@@ -68,7 +69,7 @@ def set_led(new_state):
     """
     # do we have the Beepy LED available?
     if "beepy" in get_platform():
-        if state: # LED on
+        if new_state: # LED on
             write_beepy_led("led_red", 100)
             write_beepy_led("led_green", 100)
             write_beepy_led("led_blue", 100)
@@ -80,8 +81,8 @@ def callback():
     global state
     # do we have a color screen? if so, block
     # first thing to do: toggle the LED
-    set_led(not state)
     state = not state
+    set_led(state)
     # now, fill the canvas with white
     # damn, wish I could filter this out on the Memory LCD
     # if this can be filtered out, this would be the spot that callback() would stop executing in
@@ -95,6 +96,7 @@ def callback():
         sleep(0.1)
     last_key = eh.last_key
     if last_key == "KEY_ENTER":
+        # flip the LED before exiting
         set_led(not state)
         state = not state
         c.clear(fill="white" if state else "black")
