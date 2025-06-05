@@ -20,7 +20,7 @@ from context_manager import ContextManager
 from input import input
 from output import output
 from actions import ContextSwitchAction
-from ui import Printer
+from ui import Printer, canvas
 import hw_combos
 
 rconsole_port = 9377
@@ -102,8 +102,17 @@ def init():
     # Initialize output
     try:
         screen = output.init(output_config)
-        from ui import canvas
         screen.default_font = canvas.get_default_font()
+        if "color" in screen.type: # screen can do color output - let's see if there's a color in config
+            color = config.get("ui_color", "")
+            print("color", color)
+            if color:
+                canvas.default_color = color
+                # also passing color to the screen object (used for char output)
+                if hasattr(screen, "set_color"):
+                    screen.set_color(color)
+                screen.default_color = color
+
     except:
         logging.exception('Failed to initialize the output object')
         logging.exception(traceback.format_exc())
@@ -151,18 +160,10 @@ def launch(name=None, **kwargs):
     appman_config = config.get("app_manager", {})
     app_man = AppManager('apps', cm, config=appman_config)
 
-    if "color" in o.type: # screen can do more than char output
-        # getting colors from initializing a canvas
-        from ui import Canvas
-        c = Canvas(screen) # color init would happen here
-        if hasattr(screen, "set_color"):
-            screen.set_color(c.default_color)
-        screen.default_color = c.default_color
-
     if name is None:
         try:
             from splash import splash
-            splash(i, o, color=c.default_color)
+            splash(i, o, color=canvas.default_color)
         except:
             logging.exception('Failed to load the splash screen')
 
