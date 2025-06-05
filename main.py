@@ -151,10 +151,18 @@ def launch(name=None, **kwargs):
     appman_config = config.get("app_manager", {})
     app_man = AppManager('apps', cm, config=appman_config)
 
+    if "color" in o.type: # screen can do more than char output
+        # getting colors from initializing a canvas
+        from ui import Canvas
+        c = Canvas(screen) # color init would happen here
+        if hasattr(screen, "set_color"):
+            screen.set_color(c.default_color)
+        screen.default_color = c.default_color
+
     if name is None:
         try:
             from splash import splash
-            splash(i, o)
+            splash(i, o, color=c.default_color)
         except:
             logging.exception('Failed to load the splash screen')
 
