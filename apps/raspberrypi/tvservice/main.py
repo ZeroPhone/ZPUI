@@ -14,6 +14,18 @@ from subprocess import check_output, CalledProcessError
 
 import tvservice
 
+def can_load():
+    try:
+        status = tvservice.status()
+    except OSError as e:
+        if e.errno == 2:
+            return False, "tvservice not found!"
+        return False, "unknown error: ".format(traceback.format_exc())
+    except:
+        return False, "unknown error: ".format(traceback.format_exc())
+    else:
+        return True # tvservice appears to be present
+
 def show_status():
     try:
         status = tvservice.status()
