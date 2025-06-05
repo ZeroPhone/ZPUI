@@ -20,7 +20,7 @@ from ui.refresher import Refresher, RefresherExitException, RefresherView
 from ui.scrollable_element import TextReader
 from ui.loading_indicators import ProgressBar, LoadingBar, TextProgressBar, GraphicalProgressBar, CircularProgressBar, IdleDottedMessage, Throbber
 from ui.numbered_menu import NumberedMenu
-from ui.canvas import Canvas, MockOutput, crop, expand_coords
+from ui.canvas import Canvas, MockOutput, crop, expand_coords, replace_color, swap_colors
 from ui.date_picker import DatePicker
 from ui.time_picker import TimePicker
 from ui.grid_menu import GridMenu
