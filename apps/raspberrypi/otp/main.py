@@ -1,4 +1,4 @@
-menu_name = "Pi OTP dump"
+menu_name = "Pi board info"
 i = None
 o = None
 
@@ -45,6 +45,8 @@ def callback():
             logger.exception("Exception when test running vcgencmd otp_dump!")
             Printer("vcgencmd failed to run", i, o, 2)
             return
+        else:
+            output = output.decode("ascii")
     else:
         # loading test data
         Printer("vcgencmd not found; loading test data", i, o, 1)
