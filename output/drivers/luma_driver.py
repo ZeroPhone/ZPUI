@@ -57,9 +57,10 @@ class LumaScreen(GraphicalOutputDevice, CharacterOutputDevice, BacklightManager)
 
     default_width = 128
     default_height = 64
+    default_color = "white"
 
     def __init__(self, hw="spi", port=None, address=None, dc=None, rst=None, \
-                      width=None, height=None, **kwargs):
+                      width=None, height=None, default_color="white", **kwargs):
         self.hw = hw
         assert hw in ("spi", "i2c", "dummy"), "Wrong hardware suggested: '{}'!".format(hw)
         # legacy parameters
@@ -99,6 +100,7 @@ class LumaScreen(GraphicalOutputDevice, CharacterOutputDevice, BacklightManager)
         self.char_height = 8
         self.cols = self.width // self.char_width
         self.rows = self.height // self.char_height
+        self.default_color = default_color
         self.init_display(**kwargs)
         self.device_mode = getattr(self.device, "mode", self.device_mode)
         BacklightManager.init_backlight(self, **kwargs)
@@ -164,10 +166,10 @@ class LumaScreen(GraphicalOutputDevice, CharacterOutputDevice, BacklightManager)
         if cursor_position:
             dims = (self.cursor_pos[0] - 1 + 2, self.cursor_pos[1] - 1, self.cursor_pos[0] + self.char_width + 2,
                     self.cursor_pos[1] + self.char_height + 1)
-            d.rectangle(dims, outline="white")
+            d.rectangle(dims, outline=self.default_color)
         for line, arg in enumerate(args):
             y = (line * self.char_height - 1) if line != 0 else 0
-            d.text((2, y), arg, font=self.default_font, fill="white")
+            d.text((2, y), arg, font=self.default_font, fill=self.default_color)
         return draw.image
 
     @activate_backlight_wrapper

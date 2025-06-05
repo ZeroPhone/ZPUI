@@ -47,7 +47,7 @@ class Screen(GraphicalOutputDevice, CharacterOutputDevice):
     direct_write = False
     paste_coords = (0, 0)
 
-    def __init__(self, fb_num=1, width=None, height=None, color=True, default_colour="white", mul_x=1, mul_y=1, direct_write=False, out_mode="RGBA", disable_cursor=True, **kwargs):
+    def __init__(self, fb_num=1, width=None, height=None, color=True, default_color="white", mul_x=1, mul_y=1, direct_write=False, out_mode="RGBA", disable_cursor=True, **kwargs):
         self.fb_num = fb_num
         self.fb_path = '/dev/fb'+str(self.fb_num)
         if not self.direct_write:
@@ -68,11 +68,7 @@ class Screen(GraphicalOutputDevice, CharacterOutputDevice):
             self.type.append("color")
         else:
             self.device_mode = '1'
-        # 'default_colour' argument handling
-        if "default_color" in kwargs:
-            self.default_colour = kwargs["default_color"]
-        else:
-            self.default_colour = default_colour
+        self.default_color = default_color
         self.disable_cursor = disable_cursor
         if self.disable_cursor:
             with open('/sys/class/graphics/fbcon/cursor_blink', 'wb') as f:
@@ -152,10 +148,10 @@ class Screen(GraphicalOutputDevice, CharacterOutputDevice):
         if cursor_position:
             dims = (self.cursor_pos[0] - 1 + 2, self.cursor_pos[1] - 1, self.cursor_pos[0] + self.char_width + 2,
                     self.cursor_pos[1] + self.char_height + 1)
-            d.rectangle(dims, outline=self.default_colour)
+            d.rectangle(dims, outline=self.default_color)
         for line, arg in enumerate(args):
             y = (line * self.char_height - 1) if line != 0 else 0
-            d.text((2, y), arg, font=self.default_font, fill=self.default_colour)
+            d.text((2, y), arg, font=self.default_font, fill=self.default_color)
         return draw.image
 
     #@activate_backlight_wrapper
