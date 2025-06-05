@@ -100,7 +100,7 @@ class InputDevice(HIDDevice):
                         key = "+".join(key)
                     beepy_key = self.beepy_mapping.get(key, key)
                     mapped_key = self.name_mapping.get(beepy_key, beepy_key)
-                    print(key, beepy_key, mapped_key)
+                    logger.debug("Key substitution: k {} b {} m {}".format(key, beepy_key, mapped_key))
                     self.map_and_send_key(mapped_key, state = value)
                 except:
                     logger.exception("{}: failed to map and send a key {}".format(self.name, key))
