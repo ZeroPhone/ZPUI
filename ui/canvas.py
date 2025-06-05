@@ -338,11 +338,15 @@ class Canvas(object):
         self.draw.arc(coords, start, end, fill=fill, **kwargs)
         self.display_if_interactive()
 
-    def get_image(self):
+    def get_image(self, coords=None):
         """
         Get the current ``PIL.Image`` object.
+        If ``coords`` are supplied, reeturns a rectangular region
+        of the image, as defined by ``coords``.
         """
-        return self.image
+        if coords == None:
+            return self.image
+        return self.get_rect(coords)
 
     def get_center(self, x=None, y=None):
         """
@@ -509,6 +513,16 @@ class Canvas(object):
         cw = cw if (cw is not None) else rcw
         ch = ch if (ch is not None) else rch
         return Rect(cw - tcw, ch - tch, cw + tcw, ch + tch)
+
+    def get_rect(self, coords):
+        # type: tuple -> Image
+        """
+        Returns a rectangular region of the image, as defined by ``coords``.
+        """
+        # maybe fold into get_image?
+        coords = self.check_coordinates(coords)
+        image_subset = self.image.crop(coords)
+        return image_subset
 
     def invert_rect(self, coords):
         # type: tuple -> tuple
