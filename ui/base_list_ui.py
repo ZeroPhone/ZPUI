@@ -7,7 +7,7 @@ from time import sleep
 from threading import Event
 
 from ui.entry import Entry
-from ui.canvas import Canvas
+from ui.canvas import Canvas, swap_colors
 from ui.base_ui import BaseUIElement
 from ui.utils import to_be_foreground, clamp_list_index
 from zpui_lib.helpers import setup_logger
@@ -619,7 +619,10 @@ class EightPtView(TextView):
                 x2,
                 c_y + self.charheight*self.entry_height - 1
             )
-            c.invert_rect(cursor_dims)
+            cursor_image = c.get_image(coords=cursor_dims)
+            # inverting colors - background to foreground and vice-versa
+            cursor_image = swap_colors(cursor_image, c.default_color, c.background_color, c.background_color, c.default_color)
+            c.paste(cursor_image, coords=cursor_dims[:2])
 
     def get_displayed_image(self):
         """Generates the displayed data for a canvas-based output device. The output of this function can be fed to the o.display_image function.
