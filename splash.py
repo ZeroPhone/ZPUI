@@ -1,14 +1,28 @@
-from PIL import ImageOps, Image
+from PIL import ImageOps, Image, ImageColor
 
-def splash(i, o):
+def replace_color(icon, fromc, toc):
+    import numpy as np
+    icon = icon.convert("RGBA")
+    # from https://stackoverflow.com/questions/3752476/python-pil-replace-a-single-rgba-color
+    if isinstance(fromc, str):
+        fromc = ImageColor.getrgb(fromc)
+    data = np.array(icon)
+    r, g, b, a = data.T
+    areas = (r == fromc[0]) & (g == fromc[1]) & (b == fromc[2])
+    if isinstance(toc, str):
+        toc = ImageColor.getrgb(toc)
+    data[..., :-1][areas.T] = toc
+    return Image.fromarray(data)
+
+def splash(i, o, color="white"):
     if (o.width, o.height) == (128, 64):
-        image = Image.open("resources/splash.png").convert('L')
+        image = Image.open("resources/splash.png").convert('1')
         image = ImageOps.invert(image)
     elif o.width >= 128 and o.height >= 64:
-        image = Image.open("resources/splash_big.png").convert('L')
+        image = Image.open("resources/splash_big.png").convert('1')
         image = ImageOps.invert(image)
         size = o.width, o.height
-        image.thumbnail(size, Image.LANCZOS)
+        image.thumbnail(size, Image.ANTIALIAS)
         left = top = right = bottom = 0
         width, height = image.size
         if o.width > width:
@@ -23,6 +37,8 @@ def splash(i, o):
     else:
         o.display_data("Welcome to", "ZPUI")
         return
+    if color != "white":
+        image = replace_color(image, "white", color)
     image = image.convert(o.device_mode)
     o.display_image(image)
 
