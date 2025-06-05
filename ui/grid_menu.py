@@ -213,13 +213,19 @@ class BebbleGridView(GridView):
     font_size = 12
     entry_width = 100
     dim = 50
+    between_row = 5 # between-row gap
+    bar_height = 30 # status bar
+    # 720x720 test for the meme, and it does work!
+    #font_size = 27
+    #entry_width = 220
+    #dim = 110
     shows_label = True # helps apply the label mixin dynamically
 
     def calculate_params(self):
-        self.rows = 2
-        self.fde_increment = 1 # because uhhhhh it glitches out if I do 4? weird lol maybe this needs to be `1` always
         # width is at least 240
         self.cols = self.o.width // self.entry_width
+        self.rows = (self.o.height-self.bar_height)//self.entry_width
+        self.fde_increment = 1 # because uhhhhh it glitches out if I do 4? weird lol maybe this needs to be `1` always
         self.sidebar_fits = False
 
     def process_contents(self, contents):
@@ -265,10 +271,17 @@ class BebbleGridView(GridView):
                 app_y = 0
 
                 # draw border
-                c.rectangle((app_x, app_y, app_x+100, app_y+100), fill=c.background_color, outline=c.background_color)
+                c.rectangle((app_x, app_y, app_x+self.entry_width, app_y+self.entry_width), fill=c.background_color, outline=c.background_color)
 
                 # draw background
-                c.rectangle((app_x + 5, app_y + 5, app_x + 95, app_y + 95), fill=bg_color, outline=c.background_color)
+                c.rectangle( \
+                    ( \
+                        app_x + self.between_row, \
+                        app_y + self.between_row, \
+                        app_x + (self.entry_width-self.between_row), \
+                        app_y + (self.entry_width-self.between_row) \
+                    ), \
+                    fill=bg_color, outline=c.background_color)
                 # get text size so we can center text
                 #text_size = measure_text_ex(res.MuktaSemiBold, entry.get("name"), self.font_size, 0).x
                 font_size = int(self.font_size*1.25) if selected else self.font_size
@@ -278,21 +291,22 @@ class BebbleGridView(GridView):
                 # draw app name
                 c.text(
                     text,
-                    (app_x + int((100 - text_size) // 2), app_y + 72),
+                    (app_x + int((self.entry_width - text_size) // 2), app_y + int(self.entry_width*0.72)),
                     font=(self.MuktaSemiBold, font_size), fill=text_color
                 )
 
                 # draw icon
                 if icon:
                     if inverted_icon: # inverted icon present
-                        c.paste(icon, (app_x + 25, app_y + 15)) # means the icon's already how we want it
+                        # the icon's already how we want it, no need to swap color
+                        c.paste(icon, (app_x + int(0.25*self.entry_width), app_y + int(0.15*self.entry_width) ))
                     else:
                         do_invert = not selected
                         used_icon = icon
                         if do_invert:
-                            used_icon = swap_colors(icon, c.default_color, c.background_color, c.background_color, c.default_color).convert(self.o.device_mode)
-                        c.paste(used_icon, (app_x + 25, app_y + 15)) # need to tell to invert it
-                        #c.paste(icon, (app_x + 25, app_y + 15)) # need to tell to invert it
+                            used_icon = swap_colors(icon, c.default_color, c.background_color, c.background_color, c.default_color)
+                            used_icon = used_icon.convert(self.o.device_mode)
+                        c.paste(used_icon, (app_x + int(0.25*self.entry_width), app_y + int(0.15*self.entry_width) )) # need to tell to invert it
 
                 # icon rendered: storing it
                 from copy import copy
@@ -313,25 +327,22 @@ class BebbleGridView(GridView):
 
         c = Canvas(self.o)
 
+        # status bar text placeholder
         c.text("Status bar will go here", (25, 4), font=(self.MuktaSemiBold, 12))
-        c.rectangle((0, 30, c.width, c.height), fill=c.default_color)
+        # menu background fill (with default color)
+        c.rectangle((0, self.bar_height, c.width, c.height), fill=c.default_color)
 
         for i, index in enumerate(disp_entry_positions):
             selected = pointer == index
             entry = contents[index]
             ## TODO: Make all of this math for figure out the app x and y actually make sense. Also pagenate
             ## TODO todo: yeah that's a real todo moment I agree :sob:
-            a = 0
-            if i > 0:
-                a = 5
-            app_x = 8 + (i * 100) - a * i
-            app_y = 37
-
-            # super hacky way to add a second row. cannot math to figure this one out right now
-            if i > self.cols-1:
-                app_y += 95
-                x = i - self.cols
-                app_x = 8 + (x * 100) - a * x
+            #for i in range(rows):
+            x_offset = (self.o.width - (self.entry_width*self.cols) + self.between_row*(self.cols-1) )//2
+            row = i // self.cols
+            col = i % self.cols
+            app_x = (col * self.entry_width) + x_offset - self.between_row * col
+            app_y = self.bar_height+7 + (self.entry_width-5)*row
 
             # now, simply pasting pre-rendered entries. so so very fast!!
             c.paste(self.rendered_entries[1 if selected else 0][index], (app_x, app_y))
