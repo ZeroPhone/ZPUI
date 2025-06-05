@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """Raspberry Pi OTP Dump Parser
 
- Copyright 2019-2022 Jasmine Iwanek & Dylan Morrison
+ Copyright 2019-2022 Jasmine Iwanek & Dylan Morrison & Arya Voronova
 
  Permission is hereby granted, free of charge, to any person obtaining a copy of this
  software and associated documentation files (the "Software"), to deal in the Software
@@ -29,21 +29,21 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import sys
 from string import hexdigits
 from os import path
-import traceback
 
 if (sys.version_info < (2, 6) or (sys.version_info >= (3, 0) and sys.version_info < (3, 3))):
     sys.exit('OTPParser requires Python 2.6 or 3.3 and newer.')
 
-try:
-    from future import standard_library
-    standard_library.install_aliases()
-except ImportError:
-    sys.exit('OTPParser requires future!')
+if sys.version_info < (3, 3): # only applying future imports to Python2
+    try:
+        from future import standard_library
+        standard_library.install_aliases()
+    except ImportError:
+        sys.exit('OTPParser requires future!')
 
-try:
-    from builtins import dict, int, open, range, str
-except ImportError:
-    sys.exit("OTPParser requires future! (Cant import 'builtins'")
+    try:
+        from builtins import dict, int, open, range, str
+    except ImportError:
+        sys.exit("OTPParser requires future! (Cant import 'builtins'")
 
 
 class TypoError(Exception):
@@ -58,7 +58,7 @@ MEMORY_SIZES = {
     '2048':      '011',    # 3
     '4096':      '100',    # 4
     '8192':      '101',    # 5
-    'unknown_6': '110',    # 6
+    '16384':     '110',    # 6
     'unknown_7': '111',    # 7
     '256/512':   'EITHER',
     'unknown':   ''
@@ -92,7 +92,7 @@ PROCESSORS = {
     'BCM2836':   '0001',  # 1
     'BCM2837':   '0010',  # 2
     'BCM2711':   '0011',  # 3
-    'unknown_4': '0100',  # 4
+    'BCM2712':   '0100',  # 4
     'unknown_5': '0101',  # 5
     'unknown_6': '0110',  # 6
     'unknown_7': '0111',  # 7
@@ -129,6 +129,14 @@ BOARD_TYPES = {
     'CM3+':      '00010000',  # 10
     '4B':        '00010001',  # 11
     'Zero 2 W':  '00010010',  # 12
+    '400':       '00010011',  # 13
+    'CM4':       '00010100',  # 14
+    'CM4S':      '00010101',  # 15
+    'internal2': '00010110',  # 16
+    '5':         '00010111',  # 17
+    'CM5':       '00011000',  # 18
+    '500':       '00011001',  # 19
+    'CM5 Lite':  '00011010',  # 1a
     'unknown':   ''
 }
 BOARD_TYPES_AS_STRING = dict((v, k) for k, v in list(BOARD_TYPES.items()))
