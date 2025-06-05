@@ -4,8 +4,7 @@ import os
 from time import sleep
 
 from ui import Canvas
-from zpui_lib.helpers import ExitHelper
-from zpui_lib.helpers.env import get_platform
+from zpui_lib.helpers import ExitHelper, get_platform
 
 zerophone_hw = False
 try:
@@ -15,7 +14,7 @@ except:
 else:
     zerophone_hw = True
 
-from actions import BackgroundAction as Action
+from actions import ContextSwitchAction as Action
 
 global i, o
 
@@ -43,7 +42,7 @@ def set_context(c):
     global context
     if can_load() == True:
         context = c
-        context.register_action(Action("flashlight_toggle", callback, menu_name=get_state_message, description="Flashlight toggle"))
+        context.register_action(Action("flashlight_toggle", c.request_switch, menu_name=get_state_message, description="Switching to the flashlight app"))
 
 def get_state_message():
     if state:
@@ -100,4 +99,5 @@ def callback():
         set_led(not state)
         state = not state
         c.clear(fill="white" if state else "black")
+    # todo: if no external LED is supported, disable flashlight on exit
     # in the future, we could add KEY_RIGHT and use that for flashlight settings owo
