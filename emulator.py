@@ -45,10 +45,11 @@ class EmulatorProxy(object):
     char_height = 8
     type = ["char", "b&w"]
 
-    def __init__(self, mode="1", width=128, height=64):
+    def __init__(self, mode="1", width=128, height=64, default_color="white"):
         self.width = width
         self.height = height
         self.mode = mode
+        self.default_color = default_color
         if self.mode.startswith("RGB"):
             self.type.append("color")
         self.device_mode = mode
@@ -91,10 +92,10 @@ class EmulatorProxy(object):
                     cursor_position[1]*self.char_width + self.char_width + 2,
                     cursor_position[0]*self.char_height + self.char_height + 1
                     )
-            d.rectangle(dims, outline="white")
+            d.rectangle(dims, outline=self.default_color)
         for line, arg in enumerate(args):
             y = (line * self.char_height - 1) if line != 0 else 0
-            d.text((2, y), arg, fill="white")
+            d.text((2, y), arg, fill=self.default_color)
         return draw.image
 
     def quit(self):
@@ -139,13 +140,14 @@ class Emulator(object):
     for any future visitors:
     this runs in a whole different process
     """
-    def __init__(self, child_conn, child_queue, o_lock, mode="1", width=128, height=64):
+    def __init__(self, child_conn, child_queue, o_lock, mode="1", width=128, height=64, default_color="white"):
         self.child_conn = child_conn
         self.child_queue = child_queue
         self.o_lock = o_lock
 
         self.width = width
         self.height = height
+        self.default_color = default_color
 
         self.char_width = 6
         self.char_height = 8
@@ -270,11 +272,14 @@ class Emulator(object):
                     self.cursor_pos[1] - 1,
                     self.cursor_pos[0] + self.char_width + 2,
                     self.cursor_pos[1] + self.char_height + 1)
-            d.rectangle(dims, outline="white")
+            d.rectangle(dims, outline=self.default_color)
         for line, arg in enumerate(args):
             y = (line * self.char_height - 1) if line != 0 else 0
-            d.text((2, y), arg, fill="white")
+            d.text((2, y), arg, fill=self.default_color)
         return draw.image
+
+    def set_color(self, color):
+        self.default_color = color
 
     def display_data(self, *args):
         """Displays data on display. This function does the actual work of printing things to display.
