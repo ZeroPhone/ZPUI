@@ -30,13 +30,19 @@ class Screen(FBScreen):
 
     sharp_path = '/sys/module/sharp_drm/'
     mc_path = sharp_path+"parameters/mono_cutoff"
+    name_path = "/sys/class/graphics/fb{}/name"
     orig_mc = None
 
     def __init__(self, fb_num=1, mono_cutoff=128, **kwargs):
-        fb_path = '/dev/fb'+str(fb_num) # intercepting this parameter real quick for the Sharp LCD check
-        color = True
-        if self.is_sharp_memory(fb_path):
-            color = False
+        color = True # true for all devices but a few
+        try:
+            with open(self.mc_path.format(fb_num)):
+                name = f.read().strip()
+        except:
+            logger.exception("error when reading fb device driver name!")
+        else:
+            if name.startswith("sharp_drm"):
+                color = False
         kwargs["fb_num"] = fb_num # need to pass it to FBScreen constructor too
         FBScreen.__init__(self, color=color, **kwargs)
         self.mono_cutoff = mono_cutoff
