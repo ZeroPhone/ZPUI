@@ -1,7 +1,7 @@
 from time import sleep
 
 from ui.base_ui import BaseUIElement
-from ui.canvas import Canvas
+from ui.canvas import Canvas, swap_colors
 from ui.funcs import format_for_screen as ffs
 from zpui_lib.helpers import setup_logger
 
@@ -204,7 +204,10 @@ class GraphicalView(TextView):
         cursor_dims = ( c_x1, c_y1, c_x2 + 2, c_y2 + 2 )
 
         #Drawing the cursor
-        c.invert_rect(cursor_dims)
+        cursor_image = c.get_image(coords=cursor_dims)
+        # inverting colors - background to foreground and vice-versa
+        cursor_image = swap_colors(cursor_image, c.default_color, c.background_color, c.background_color, c.default_color)
+        c.paste(cursor_image, coords=cursor_dims[:2])
         return c.get_image()
 
     def refresh(self):
