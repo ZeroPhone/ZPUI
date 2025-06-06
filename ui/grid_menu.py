@@ -146,7 +146,12 @@ class GridView(SixteenPtView):
         # Invert the selected cell
         selected_x = (item_x)*step_width
         selected_y = (item_y)*step_height
-        c.invert_rect((selected_x, selected_y, selected_x+step_width, selected_y+step_height))
+        coords = (selected_x, selected_y, selected_x+step_width, selected_y+step_height)
+        #c.invert_rect(coords)
+        selected_portion = c.get_image(coords=coords)
+        # inverting colors - background to foreground and vice-versa
+        selected_portion = swap_colors(selected_portion, c.default_color, c.background_color, c.background_color, c.default_color)
+        c.paste(selected_portion, coords=coords[:2])
 
         return c.get_image()
 
