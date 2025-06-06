@@ -2,7 +2,7 @@ from time import sleep
 import string
 
 from ui.utils import to_be_foreground
-from ui.canvas import Canvas
+from ui.canvas import Canvas, swap_colors
 from ui.base_ui import BaseUIElement
 from zpui_lib.helpers import setup_logger
 logger = setup_logger(__name__, "warning")
@@ -239,23 +239,26 @@ class GraphicalView(TextView):
     def get_image(self):
         c = Canvas(self.o)
 
-        #Getting displayed data, drawing it
+        # Getting displayed data, drawing it
         lines = self.get_displayed_data()
         for i, line in enumerate(lines):
             y = (i*self.o.char_height - 1) if i != 0 else 0
             c.text(line, (2, y))
 
-        #Calculating the cursor dimensions
+        # Calculating the cursor dimensions
         c_x1 = (self.el.position-self.first_displayed_char) * self.o.char_width
         c_x2 = c_x1 + self.o.char_width
-        c_y1 = self.o.char_height * 1 #second line
+        c_y1 = self.o.char_height * 1 # second line
         c_y2 = c_y1 + self.o.char_height
 
-        #Some readability adjustments
+        # Some readability adjustments
         cursor_dims = ( c_x1, c_y1, c_x2 + 2, c_y2 + 1 )
 
-        #Drawing the cursor
-        c.invert_rect(cursor_dims)
+        # Drawing the cursor
+        cursor_image = c.get_image(coords=cursor_dims)
+        cursor_image = swap_colors(cursor_image, c.default_color, c.background_color, c.background_color, c.default_color)
+        c.paste(cursor_image, coords=cursor_dims[:2])
+        #c.invert_rect(cursor_dims)
 
         return c.get_image()
 
