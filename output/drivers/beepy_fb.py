@@ -28,13 +28,24 @@ function_mock = lambda *a, **k: True
 class Screen(FBScreen):
     """An object that provides high-level functions for interaction with display. It contains all the high-level logic and exposes an interface for system and applications to use."""
 
-    mc_path = "/sys/module/sharp_drm/parameters/mono_cutoff"
+    sharp_path = '/sys/module/sharp_drm/'
+    mc_path = sharp_path+"parameters/mono_cutoff"
     orig_mc = None
 
-    def __init__(self, mono_cutoff=128, **kwargs):
-        FBScreen.__init__(self, **kwargs)
+    def __init__(self, fb_num=1, mono_cutoff=128, **kwargs):
+        fb_path = '/dev/fb'+str(fb_num) # intercepting this parameter real quick for the Sharp LCD check
+        color = True
+        if self.is_sharp_memory(fb_path):
+            color = False
+        kwargs["fb_num"] = fb_num # need to pass it to FBScreen constructor too
+        FBScreen.__init__(self, color=color, **kwargs)
         self.mono_cutoff = mono_cutoff
         self.try_store_and_replace_mc()
+
+    def is_sharp_memory(self, fb_path):
+        # fb_path unused for now - right now, we only check that sharp_drm driver is loaded
+        # sorry if this gives you trouble =(
+        return os.path.exists(self.sharp_path)
 
     def try_store_and_replace_mc(self):
         """Stores and replaces beepy kbd driver touch threshold"""
