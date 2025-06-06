@@ -15,6 +15,8 @@ def replace_color(icon, fromc, toc):
     return Image.fromarray(data)
 
 def splash(i, o, color="white"):
+    if color is None:
+        color = "white"
     if (o.width, o.height) == (128, 64):
         image = Image.open("resources/splash.png").convert('1')
         image = ImageOps.invert(image)
