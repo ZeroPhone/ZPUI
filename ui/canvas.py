@@ -11,8 +11,9 @@ font_cache = {}
 from zpui_lib.helpers import setup_logger
 logger = setup_logger(__name__, "warning")
 
-default_color = None
+global_default_color = None
 default_font = None
+
 def get_default_font():
     global default_font
     if not default_font:
@@ -44,14 +45,16 @@ class Canvas(object):
     default_font = None #: default font, referenced here to avoid loading it every time
 
     def __init__(self, o, base_image=None, name="", interactive=False):
+        global global_default_color
         self.o = o
         if "b&w" not in o.type:
             raise ValueError("The output device supplied doesn't support pixel graphics!")
-        if "color" in o.type:
-            if default_color: # global:
-                self.default_color = default_color
-            elif self.default_color == "white":
+        if "color" in o.type: # on color displays:
+            if global_default_color: # global color has been set to something else
+                self.default_color = global_default_color
+            elif self.default_color == "white": # global UI color has not been set, and local color is still set to white
                 self.default_color = "lightseagreen" # default color on color screens, as an experiment
+                global_default_color = self.default_color # also setting the global color
         self.width = o.width
         self.height = o.height
         self.name = name

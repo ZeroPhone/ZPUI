@@ -107,13 +107,15 @@ def init():
             # either of the two parameters are possible - ui-color or ui_color; both are the same thing obvi
             color = config.get("ui_color", "")
             color = config.get("ui-color", color)
-            print("color", color)
+            #print("color", color)
             if color:
-                canvas.default_color = color
-                # also passing color to the screen object (used for char output)
-                if hasattr(screen, "set_color"):
-                    screen.set_color(color)
-                screen.default_color = color
+                canvas.global_default_color = color
+            # also passing color to the screen object (used for char output)
+            c = canvas.Canvas(screen) # running canvas init so that color gets processed
+            if hasattr(screen, "set_color"):
+                screen.set_color(c.default_color)
+            screen.default_color = c.default_color
+            canvas.default_color = c.default_color # setting the canvas-global color after it's been processed by the canvas
 
     except:
         logging.exception('Failed to initialize the output object')
