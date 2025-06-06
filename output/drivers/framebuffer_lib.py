@@ -23,6 +23,13 @@ def _read_and_convert_to_ints(filename):
         return [int(t) for t in tokens if t]
 
 
+def _read_str(filename):
+    with open(filename, "r") as fp:
+        content = fp.read()
+        content = content.strip()
+        return content
+
+
 def _converter_argb(image: Image):
     return bytes([x for r, g, b in image.getdata() for x in (255, r, g, b)])
 
@@ -84,6 +91,7 @@ class Framebuffer(object):
         self.stride = _read_and_convert_to_ints(config_dir + "/stride")[0]
         self.bits_per_pixel = _read_and_convert_to_ints(
             config_dir + "/bits_per_pixel")[0]
+        self.name = _read_str(config_dir+"/name")
         assert self.stride == self.bits_per_pixel // 8 * self.size[0]
 
     def __str__(self):
