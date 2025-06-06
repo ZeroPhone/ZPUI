@@ -3,7 +3,7 @@ import datetime
 from time import sleep, strftime, struct_time
 
 from ui.base_ui import BaseUIElement
-from ui.canvas import Canvas
+from ui.canvas import Canvas, swap_colors
 
 class DatePicker(BaseUIElement):
 
@@ -258,10 +258,10 @@ class DatePicker(BaseUIElement):
         selected_y = (self.selected_option['y'])*step_height+step_height-month_year_text_bounds[1]
         coords = (selected_x+1, selected_y-1, selected_x+step_width+1, selected_y+step_height-1)
         #self.c.invert_rect(coords)
-        highlighted_image = c.get_image(coords=coords)
+        highlighted_image = self.c.get_image(coords=coords)
         # inverting colors - background to foreground and vice-versa
-        inverted_image = swap_colors(highlighted_image, c.default_color, c.background_color, c.background_color, c.default_color)
-        c.paste(inverted_image, coords=coords[:2])
+        inverted_image = swap_colors(highlighted_image, self.c.default_color, self.c.background_color, self.c.background_color, self.c.default_color)
+        self.c.paste(inverted_image, coords=coords[:2])
 
         self.c.display()
 
