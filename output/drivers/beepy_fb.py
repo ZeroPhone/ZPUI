@@ -36,7 +36,7 @@ class Screen(FBScreen):
     def __init__(self, fb_num=1, mono_cutoff=128, **kwargs):
         color = True # true for all devices but a few
         try:
-            with open(self.mc_path.format(fb_num)):
+            with open(self.name_path.format(fb_num)):
                 name = f.read().strip()
         except:
             logger.exception("error when reading fb device driver name!")
