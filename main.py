@@ -104,7 +104,9 @@ def init():
         screen = output.init(output_config)
         screen.default_font = canvas.get_default_font()
         if "color" in screen.type: # screen can do color output - let's see if there's a color in config
+            # either of the two parameters are possible - ui-color or ui_color; both are the same thing obvi
             color = config.get("ui_color", "")
+            color = config.get("ui-color", color)
             print("color", color)
             if color:
                 canvas.default_color = color
