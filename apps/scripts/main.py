@@ -154,7 +154,7 @@ def editnrun_history_entry(entry):
         call_command(command)
 
 def to_mainmenu_history_entry(num):
-    entry = config["history"][num]
+    entry = config["history"][num].strip() # strip is needed to yeet spurious spaces, since from mainmenu, scripts are run in a different way
     name = UniversalInput(i, o, value=entry, message="Script name:", name="Script command main menu name input").activate()
     if not name:
         return
