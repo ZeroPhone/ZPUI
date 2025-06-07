@@ -38,6 +38,11 @@ config_path = local_path(config_filename)
 config = read_or_create_config(config_path, default_config, menu_name + " app")
 save_config = save_config_gen(config_path)
 
+def try_call_external(*a, **k):
+    try:
+        return call_external(*a, **k)
+    except:
+        logger.exception("Error during command execution!")
 
 def call_external(script_list, shell=False):
     if shell:
@@ -74,7 +79,11 @@ def call_external(script_list, shell=False):
             TextReader(output, i, o, autohide_scrollbars=True, h_scroll=True).activate()
             answer = DialogBox("yn", i, o, message="Save output?").activate()
             if answer:
-                save_output(script_list, output)
+                try:
+                    save_output(script_list, output)
+                except: # damn this needs better processing huh
+                    # but this will do for now, to avoid the funny bug where a command isn't saved in history
+                    logger.exception("Failed to save command output!")
 
 
 def save_output(command, output):
@@ -103,7 +112,7 @@ def call_by_path():
     args = UniversalInput(i, o, message="Arguments:", name="Script argument input").activate()
     if args is not None:
         path = path + " " + args
-    call_external(path, shell=True)
+    try_call_external(path, shell=True)
     if path not in config["history"]:
         config["history"] = [path] + config["history"]
         save_config(config)
@@ -113,7 +122,7 @@ def call_command(command=None):
         command = UniversalInput(i, o, message="Command:", name="Script command input").activate()
         if not command:
             return
-    call_external(command, shell=True)
+    try_call_external(command, shell=True)
     if command not in config["history"]:
         config["history"] = [command] + config["history"]
         save_config(config)
@@ -169,10 +178,10 @@ def callback():
         args = script_def["args"] if "args" in script_def else []
         script_name = script_def["name"] if "name" in script_def else os.path.split(script_path)[1]
         script_list = [script_path] + args
-        script_menu_contents.append([script_name, lambda x=script_list: call_external(x)])
+        script_menu_contents.append([script_name, lambda x=script_list: try_call_external(x)])
     other_scripts = os.listdir(local_path(scripts_dir))
     for script in other_scripts:
         relpath = local_path(scripts_dir, script)
         if relpath not in scripts_in_config:
-            script_menu_contents.append([os.path.join(scripts_dir, script), lambda x=relpath: call_external([x])])
+            script_menu_contents.append([os.path.join(scripts_dir, script), lambda x=relpath: try_call_external([x])])
     Menu(script_menu_contents, i, o, "Script menu").activate()
