@@ -176,6 +176,9 @@ def launch(name=None, **kwargs):
         runner = app_menu.activate
         cm.switch_to_start_context()
     else:
+        if is_emulator():
+            c = canvas.Canvas(o)
+            c.display() # black image display call to make sure the emulator window appears!
         # If using autocompletion from main folder, it might
         # append a / at the name end, which isn't acceptable
         # for load_app
