@@ -153,11 +153,26 @@ def editnrun_history_entry(entry):
     if command:
         call_command(command)
 
+def to_mainmenu_history_entry(num):
+    entry = config["history"][num]
+    name = UniversalInput(i, o, value=entry, message="Script name:", name="Script command main menu name input").activate()
+    if not name:
+        return
+    main_entry = {"path":entry, "name":name}
+    entry = config["history"].pop(num)
+    config["scripts"] = [main_entry]+config["scripts"]
+    save_config(config)
+    main_menu.trigger_contents_hook()
+    #command = UniversalInput(i, o, value=entry, message="Command:", name="Script command edit-and-run input").activate()
+    #if command:
+    #    call_command(command)
+
 def menu_history_entry(num):
     entry = config["history"][num]
     def get_mc():
         c = [
           ["Edit and run", lambda: editnrun_history_entry(entry)],
+          ["Add to main menu", lambda: to_mainmenu_history_entry(num)],
           ["Delete", lambda: del_history_entry(num)],
         ]
         return c
@@ -174,26 +189,31 @@ def history_menu():
         return c
     Menu([], i, o, contents_hook=get_mc, name="Scripts app history menu").activate()
 
+main_menu = None
 
 def callback():
-    script_menu_contents = [["Script by path", call_by_path],
-                            ["Custom command", call_command],
-                            ["History", history_menu],
-                           ]
-    scripts_in_config = []
-    for script_def in config["scripts"]:
-        script_path = script_def["path"]
-        if script_path.startswith('./'):
-            script_path = script_path.lstrip('.').lstrip('/')
-            script_path = local_path(script_path)
-            scripts_in_config.append(script_path)
-        args = script_def["args"] if "args" in script_def else []
-        script_name = script_def["name"] if "name" in script_def else os.path.split(script_path)[1]
-        script_list = [script_path] + args
-        script_menu_contents.append([script_name, lambda x=script_list: try_call_external(x)])
-    other_scripts = os.listdir(local_path(scripts_dir))
-    for script in other_scripts:
-        relpath = local_path(scripts_dir, script)
-        if relpath not in scripts_in_config:
-            script_menu_contents.append([os.path.join(scripts_dir, script), lambda x=relpath: try_call_external([x])])
-    Menu(script_menu_contents, i, o, "Script menu").activate()
+    global main_menu
+    def contents_hook():
+        script_menu_contents = [["Script by path", call_by_path],
+                                ["Custom command", call_command],
+                                ["History", history_menu],
+                               ]
+        scripts_in_config = []
+        for script_def in config["scripts"]:
+            script_path = script_def["path"]
+            if script_path.startswith('./'):
+                script_path = script_path.lstrip('.').lstrip('/')
+                script_path = local_path(script_path)
+                scripts_in_config.append(script_path)
+            args = script_def["args"] if "args" in script_def else []
+            script_name = script_def["name"] if "name" in script_def else os.path.split(script_path)[1]
+            script_list = [script_path] + args
+            script_menu_contents.append([script_name, lambda x=script_list: try_call_external(x)])
+        other_scripts = os.listdir(local_path(scripts_dir))
+        for script in other_scripts:
+            relpath = local_path(scripts_dir, script)
+            if relpath not in scripts_in_config:
+                script_menu_contents.append([os.path.join(scripts_dir, script), lambda x=relpath: try_call_external([x])])
+        return script_menu_contents
+    main_menu = Menu([], i, o, contents_hook=contents_hook, name="Script menu")
+    main_menu.activate()
