@@ -129,6 +129,10 @@ def call_command(command=None):
 
 def exec_history_entry(num):
     call_command(config["history"][num])
+    # whether the call has been successful or not, remove and reinsert the entry into the latest position
+    entry = config["history"].pop(num)
+    config["history"] = [entry] + config["history"]
+    save_config(config)
 
 def del_history_entry(num):
     answer = DialogBox("yn", i, o, message="Delete entry?").activate()
