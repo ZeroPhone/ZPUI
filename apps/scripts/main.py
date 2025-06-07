@@ -77,8 +77,12 @@ def call_external(script_list, shell=False):
         if isinstance(output, bytes): output = output.decode("ascii")
         answer = DialogBox("yn", i, o, message="Show output?").activate()
         if answer:
-            TextReader(output, i, o, autohide_scrollbars=True, h_scroll=True).activate()
-            answer = DialogBox("yn", i, o, message="Save output?").activate()
+            do_show = True
+            while do_show:
+                TextReader(output, i, o, autohide_scrollbars=True, h_scroll=True).activate()
+                answer = DialogBox(["y", 'n', ["Show again", None]], i, o, message="Save output?").activate()
+                if answer != None:
+                    do_show = False
             if answer:
                 try:
                     save_output(script_list, output)
