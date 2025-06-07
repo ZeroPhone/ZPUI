@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 from subprocess import check_output, CalledProcessError, STDOUT
 
-from zpui_lib.helpers import read_or_create_config, local_path_gen, save_config_gen
+from zpui_lib.helpers import read_or_create_config, local_path_gen, save_config_gen, setup_logger
 from ui import Menu, Printer, PrettyPrinter, DialogBox, PathPicker, UniversalInput, TextReader
 
 menu_name = "Scripts"  # App name as seen in main menu while using the system
@@ -33,6 +33,7 @@ default_config = """{
 "history":[]
 }"""
 
+logger = setup_logger(__name__)
 local_path = local_path_gen(__name__)
 config_path = local_path(config_filename)
 config = read_or_create_config(config_path, default_config, menu_name + " app")
@@ -92,8 +93,11 @@ def save_output(command, output):
     command = command.lstrip("/").replace("/", "_")
     now = datetime.now()
     filename = "log-{}-{}".format(command, now.strftime("%y%m%d-%H%M%S"))
-    print(filename)
+    logger.info("Output filename: {}".format(filename))
     old_dir = config["output_dir"]
+    if not os.path.exists(old_dir) or not os.path.isdir(old_dir):
+        logger.error("{} not found or not dir, using '/' instead".format(old_dir))
+        old_dir = "/" #fallback
     dir = PathPicker(old_dir, i, o, dirs_only=True).activate()
     if not dir:
         return
@@ -101,7 +105,7 @@ def save_output(command, output):
     config["output_dir"] = dir
     save_config(config)
     path = os.path.join(dir, filename)
-    print(path)
+    logger.info("Saving output into {}".format(path))
     with open(path, "w") as f:
         f.write(output)
 
