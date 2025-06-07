@@ -122,13 +122,33 @@ class PathPicker(Menu):
             full_path = os.path.join(self.path, dir)
             if self.dirs_only:
                 isdir = lambda x: os.path.isdir(os.path.join(full_path, x))
-                dirs_in_dir = [isdir(e) for e in os.listdir(full_path)]
-                if any(dirs_in_dir):
-                    #Directory has other directories inside
-                    contents.append([dir, lambda x=full_path: self.goto_dir(x), lambda: True])
-                else:
-                    #Directory has no other directories inside
-                    contents.append([dir, lambda x=full_path: self.select_path(x)])
+                # isdir() on a  directory could throw exception if permission is denied (i.e. /lost+found apparently?)
+                dirs_in_dir = []
+                try:
+                    for e in os.listdir(full_path):
+                        try:
+                            if isdir(e):
+                                dirs_in_dir.append(e)
+                        except PermissionError as e:
+                            if e.errno == 13:
+                                pass # directory inaccessible, not much to do there
+                            else:
+                                logger.exception("Unknown error during checking directory {}".format(os.path.join(full_path, e)))
+                        except:
+                            logger.exception("Unknown error during checking directory {}".format(os.path.join(full_path, e)))
+                    if any(dirs_in_dir): # damn, we really need icons here, huh
+                        # Directory has other directories inside
+                        contents.append([dir, lambda x=full_path: self.goto_dir(x), lambda: True])
+                    else:
+                        # Directory has no other directories inside
+                        contents.append([dir, lambda x=full_path: self.select_path(x)])
+                except PermissionError as e:
+                    if e.errno == 13:
+                        pass # directory inaccessible, not much to do there
+                    else:
+                        logger.exception("Unknown error during checking directory {}".format(os.path.join(full_path, e)))
+                except:
+                    logger.exception("Unknown error during checking directory {}".format(os.path.join(full_path, e)))
             else:
                 contents.append([dir, lambda x=full_path: self.goto_dir(x), lambda: True])
         for file in files:
