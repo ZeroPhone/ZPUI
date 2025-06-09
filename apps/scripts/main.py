@@ -80,8 +80,8 @@ def call_external(script_list, shell=False):
             do_show = True
             while do_show:
                 TextReader(output, i, o, autohide_scrollbars=True, h_scroll=True).activate()
-                answer = DialogBox(["y", 'n', ["Show again", None]], i, o, message="Save output?").activate()
-                if answer != None:
+                answer = DialogBox(["y", 'n', ["Show again", "showagain"]], i, o, message="Save output?").activate()
+                if answer != "showagain":
                     do_show = False
             if answer:
                 try:
