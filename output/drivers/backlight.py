@@ -85,7 +85,7 @@ class BacklightManager(object):
 
     def backlight_manager(self):
         while True:
-            if self._backlight_active.isSet():
+            if self._backlight_active.is_set():
                 self._backlight_active.clear()
                 self._last_active = datetime.now()
             elif (datetime.now() - self._last_active).total_seconds() >self._backlight_interval and self._backlight_enabled:

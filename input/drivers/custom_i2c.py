@@ -90,11 +90,11 @@ class InputDevice(InputSkeleton):
                     data = self.bus.read_byte(self.addr)
                     logger.debug("Received {:#010b}".format(data))
                 except IOError:
-                    if self.connected.isSet():
+                    if self.connected.is_set():
                         logger.error("Can't get data from keypad!")
                         self.connected.clear()
                 else:
-                    if not self.connected.isSet():
+                    if not self.connected.is_set():
                         logger.info("Receiving data from keypad again!")
                         self.connected.set()
                     # Valid format: 8 bits

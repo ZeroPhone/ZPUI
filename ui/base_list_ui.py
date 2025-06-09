@@ -376,7 +376,7 @@ class BaseListUIElement(BaseUIElement):
     @to_be_foreground
     def refresh(self):
         """ A placeholder to be used for BaseUIElement. """
-        if self.inhibit_refresh.isSet():
+        if self.inhibit_refresh.is_set():
             return False
         self.view.refresh()
         return True

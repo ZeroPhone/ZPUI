@@ -116,7 +116,7 @@ class KeyScreen(BaseUIElement):
 
     @property
     def locked(self):
-        return self._locked.isSet()
+        return self._locked.is_set()
 
     @locked.setter
     def locked(self, value):
@@ -181,10 +181,10 @@ class PinScreen(object):
         self.active.set()
         self.locked.set()
         self.refresh()
-        while self.active.isSet() and self.locked.isSet():
+        while self.active.is_set() and self.locked.is_set():
             self.check_timeout()
             sleep(self.sleep_time)
-        return self.locked.isSet()
+        return self.locked.is_set()
 
     def reset_timeout(self):
         self.timeout_counter = 0
@@ -210,7 +210,7 @@ class PinScreen(object):
         self.i.listen()
 
     def receive_key(self, key):
-        if not self.active.isSet():
+        if not self.active.is_set():
             return
         self.reset_timeout()
         if key.startswith("KEY_"):

@@ -91,7 +91,7 @@ class TestMenu(unittest.TestCase):
         """Tests whether menu contents hook is executed"""
         ev = Event()
         def gen_contents():
-            return [["True", ev.clear] if ev.isSet() else ["False", ev.set]]
+            return [["True", ev.clear] if ev.is_set() else ["False", ev.set]]
         mu = Menu([], get_mock_input(), get_mock_output(), name=mu_name, contents_hook=gen_contents, config={})
 
         def scenario():

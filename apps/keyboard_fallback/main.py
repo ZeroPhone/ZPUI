@@ -48,14 +48,14 @@ class KeyboardFallbackApp(ZeroApp):
             self.pop_on_event.clear()
 
     def go_into_foreground(self):
-        if not self.pop_on_event.isSet():
+        if not self.pop_on_event.is_set():
             return False
         return self.context.request_switch()
 
     def process_dm_event(self, event):
         self.c.clear()
         self.state = event
-        if not self.context.is_active() and self.pop_on_event.isSet() \
+        if not self.context.is_active() and self.pop_on_event.is_set() \
           and event not in self.do_not_activate_events:
             if not self.go_into_foreground():
                 return

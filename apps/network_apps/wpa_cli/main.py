@@ -200,7 +200,7 @@ def connect_to_network(network_info):
         # fourth - let's check if we're currently connected to another network
         # if so - we should disable it
         connected = False
-        while not connected and not do_exit.isSet():
+        while not connected and not do_exit.is_set():
           if current_ssid != network_info["ssid"]:
             status = wpa_cli.connection_status()
             current_ssid = status.get('ssid', None)
@@ -763,12 +763,12 @@ def stop_monitor():
 
 def wizard_scan_thread(connected):
     sleep_time = 0.1
-    while not connected.isSet():
+    while not connected.is_set():
         times_to_sleep = wizard_scan_delay // sleep_time
         try_scan()
         for i in range(int(times_to_sleep)):
             # periodically checking the event to avoid the thread lingering in background for a long time
-            if connected.isSet():
+            if connected.is_set():
                 return
             sleep(sleep_time)
 

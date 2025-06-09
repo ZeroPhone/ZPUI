@@ -314,7 +314,7 @@ class MatrixClientApp(ZeroApp):
             self.messages_menu.set_contents(self._get_messages_menu_contents(room.room_id))
             self.messages_menu.refresh()
         # Setting flag - if not already set
-        if not self.has_processed_new_events.isSet():
+        if not self.has_processed_new_events.is_set():
             logger.debug("New event processed, setting flag")
         self.has_processed_new_events.set()
 
@@ -355,7 +355,7 @@ class MatrixClientApp(ZeroApp):
             logger.exception("Couldn't load previous messages!")
             return False
         else:
-            if self.has_processed_new_events.isSet():
+            if self.has_processed_new_events.is_set():
                 self.has_processed_new_events.clear()
                 return True
             return False

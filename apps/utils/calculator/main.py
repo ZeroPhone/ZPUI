@@ -291,7 +291,7 @@ def show(lines):
     for n in range(max):
         y = n * char_height
         c.text(lines[n], (0, y), font=font1)
-        if n == index and blink.isSet(): # row 0 or 3 && blink
+        if n == index and blink.is_set(): # row 0 or 3 && blink
             c.invert_rect((127 - 8, y + char_height - 4, 127, y + char_height - 1))
     c.display()
 
@@ -324,7 +324,7 @@ def toggle_degree():
 
 def next_mode(where):
     global mode, dir, help_page
-    if waiting.isSet():
+    if waiting.is_set():
         help_page = help_page + where
         if help_page < 0:
             help_page = 0
@@ -393,7 +393,7 @@ def cursor(interval):
     blink_count = blink_count + interval
     if blink_count > 0.55:
         blink_count = 0
-        if blink.isSet():
+        if blink.is_set():
             blink.clear()
         else:
             blink.set()
@@ -492,12 +492,12 @@ def callback():
     set_keymap()
     exit_app.clear()
     do_update.clear()
-    while not exit_app.isSet():
-        if do_update.isSet():
+    while not exit_app.is_set():
+        if do_update.is_set():
             do_update.clear()
             waiting.clear()
             lines = get_lines()
             show(lines)
         sleep(0.01)
-        if not waiting.isSet():
+        if not waiting.is_set():
             cursor(0.01)

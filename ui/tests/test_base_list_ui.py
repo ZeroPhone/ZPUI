@@ -62,10 +62,10 @@ class TestBaseListUIElement(unittest.TestCase):
         """tests in_background property"""
         element = BaseListUIElement([["Option", "option"]], get_mock_input(), get_mock_output(), name=el_name, config={})
         assert(element.in_background == False)
-        assert(not element._in_background.isSet())
+        assert(not element._in_background.is_set())
         element.in_background = True
         assert(element.in_background == True)
-        assert(element._in_background.isSet())
+        assert(element._in_background.is_set())
 
     @unittest.skip("different exit label functionality not yet implemented")
     def test_exit_label_leakage(self):

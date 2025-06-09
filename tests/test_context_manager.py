@@ -39,13 +39,13 @@ class TestContext(unittest.TestCase):
         c.signal_finished = finished.set
         c.threaded = False # Need to set this flag, otherwise a validation check fails
         c.activate()
-        assert(not e.isSet())
-        assert(not finished.isSet())
+        assert(not e.is_set())
+        assert(not finished.is_set())
         c.threaded = True
         c.set_target(e.set)
         c.activate()
         finished.wait()
-        assert(e.isSet())
+        assert(e.is_set())
 
     def test_targetless_threaded_context(self):
         """Tests whether a target-less threaded context fails to activate"""

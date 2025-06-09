@@ -57,7 +57,7 @@ class BaseUIElement(object):
 
     @property
     def in_foreground(self):
-        return self._in_foreground.isSet()
+        return self._in_foreground.is_set()
 
     @in_foreground.setter
     def in_foreground(self, value):
@@ -65,7 +65,7 @@ class BaseUIElement(object):
 
     @property
     def in_background(self):
-        return self._in_background.isSet()
+        return self._in_background.is_set()
 
     @in_background.setter
     def in_background(self, value):

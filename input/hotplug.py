@@ -88,16 +88,16 @@ class DeviceManager():
         ci_drivers = self.get_custom_i2c_drivers()
         driver = ci_drivers[0] # Can't wait until I think of a better heuristic lol
         while True:
-            if driver.connected.isSet() is not True:
-                print(driver.connected.isSet())
+            if driver.connected.is_set() is not True:
+                print(driver.connected.is_set())
                 self.notify_event("custom_i2c_disconnected")
                 usb_keyboard = None
-                while usb_keyboard is None and not driver.connected.isSet():
+                while usb_keyboard is None and not driver.connected.is_set():
                     self.notify_event("looking_for_usb_keyboard")
                     usb_keyboard = self.detect_usb_keyboard()
                     if usb_keyboard is None:
                         sleep(self.usb_keyboard_not_detected_sleep)
-                if driver.connected.isSet(): # Driver is active again
+                if driver.connected.is_set(): # Driver is active again
                     self.notify_event("custom_i2c_connected_back")
                     continue
                 else: # Driver still not active and keyboard was found
@@ -105,7 +105,7 @@ class DeviceManager():
                     driver_name = self.connect_usb_keyboard(usb_keyboard.name)
                     if driver_name:
                         self.notify_event("usb_keyboard_connected")
-                        while self.i.drivers[driver_name].connected.isSet(): # idling while driver is connected
+                        while self.i.drivers[driver_name].connected.is_set(): # idling while driver is connected
                             sleep(self.usb_keyboard_connected_sleep)
                         self.notify_event("usb_keyboard_disconnected")
                         self.remove_driver(driver_name)

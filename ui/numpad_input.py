@@ -437,14 +437,14 @@ class NumpadPasswordInput(NumpadCharInput):
         return km
 
     def toggle_pw_display(self):
-        if self.pw_value_displayed.isSet():
+        if self.pw_value_displayed.is_set():
             self.pw_value_displayed.clear()
         else:
             self.pw_value_displayed.set()
 
     def get_displayed_value(self):
         if self.value:
-            if self.pw_value_displayed.isSet():
+            if self.pw_value_displayed.is_set():
                 return self.value
             masked_string = "*"*len(self.value)
             if self.pending_character:

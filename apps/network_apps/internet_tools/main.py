@@ -60,7 +60,7 @@ class InternetTools(ZeroApp):
             r = s.get(sources[0]) # no "get from multiple sources" yet
         except requests.ConnectionError:
             return False
-        if was_cancelled.isSet():
+        if was_cancelled.is_set():
             return None
         success = True if r.status_code in range(200, 300) else False
         return success

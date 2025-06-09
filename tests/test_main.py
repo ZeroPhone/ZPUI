@@ -52,7 +52,7 @@ class TestMainPy(unittest.TestCase):
         with patch.object(main_py, 'exception_wrapper', side_effect = e_wrapper):
             #with patch.object(main_py, 'exception_wrapper', side_effect = e_wrapper):
             main_py.launch(name="apps/example_apps/test/")
-        assert(e_wrapper_called.isSet())
+        assert(e_wrapper_called.is_set())
 
 if __name__ == '__main__':
     unittest.main()

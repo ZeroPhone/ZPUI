@@ -175,7 +175,7 @@ class InputProcessor(object):
         # It'll be called just before self.stop_flag will be overwritten. However, we've got a reference to it and now can check the exact flag this thread itself constructed.
         # Praise the holy garbage collector.
         stop_flag.clear()
-        while not stop_flag.isSet():
+        while not stop_flag.is_set():
             if self.get_current_proxy() is not None:
                 try:
                     data = self.queue.get(False, 0.1)

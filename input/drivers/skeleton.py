@@ -50,7 +50,7 @@ class InputSkeleton(object):
             self.init_hw_error_msg_filter = False
             return value
         except IOError:
-            if self.connected.isSet() or initial:
+            if self.connected.is_set() or initial:
                 logger.exception("Cannot find hardware")
             return False
         except AttributeError:
@@ -133,11 +133,11 @@ class InputSkeleton(object):
     def is_connected(self):
         if self.status_available:
             return None
-        return self.connected.isSet()
+        return self.connected.is_set()
 
     def check_connection(self):
         if self.status_available:
-            status = self.connected.isSet()
+            status = self.connected.is_set()
             if not status:
                 return self.connect()
             return True

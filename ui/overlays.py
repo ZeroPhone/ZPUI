@@ -45,7 +45,7 @@ class BaseOverlayWithState(BaseOverlay):
 
     def get_state(self, ui_el):
         n = ui_el.name
-        return self.uie[n].active.isSet()
+        return self.uie[n].active.is_set()
 
 class BaseOverlayWithTimeout(BaseOverlayWithState):
 
@@ -62,7 +62,7 @@ class BaseOverlayWithTimeout(BaseOverlayWithState):
 
     def update_state(self, ui_el):
         n = ui_el.name
-        if self.uie[n].active.isSet():
+        if self.uie[n].active.is_set():
             self.uie[n].counter += 1
             if self.uie[n].counter == self.duration:
                 self.uie[n].active.clear()
@@ -143,7 +143,7 @@ class HelpOverlay(BaseOverlayWithTimeout):
 
     def modify_image_if_needed(self, ui_el, image):
         n = ui_el.name
-        if self.uie[n].active.isSet():
+        if self.uie[n].active.is_set():
             c = Canvas(ui_el.o, base_image=image)
             self.draw_icon(c)
             image = c.get_image()
@@ -280,7 +280,7 @@ class GridMenuLabelOverlay(HelpOverlay):
 
     def update_state(self, ui_el):
         n = ui_el.name
-        if self.uie[n].active.isSet():
+        if self.uie[n].active.is_set():
             self.uie[n].counter += 1
             if self.uie[n].counter == self.duration:
                 self.uie[n].active.clear()
@@ -299,7 +299,7 @@ class GridMenuLabelOverlay(HelpOverlay):
         n = ui_el.name
         @wraps(refresh)
         def wrapper():
-            if self.uie[n].is_clear_refresh.isSet():
+            if self.uie[n].is_clear_refresh.is_set():
                 # This refresh is internal and done to remove the label
                 self.uie[n].is_clear_refresh.clear()
             else:
@@ -311,7 +311,7 @@ class GridMenuLabelOverlay(HelpOverlay):
 
     def modify_image_if_needed(self, ui_el, image):
         n = ui_el.name
-        if not self.uie[n].active.isSet():
+        if not self.uie[n].active.is_set():
             return image
         c = Canvas(ui_el.o, base_image=image)
         self.draw_text(c, ui_el)
@@ -459,7 +459,7 @@ class IntegerAdjustInputOverlay(BaseNumpadOverlay):
             return # Weird, nav order does not contain a key
         digit = self.input_order[key]
         n = ui_el.name
-        if self.uie[n].numpad_input_has_started.isSet():
+        if self.uie[n].numpad_input_has_started.is_set():
             if ui_el.number is not None:
                 number_str = str(ui_el.number)
                 number_str += str(digit)
@@ -526,7 +526,7 @@ class SpinnerOverlay(BaseOverlayWithState):
 
     def modify_image_if_needed(self, ui_el, image):
         n = ui_el.name
-        if not self.uie[n].active.isSet():
+        if not self.uie[n].active.is_set():
             return image
         if self.uie[n].spinner_stage == 3:
             self.uie[n].spinner_stage = 0
@@ -543,7 +543,7 @@ class SpinnerOverlay(BaseOverlayWithState):
         @wraps(idle_loop)
         def wrapper(*args, **kwargs):
             return_value = idle_loop(*args, **kwargs)
-            if self.uie[n].active.isSet():
+            if self.uie[n].active.is_set():
                 ui_el.refresh()
             return return_value
         ui_el.idle_loop = wrapper
@@ -614,7 +614,7 @@ class PurposeOverlay(BaseOverlayWithState):
 
     def modify_image_if_needed(self, ui_el, image):
         n = ui_el.name
-        if not self.uie[n].active.isSet():
+        if not self.uie[n].active.is_set():
             return image
         c = Canvas(ui_el.o, base_image=image)
         self.show_purpose(c)

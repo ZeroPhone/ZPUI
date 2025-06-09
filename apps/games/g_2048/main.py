@@ -43,7 +43,7 @@ class GameApp(ZeroApp):
                 self.start_new_game()
         # By now, the `game` property should have a game
         # Let's launch the main loop
-        while not self.do_exit.isSet():
+        while not self.do_exit.is_set():
             self.game_loop()
 
     def start_new_game(self):
@@ -87,9 +87,9 @@ class GameApp(ZeroApp):
     def game_loop(self):
         self.set_keymap()
         self.refresh()
-        while self.game.get_game_state() == 'not over' and not self.do_exit.isSet():
+        while self.game.get_game_state() == 'not over' and not self.do_exit.is_set():
             sleep(1)
-        if self.do_exit.isSet():
+        if self.do_exit.is_set():
             self.write_score()
 
             return

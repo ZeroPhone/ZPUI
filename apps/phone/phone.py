@@ -531,9 +531,9 @@ class Modem(object):
     #The monitor thread - it receives data from the modem and calls callbacks
 
     def monitor(self):
-        while self.should_monitor.isSet():
+        while self.should_monitor.is_set():
             logger.info("Monitoring...")
-            if not self.executing_command.isSet():
+            if not self.executing_command.is_set():
                 #First, the serial port
                 #print("Reading data through serial!")
                 data = self.port.read(self.read_buffer_size)
