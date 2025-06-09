@@ -11,7 +11,7 @@ jobs:
     - name: Install requirements
       run: pip install -r requirements.txt; pip install -r test_requirements.txt
     - name: Run tests and collect coverage
-      run: ./test.sh
+      run: python3 -B -m pytest --cov --doctest-modules -vv --doctest-ignore-import-errors --ignore=output/drivers --ignore=input/drivers --ignore=apps/hardware_apps --ignore=apps/example_apps/fire_detector --ignore=apps/test_hardware --ignore=docs/ --ignore=utils/ --ignore=apps/firstboot_wizard/ --ignore=apps/keyboard_fallback/ --ignore=apps/main_screen/ --ignore=apps/personal/contacts/main.py --ignore=apps/personal/contacts/vcard_converter.py  --ignore=apps/personal/todo_txt/ --ignore=apps/phone/ --ignore=apps/privacy_apps/tor/ --ignore=apps/messaging_apps/matrix/ --ignore=apps/flashlight/main.py --ignore=emulator.py --ignore=apps/concepts/bebbleberry/ --ignore screenshots/
     - name: Upload coverage reports to Codecov
       run: |
         # Replace `linux` below with the appropriate OS
