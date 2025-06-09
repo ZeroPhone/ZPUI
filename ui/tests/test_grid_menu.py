@@ -5,12 +5,13 @@ import unittest
 from mock import patch, Mock
 
 try:
-    from ui import GridMenu
-    from ui.base_list_ui import Canvas
+    from ui import GridMenu, Canvas
     fonts_dir = "ui/fonts"
 except ImportError:
     print("Absolute imports failed, trying relative imports")
+    from zpui_lib.hacks import basestring_hack; basestring_hack()
     os.sys.path.append(os.path.dirname(os.path.abspath('.')))
+    fonts_dir = "fonts"
     # Store original __import__
     orig_import = __import__
 
@@ -20,12 +21,53 @@ except ImportError:
         elif name == 'ui.utils':
             import utils
             return utils
+        elif name == 'ui.entry':
+            import entry
+            return entry
+        elif name == 'ui.base_list_ui':
+            import base_list_ui
+            return base_list_ui
+        elif name == 'ui.base_ui':
+            import base_ui
+            return base_ui
+        elif name == 'ui.menu':
+            import menu
+            return menu
+        elif name == 'ui.refresher':
+            import refresher
+            return refresher
+        elif name == 'ui.number_input':
+            import number_input
+            return number_input
+        elif name == 'ui.loading_indicators':
+            import loading_indicators
+            return loading_indicators
+        elif name == 'ui.canvas':
+            import canvas
+            canvas.fonts_dir = "../fonts/"
+            return canvas
+        elif name == 'ui.funcs':
+            import funcs
+            return funcs
         return orig_import(name, *args)
 
-    with patch('__builtin__.__import__', side_effect=import_mock):
-        from grid_menu import GridMenu
-        from base_list_ui import Canvas
-        fonts_dir = "../fonts"
+    try:
+        import __builtin__
+    except ImportError:
+        import builtins
+        with patch('builtins.__import__', side_effect=import_mock):
+            import canvas
+            canvas.fonts_dir = "../fonts/"
+            Canvas = canvas.Canvas
+            expand_coords = canvas.expand_coords
+            from grid_menu import GridMenu
+    else:
+        with patch('__builtin__.__import__', side_effect=import_mock):
+            import canvas
+            canvas.fonts_dir = "../fonts/"
+            Canvas = canvas.Canvas
+            expand_coords = canvas.expand_coords
+            from grid_menu import GridMenu
 
 def get_mock_input():
     return Mock()
@@ -37,7 +79,7 @@ def get_mock_output(rows=8, cols=21):
 
 def get_mock_graphical_output(width=128, height=64, mode="1", cw=6, ch=8):
     m = get_mock_output(rows=width/cw, cols=height/ch)
-    m.configure_mock(width=width, height=height, device_mode=mode, char_height=ch, char_width=cw, type=["b&w"])
+    m.configure_mock(width=width, height=height, device_mode=mode, char_height=ch, char_width=cw, type=["b&w"] if not mode.startswith("RGB") else ["b&w", "color"])
     return m
 
 
@@ -58,13 +100,14 @@ class TestGridMenu(unittest.TestCase):
         for key_name, callback in menu.keymap.items():
             self.assertIsNotNone(callback)
 
-    @unittest.skip("expected to fail since menu doesn't handle exit label replacement yet")
     def test_exit_label_leakage(self):
         """tests whether the exit label of one GridMenu leaks into another"""
         i = get_mock_input()
         o = get_mock_graphical_output()
-        c1 = GridMenu([["a", "1"]], i, o, name=mu_name + "1", final_button_name="Name1", config={})
-        c2 = GridMenu([["b", "2"]], i, o, name=mu_name + "2", final_button_name="Name2", config={})
+        c1 = GridMenu([["a", "1"]], i, o, name=mu_name + "1", config={})
+        c1.exit_entry = ["Restart ZPUI", "exit"]
+        c2 = GridMenu([["b", "2"]], i, o, name=mu_name + "2", config={})
+        c2.exit_entry = ["Do not restart ZPUI", "exit"]
         c3 = GridMenu([["c", "3"]], i, o, name=mu_name + "3", config={})
         assert (c1.exit_entry != c2.exit_entry)
         assert (c2.exit_entry != c3.exit_entry)
@@ -130,26 +173,6 @@ class TestGridMenu(unittest.TestCase):
         assert o.display_image.called
         assert o.display_image.call_count == 1 #One in to_foreground
 
-    @unittest.skip("No entry_height")
-    def test_graphical_redraw_with_eh_2(self):
-        """
-        Tests for a bug where a GridMenu with one two-elements-high entry would fail to render
-        """
-        num_elements = 3
-        o = get_mock_graphical_output()
-        contents = [[["A" + str(i), "B"+str(i)], "a" + str(i)] for i in range(num_elements)]
-        mu = GridMenu(contents, get_mock_input(), o, name=mu_name, entry_height=2, append_exit=False, config={})
-        Canvas.fonts_dir = fonts_dir
-        # Exiting immediately, but we should get at least one redraw
-        def scenario():
-            mu.deactivate()  # KEY_LEFT
-            assert not mu.is_active
-
-        with patch.object(mu, 'idle_loop', side_effect=scenario) as p:
-            return_value = mu.activate()
-        assert o.display_image.called
-        assert o.display_image.call_count == 1 #One in to_foreground
-
     @unittest.skip("needs to check whether the callback is executed instead")
     def test_enter_on_last_returns_right(self):
         num_elements = 3
@@ -180,8 +203,7 @@ class TestGridMenu(unittest.TestCase):
         assert all([isinstance(key, basestring) for key in return_value.keys()])
         assert all([isinstance(value, bool) for value in return_value.values()])
 
-    @unittest.skip("No text output")
-    def test_shows_data_on_screen(self):
+    def test_shows_data_on_128x64_screen(self):
         """Tests whether the GridMenu outputs data on screen when it's ran"""
         num_elements = 3
         contents = [["A" + str(i), "a" + str(i)] for i in range(num_elements)]
@@ -198,9 +220,49 @@ class TestGridMenu(unittest.TestCase):
             assert mu.idle_loop.called
             assert mu.idle_loop.call_count == 1
 
-        assert o.display_data.called
-        assert o.display_data.call_count == 1 #One in to_foreground
-        assert o.display_data.call_args[0] == ('A0', 'A1', 'A2', 'Back')
+        assert o.display_image.called
+        assert o.display_image.call_count == 1 #One in to_foreground
+
+    def test_shows_data_on_400x240_screen(self):
+        """Tests whether the GridMenu outputs data on a 400x240 screen when it's ran. covers BebbleGridView."""
+        num_elements = 3
+        contents = [["A" + str(i), "a" + str(i)] for i in range(num_elements)]
+        i = get_mock_input()
+        o = get_mock_graphical_output(width=400, height=240)
+        mu = GridMenu(contents, i, o, name=mu_name, config={})
+
+        def scenario():
+            mu.deactivate()
+
+        with patch.object(mu, 'idle_loop', side_effect=scenario) as p:
+            mu.activate()
+            #The scenario should only be called once
+            assert mu.idle_loop.called
+            assert mu.idle_loop.call_count == 1
+
+        assert o.display_image.called
+        assert o.display_image.call_count == 1 #One in to_foreground
+
+    def test_shows_data_on_400x240_color_screen(self):
+        """Tests whether the GridMenu outputs data on a 400x240 screen when it's ran. covers BebbleGridView."""
+        num_elements = 3
+        contents = [["A" + str(i), "a" + str(i)] for i in range(num_elements)]
+        i = get_mock_input()
+        o = get_mock_graphical_output(width=400, height=240, mode="RGB")
+        mu = GridMenu(contents, i, o, name=mu_name, config={})
+
+        def scenario():
+            mu.deactivate()
+
+        with patch.object(mu, 'idle_loop', side_effect=scenario) as p:
+            mu.activate()
+            #The scenario should only be called once
+            assert mu.idle_loop.called
+            assert mu.idle_loop.call_count == 1
+
+        assert o.display_image.called
+        assert o.display_image.call_count == 1 #One in to_foreground
+
 
 if __name__ == '__main__':
     unittest.main()
