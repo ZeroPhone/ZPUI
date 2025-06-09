@@ -512,19 +512,25 @@ class SettingsApp(ZeroApp):
 
     def updater(self):
         while self.git_updater.config.get('auto_check_update', False): # will immediately exit if auto_check_update is set to false
-            try:
-                if self.git_updater.updates_available(): # git fetch and check happens here
-                    logger.debug("ZPUI updates available? Let's check the diff!")
-                    update_result = self.git_updater.list_updates()
-                    if update_result: # non-empty diff - means the remote actually has new commits for us
+            self.check_updates()
+            sleep(self.git_updater.config.get('update_interval', 3600)) # checks once an hour by default after the first check
+
+    def check_updates(self):
+        try:
+            if self.git_updater.updates_available(): # git fetch and check happens here
+                logger.debug("ZPUI updates available? Let's check the diff!")
+                update_result = self.git_updater.list_updates()
+                if update_result: # non-empty diff - means the remote actually has new commits for us
+                    if self.git_updater.update_is_interesting():
                         logger.info("ZPUI updates available! {}".format(update_result))
                         self.updates_available.set(True)
                         pass # uhhhh emit a notification? lol
                     else:
-                        logger.debug("ZPUI update correctly detected as non-applicable!")
-            except:
-                logger.exception("Problem when automatically fetching updates!")
-            sleep(self.git_updater.config.get('update_interval', 3600)) # checks once an hour by default after the first check
+                        logger.info("ZPUI updates available, but marked as uninteresting")
+                else:
+                    logger.debug("ZPUI update correctly detected as non-applicable!")
+        except:
+            logger.exception("Problem when automatically fetching updates!")
 
     def set_context(self, c):
         self.context = c
@@ -548,19 +554,24 @@ class SettingsApp(ZeroApp):
         self.git_updater = GitUpdater()
         self.update_zpui_fba = FirstBootAction("update_zpui", self.git_updater.update_on_firstboot, depends=["check_connectivity"])
         self.update_thread = BackgroundRunner(self.updater)
+        self.check_on_open_br = BackgroundRunner(self.check_updates)
         if self.git_updater.config.get('auto_check_update', False):
             self.update_thread.run()
 
     def on_start(self):
-        c = [["Update ZPUI", self.git_updater.update, self.git_updater.settings],
-             # ["Bugreport", bugreport_ui.main_menu], # no longer working, big sad
-             ["Logging settings", logging_ui.config_logging],
-             ["About", about.about]]
-        #if self.git_updater.config.get('check_update_on_open', False) and self.git_updater.updates_available(): # no longer checks in-place
-        if self.updates_available:
-            l = ["Updates available!", self.git_updater.show_updates]
-            c = [l] + c
-        menu = Menu(c, self.i, self.o, "ZPUI settings menu")
+        if self.git_updater.config.get('check_update_on_open', False):
+            # launch a background thread checking for updates
+            self.check_on_open_br.run()
+        def contents_hook():
+            c = [["Update ZPUI", self.git_updater.update, self.git_updater.settings],
+                 # ["Bugreport", bugreport_ui.main_menu], # no longer working, big sad
+                 ["Logging settings", logging_ui.config_logging],
+                 ["About", about.about]]
+            if self.updates_available:
+                l = ["Updates available!", self.git_updater.show_updates]
+                c = [l] + c
+            return c
+        menu = Menu([], self.i, self.o, contents_hook=contents_hook, name="ZPUI settings menu")
         #help_text = "Press RIGHT on \"Update ZPUI\" to change OTA update settings (branch or git URL to use)"
         #HelpOverlay(help_text).apply_to(menu)
         menu.activate()
