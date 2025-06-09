@@ -12,6 +12,8 @@ class Screen(GraphicalOutputDevice, CharacterOutputDevice):
     type = ["char", "b&w"]
     cursor_enabled = False
     cursor_pos = (0, 0) #x, y
+    width = 128
+    height = 64
 
     def __init__(self):
         pass
