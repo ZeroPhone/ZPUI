@@ -14,9 +14,42 @@ try:
 except (ValueError, ImportError) as e:
     print("Absolute imports failed, trying relative imports")
     os.sys.path.append(os.path.dirname(os.path.abspath('.')))
-    import main as main_py
     from input.drivers import test_input, pi_gpio, pi_gpio_matrix
     config_path = "test_config.json"
+
+    orig_import = __import__
+
+    def import_mock(name, *args, **kwargs):
+        """if name in ['helpers']:
+            return Mock()
+        elif name == 'ui.utils':
+            import ui.utils
+            return ui.utils
+        elif name == 'ui.canvas':
+            import ui.canvas
+            canvas.fonts_dir = "../ui/fonts/"
+            return canvas
+        elif name == 'ui.funcs':
+            import ui.funcs
+            return ui.funcs"""
+        return orig_import(name, *args, **kwargs)
+
+    try:
+        import __builtin__
+    except ImportError:
+        import builtins
+        with patch('builtins.__import__', side_effect=import_mock):
+            import ui.canvas as canvas
+            canvas.fonts_dir = "../ui/fonts/"
+            Canvas = canvas.Canvas
+            expand_coords = canvas.expand_coords
+    else:
+        with patch('__builtin__.__import__', side_effect=import_mock):
+            import ui.canvas as canvas
+            canvas.fonts_dir = "../ui/fonts/"
+            Canvas = canvas.Canvas
+            expand_coords = canvas.expand_coords
+    import main as main_py
 
 
 with open(config_path, 'r') as f:
@@ -40,6 +73,17 @@ class TestDrivers(unittest.TestCase):
 
     def test_ssd1306(self):
         output_config = {"driver":"ssd1306", "kwargs":{"hw":"dummy"}}
+        config = deepcopy(base_config)
+        config["output"][0] = output_config
+        assert(config["input"][0]["driver"] == "test_input")
+        with patch.object(main_py, 'load_config') as mocked:
+            mocked.return_value = (config, "test_config.json")
+            i, o = main_py.init()
+        assert(isinstance(i, main_py.input.InputProxy))
+        assert(isinstance(o, main_py.output.OutputProxy))
+
+    def test_ili9341(self):
+        output_config = {"driver":"ili9341", "kwargs":{"hw":"dummy"}}
         config = deepcopy(base_config)
         config["output"][0] = output_config
         assert(config["input"][0]["driver"] == "test_input")
@@ -84,7 +128,7 @@ class TestDrivers(unittest.TestCase):
         assert(isinstance(i, main_py.input.InputProxy))
         assert(isinstance(o, main_py.output.OutputProxy))
 
-    @unittest.skip("broken test, can't properly patch the imports =(")
+    #@unittest.skip("broken test, can't properly patch the imports =(")
     def test_pygame_driver(self):
         input_config = {"driver":"pygame_input"}
         config = deepcopy(base_config)
@@ -93,10 +137,10 @@ class TestDrivers(unittest.TestCase):
         module_patch = patch.dict('sys.modules', {"luma.emulator.device":Mock(), \
                                                   "luma.emulator":Mock()})
         module_patch.start()
-        import sys; print([(key, sys.modules[key]) for key in sys.modules.keys() if key.startswith('luma.emulator')])
-        sys.modules['luma.emulator'].configure_mock(device2=Mock())
-        print(sys.modules['luma.emulator'])
-        print(sys.modules['luma.emulator.device'])
+        #import sys; print([(key, sys.modules[key]) for key in sys.modules.keys() if key.startswith('luma.emulator')])
+        import sys; sys.modules['luma.emulator'].configure_mock(device2=Mock())
+        #print(sys.modules['luma.emulator'])
+        #print(sys.modules['luma.emulator.device'])
         import emulator as emulator_py
         with patch.object(emulator_py.Emulator, 'init_hw') as init_hw, \
           patch.object(emulator_py.Emulator, 'runner') as runner, \
@@ -107,7 +151,7 @@ class TestDrivers(unittest.TestCase):
         assert(isinstance(i, main_py.input.InputProxy))
         assert(isinstance(o, main_py.output.OutputProxy))
         module_patch.stop()
-        print([(key, sys.modules[key]) for key in sys.modules.keys() if key.startswith('luma.emulator')])
+        #print([(key, sys.modules[key]) for key in sys.modules.keys() if key.startswith('luma.emulator')])
         # so that no ugly exception is raised when the test finishes
         main_py.input_processor.atexit()
 
@@ -135,7 +179,8 @@ class TestDrivers(unittest.TestCase):
         # so that no ugly exception is raised when the test finishes
         main_py.input_processor.atexit()
 
-    @unittest.skip("broken test, can't properly patch the imports =(")
+    #@unittest.skip("broken test, can't properly patch the imports =(")
+
     def test_pi_gpio_driver(self):
         input_config = {"driver":"pi_gpio"}
         config = deepcopy(base_config)
@@ -152,7 +197,7 @@ class TestDrivers(unittest.TestCase):
         # so that no ugly exception is raised when the test finishes
         main_py.input_processor.atexit()
 
-    @unittest.skip("broken test, can't properly patch the imports =(")
+    #@unittest.skip("broken test, can't properly patch the imports =(")
     def test_pi_gpio_matrix_driver(self):
         input_config = {"driver":"pi_gpio_matrix"}
         config = deepcopy(base_config)
