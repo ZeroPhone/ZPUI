@@ -115,7 +115,7 @@ def init():
             if hasattr(screen, "set_color"):
                 screen.set_color(c.default_color)
             screen.default_color = c.default_color
-            canvas.default_color = c.default_color # setting the canvas-global color after it's been processed by the canvas
+            canvas.global_default_color = c.default_color # setting the canvas-global color after it's been processed by the canvas
 
     except:
         logging.exception('Failed to initialize the output object')
@@ -167,7 +167,7 @@ def launch(name=None, **kwargs):
     if name is None:
         try:
             from splash import splash
-            splash(i, o, color=canvas.default_color)
+            splash(i, o, color=canvas.global_default_color)
         except:
             logging.exception('Failed to load the splash screen')
 
