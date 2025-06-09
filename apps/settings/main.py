@@ -236,7 +236,7 @@ class GitUpdater(GenericUpdater):
     #safe_branches = ["master", "staging", "devel"] # commenting out for now because staging and devel are unused
     safe_branches = ["master"]
     # Forming the default config
-    default_config = '{"url":"https://github.com/ZeroPhone/ZPUI", "branches":[], "check_revs":true, "run_tests":true, "auto_check_update":true, "check_update_on_open":true, "update_interval":3600}'
+    default_config = '{"url":"https://github.com/ZeroPhone/ZPUI", "branches":[], "check_revs":true, "run_tests":true, "auto_check_update":true, "check_update_on_open":true, "update_interval":3600, "ignored_updates":[]}'
     json_config = json.loads(default_config)
     json_config["branches"] = safe_branches
     default_config = json.dumps(json_config)
@@ -396,18 +396,35 @@ class GitUpdater(GenericUpdater):
             else:
                 line = "{} {}".format(commit, msg) # just leave it be
             lines.append(line)
-        lines.append("")
-        lines.append("Press Left to exit")
         text = "\n".join(lines)
         #print(text)
         return text
+
+    def update_is_interesting(self):
+        _, remote_revision = self.get_current_remote_revisions()
+        if remote_revision in self.config["ignored_updates"]:
+            return False
+        return True
 
     def show_updates(self):
         text = self.list_updates()
         if not text:
             return
+        if not self.update_is_interesting():
+            return False
+        text += "\n"
+        text += "\nPress Left to exit"
         TextReader(text, i, o, name="Settings app updates list TextReader").activate()
         self.update_on_firstboot(name="Settings app updates list update dialog", suggest_restart=True)
+        choice = DialogBox("yn", i, o, message="Update ZPUI?", name="Settings app updates list update dialog").activate()
+        if not choice:
+            # mark update target as ignored for now
+            PrettyPrinter("Marking update as uninteresting, then", i, o, 1)
+            _, remote_revision = self.get_current_remote_revisions()
+            self.config["ignored_updates"].append(remote_revision)
+            self.save_config()
+            return None
+        return self.update(suggest_restart=True)
 
     def settings_contents(self):
         mc = [
