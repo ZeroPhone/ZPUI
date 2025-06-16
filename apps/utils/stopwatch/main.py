@@ -1,8 +1,8 @@
 # coding=utf-8
 
-from apps.zero_app import ZeroApp
-from ui import Refresher
-from ui.utils import Chronometer
+from zpui_lib.apps.zero_app import ZeroApp
+from zpui_lib.ui import Refresher
+from zpui_lib.ui.utils import Chronometer
 
 
 class StopwatchApp(ZeroApp):

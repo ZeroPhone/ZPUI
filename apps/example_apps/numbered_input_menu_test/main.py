@@ -1,16 +1,14 @@
 # coding=utf-8
 
-
-from apps.zero_app import ZeroApp
+from zpui_lib.apps.zero_app import ZeroApp
 from zpui_lib.helpers import setup_logger
-from ui import NumberedMenu
+from zpui_lib.ui import NumberedMenu
 import random
 
 logger = setup_logger(__name__, "info")
 class NumberedInputTestApp(ZeroApp):
 
-    def __init__(self, i, o):
-        super(NumberedInputTestApp, self).__init__(i, o)
+    def init_app(self):
         self.n_menu = None
         self.menu_name = "Numbered Input Menu"
         hellos = ["hello", "hello again", "ditto", "same"]

@@ -1,8 +1,8 @@
-menu_name = "Refresher app" 
+menu_name = "Refresher app"
 
 from datetime import datetime
 
-from ui import Refresher
+from zpui_lib.ui import Refresher
 
 counter = 0
 

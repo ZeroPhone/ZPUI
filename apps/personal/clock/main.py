@@ -8,11 +8,10 @@ from dateutil.zoneinfo import getzoneinfofile_stream, ZoneInfoFile
 
 from subprocess import check_output, CalledProcessError
 
-from apps import ZeroApp
-from actions import FirstBootAction
-from ui import Menu, Refresher, Canvas, IntegerAdjustInput, Listbox, LoadingBar, PrettyPrinter as Printer, PurposeOverlay
-
+from zpui_lib.apps import ZeroApp
+from zpui_lib.actions import FirstBootAction
 from zpui_lib.helpers import read_or_create_config, local_path_gen, setup_logger
+from zpui_lib.ui import Menu, Refresher, Canvas, IntegerAdjustInput, Listbox, LoadingBar, PrettyPrinter as Printer, PurposeOverlay
 
 logger = setup_logger(__name__, "warning")
 local_path = local_path_gen(__name__)

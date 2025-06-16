@@ -1,12 +1,7 @@
-
-
 from zpui_lib.helpers import setup_logger
+from zpui_lib.ui import IntegerInDecrementInput as Input
 
 menu_name = "Number input app"
-
-from datetime import datetime
-
-from ui import IntegerInDecrementInput as Input
 
 logger = setup_logger(__name__, "info")
 
@@ -17,8 +12,3 @@ o = None #Output device
 def callback():
     number_input = Input(0, i, o)
     logger.info(number_input.activate())
-
-def init_app(input, output):
-    global i, o
-    i = input; o = output #Getting references to output and input device objects and saving them as globals
-

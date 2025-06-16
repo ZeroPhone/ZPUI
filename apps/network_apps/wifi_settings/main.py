@@ -1,6 +1,6 @@
-from apps import ZeroApp
-from actions import FirstBootAction
-from ui import Menu, Listbox, LoadingBar, PrettyPrinter as Printer, rfa, PurposeOverlay
+from zpui_lib.apps import ZeroApp
+from zpui_lib.actions import FirstBootAction
+from zpui_lib.ui import Menu, Listbox, LoadingBar, PrettyPrinter as Printer, rfa, PurposeOverlay
 
 from time import sleep
 

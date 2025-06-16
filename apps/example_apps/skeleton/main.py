@@ -1,11 +1,10 @@
 from zpui_lib.helpers import setup_logger
+from zpui_lib.ui import Menu, Printer
 
 menu_name = "Skeleton app"  # App name as seen in main menu while using the system
 
 from subprocess import call
 from time import sleep
-
-from ui import Menu, Printer
 
 logger = setup_logger(__name__, "info")
 
@@ -28,4 +27,3 @@ def callback():
     ["Exit", 'exit']]
     main_menu = Menu(main_menu_contents, i, o, "Skeleton app menu")
     main_menu.activate()
-

@@ -1,10 +1,10 @@
 menu_name = "Menu dynamic update testing"
 
-from ui import Menu
+from zpui_lib.ui import Menu
 
-#Some globals for us
-i = None #Input device
-o = None #Output device
+# Some globals for us
+i = None # Input device
+o = None # Output device
 
 counter1 = 0
 counter2 = 20
@@ -14,7 +14,7 @@ def counter_change(cnum, amount):
     if cnum == 1:
         counter1 += amount
     else:
-        counter2 += amount 
+        counter2 += amount
         if counter2 < 0:
             counter2 = 0
 
@@ -32,8 +32,3 @@ def construct_contents():
 
 def callback():
     Menu([], i, o, "Menu update test menu", contents_hook=construct_contents).activate()
-
-def init_app(input, output):
-    global i, o
-    i = input; o = output 
-

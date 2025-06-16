@@ -1,5 +1,5 @@
-from apps import ZeroApp
-from ui import DatePicker, TimePicker
+from zpui_lib.apps import ZeroApp
+from zpui_lib.ui import DatePicker, TimePicker
 
 def callback(ul):
 	print(ul)

@@ -1,4 +1,4 @@
-from ui import Canvas, Refresher, Menu, MockOutput
+from zpui_lib.ui import Canvas, Refresher, Menu, MockOutput
 
 def show_pinouts(i, o):
     zp_pinout = zp_pinouts_page(o).get_image()

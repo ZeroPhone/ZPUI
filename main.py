@@ -14,13 +14,13 @@ from zpui_lib.helpers import read_config, local_path_gen, logger, env, read_or_c
 from zpui_lib.helpers.logger import LoggingConfig
 if __name__ == "__main__": LoggingConfig().autosave = True # "no log_conf.ini clutter by default" mechanism
 from zpui_lib import hacks
+from zpui_lib.ui import Printer, canvas
+from zpui_lib.actions import ContextSwitchAction
 
 from apps.app_manager import AppManager
 from context_manager import ContextManager
 from input import input
 from output import output
-from actions import ContextSwitchAction
-from ui import Printer, canvas
 import hw_combos
 
 rconsole_port = 9377

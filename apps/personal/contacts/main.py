@@ -5,9 +5,9 @@ import doctest
 import os
 
 from address_book import AddressBook, ZPUI_HOME, Contact
-from apps import ZeroApp
+from zpui_lib.apps import ZeroApp
 from zpui_lib.helpers import setup_logger
-from ui import NumberedMenu, Listbox
+from zpui_lib.ui import NumberedMenu, Listbox
 from vcard_converter import VCardContactConverter
 
 logger = setup_logger(__name__, "info")

@@ -5,7 +5,7 @@ from zpui_lib.helpers import setup_logger
 
 menu_name = "UPnP/SSDP scan"
 
-from ui import Menu, Printer, IntegerAdjustInput, PrettyPrinter, TextReader
+from zpui_lib.ui import Menu, Printer, IntegerAdjustInput, PrettyPrinter, TextReader
 from zpui_lib.helpers import read_or_create_config, write_config, local_path_gen
 
 from collections import OrderedDict

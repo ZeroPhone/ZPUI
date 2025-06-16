@@ -15,7 +15,7 @@ config = read_or_create_config(config_path, default_config, menu_name+" app")
 import os
 from subprocess import call, check_output
 
-from ui import Menu, IntegerAdjustInput, Listbox, ellipsize
+from zpui_lib.ui import Menu, IntegerAdjustInput, Listbox, ellipsize
 
 #amixer commands
 def amixer_command(command):

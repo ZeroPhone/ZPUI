@@ -2,7 +2,7 @@ from __future__ import print_function
 
 menu_name = "Help overlay test"
 
-from ui import Listbox, HelpOverlay
+from zpui_lib.ui import Listbox, HelpOverlay
 from zpui_lib.helpers import setup_logger
 
 logger = setup_logger(__name__, "info")
@@ -17,7 +17,3 @@ def callback():
     lb = Listbox(listbox_contents, i, o)
     HelpOverlay(lambda: print("Halp plz")).apply_to(lb)
     lb.activate()
-
-def init_app(input, output):
-    global i, o
-    i = input; o = output

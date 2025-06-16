@@ -1,11 +1,11 @@
 from input.input import InputProxy
 from output.output import OutputProxy
-from actions import ContextSwitchAction
 from action_manager import ActionManager
 
 from functools import wraps
 from threading import Thread, Lock
 
+from zpui_lib.actions import ContextSwitchAction
 from zpui_lib.helpers import setup_logger
 
 logger = setup_logger(__name__, "info")

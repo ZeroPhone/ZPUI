@@ -1,6 +1,6 @@
 menu_name = "Refresher app" 
 
-from ui import Refresher, PrettyPrinter
+from zpui_lib.ui import Refresher, PrettyPrinter
 
 counter = 0
 keys_called = []

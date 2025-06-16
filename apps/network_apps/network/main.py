@@ -3,7 +3,7 @@ menu_name = "Interfaces"
 i = None
 o = None
 
-from ui import Menu, PrettyPrinter as Printer
+from zpui_lib.ui import Menu, PrettyPrinter as Printer
 from zpui_lib.helpers import setup_logger
 from zpui_lib.libs.if_info import parse_ip_addr
 

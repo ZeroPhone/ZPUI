@@ -1,5 +1,5 @@
-from ui.menu import MenuRenderingMixin
-from ui import Entry
+from zpui_lib.ui.menu import MenuRenderingMixin
+from zpui_lib.ui import Entry
 
 class NetworkMenuRenderingMixin(MenuRenderingMixin):
     default_full_width_cursor = True

@@ -1,5 +1,5 @@
-from apps import ZeroApp
-from ui import GridMenu
+from zpui_lib.apps import ZeroApp
+from zpui_lib.ui import GridMenu
 
 def func_test(x):
 	print(x)

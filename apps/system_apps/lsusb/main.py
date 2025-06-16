@@ -1,6 +1,6 @@
 menu_name = "USB devices"
 
-from ui import Menu, Printer, PrettyPrinter, ellipsize
+from zpui_lib.ui import Menu, Printer, PrettyPrinter, ellipsize
 
 from zpui_lib.libs import lsusb
 

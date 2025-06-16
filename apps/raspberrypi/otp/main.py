@@ -5,7 +5,7 @@ o = None
 #from time import sleep
 from subprocess import check_output #, CalledProcessError
 
-from ui import Menu, PrettyPrinter as Printer, TextReader
+from zpui_lib.ui import Menu, PrettyPrinter as Printer, TextReader
 from zpui_lib.helpers import setup_logger, is_emulator, local_path_gen
 
 logger = setup_logger(__name__, "warning")

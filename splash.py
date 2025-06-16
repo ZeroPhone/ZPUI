@@ -44,4 +44,3 @@ def splash(i, o, color="white"):
     image = image.convert(o.device_mode)
     o.display_image(image)
 
-

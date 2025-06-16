@@ -1,8 +1,8 @@
-menu_name = "Assistant status" 
+menu_name = "Assistant status"
 
 from serial import Serial
 
-from ui import Refresher
+from zpui_lib.ui import Refresher
 
 serial_device = "/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0371-if00-port0"
 port = Serial(serial_device, 115200, timeout=1)

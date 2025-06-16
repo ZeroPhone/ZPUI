@@ -1,14 +1,10 @@
 menu_name = "Spinner"
 
-from ui import Throbber
+from zpui_lib.ui import Throbber
 from zpui_lib.helpers import ExitHelper
 
 i = None
 o = None
-
-def init_app(input, output):
-    global i, o
-    i = input; o = output
 
 class InputlessThrobber(Throbber):
     def configure_input(self):

@@ -1,7 +1,6 @@
-from apps import ZeroApp
-from ui import Menu
-
-from ui.overlays import SpinnerOverlay
+from zpui_lib.apps import ZeroApp
+from zpui_lib.ui import Menu
+from zpui_lib.ui.overlays import SpinnerOverlay
 
 class MainMenu(ZeroApp):
 

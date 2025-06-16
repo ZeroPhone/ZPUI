@@ -5,8 +5,8 @@ from cProfile import Profile
 #from cProfile import runcall as profile
 
 from mock import Mock
-from apps import ZeroApp
-from ui import Menu, PrettyPrinter, Canvas
+from zpui_lib.apps import ZeroApp
+from zpui_lib.ui import Menu, PrettyPrinter, Canvas
 
 from zerophone_hw import is_charging
 from PIL import ImageFont

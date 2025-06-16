@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from subprocess import call
-from apps.zero_app import ZeroApp
+from zpui_lib.apps.zero_app import ZeroApp
 from zpui_lib.helpers import setup_logger
-from ui import Menu, Printer
+from zpui_lib.ui import Menu, Printer
 
 
 logger = setup_logger(__name__, "info")

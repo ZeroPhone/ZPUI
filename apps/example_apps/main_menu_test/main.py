@@ -1,7 +1,7 @@
 import os
 
-from apps import ZeroApp
-from ui import GridMenu, Entry, GridMenuLabelOverlay, GridMenuSidebarOverlay
+from zpui_lib.apps import ZeroApp
+from zpui_lib.ui import GridMenu, Entry, GridMenuLabelOverlay, GridMenuSidebarOverlay
 
 from PIL import Image
 

@@ -1,8 +1,8 @@
 from threading import Event, Lock
 from time import sleep
 
-from apps import ZeroApp
-from ui import DialogBox, ffs
+from zpui_lib.apps import ZeroApp
+from zpui_lib.ui import DialogBox, ffs
 from zpui_lib.helpers import ExitHelper, local_path_gen
 
 from logic import GameOf2048

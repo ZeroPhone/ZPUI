@@ -1,13 +1,12 @@
 from time import sleep
 
-from apps import ZeroApp
-from ui import ProgressBar, TextProgressBar, CircularProgressBar, GraphicalProgressBar, IdleDottedMessage, Throbber, \
+from zpui_lib.apps import ZeroApp
+from zpui_lib.ui import ProgressBar, TextProgressBar, CircularProgressBar, GraphicalProgressBar, IdleDottedMessage, Throbber, \
     Listbox
 
 
 class LoadingBarExampleApp(ZeroApp):
-    def __init__(self, i, o):
-        super(LoadingBarExampleApp, self).__init__(i, o)
+    def init_app(self):
         self.menu_name = "Loading bar test app"
 
         self.default_progress_bar = ProgressBar(self.i, self.o)

@@ -6,8 +6,8 @@ from time import sleep
 import sys
 import os
 
-from apps import ZeroApp
-from ui import Menu, Printer, PrettyPrinter, Canvas
+from zpui_lib.apps import ZeroApp
+from zpui_lib.ui import Menu, Printer, PrettyPrinter, Canvas
 from zpui_lib.helpers import ExitHelper, local_path_gen, setup_logger, remove_left_failsafe, BackgroundRunner
 
 from smbus import SMBus
@@ -39,8 +39,8 @@ class ZPTestApp(ZeroApp):
 
     expander_ok = False
 
-    def __init__(self, *args, **kwargs):
-        ZeroApp.__init__(self, *args, **kwargs)
+    def init_app(self):
+        pass
         #if music_filename not in os.listdir(local_path('.')):
         #    self.br = BackgroundRunner(self.download_music)
         #    self.br.run()

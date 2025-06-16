@@ -2,7 +2,7 @@ menu_name = "TODO.txt"
 
 import tasklib
 
-from ui import Menu, Printer
+from zpui_lib.ui import Menu, Printer
 
 import re
 

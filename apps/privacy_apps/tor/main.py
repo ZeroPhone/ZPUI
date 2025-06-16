@@ -3,7 +3,7 @@ menu_name = "Tor control app"
 from subprocess import call
 from time import sleep
 
-from ui import Menu, Printer, Refresher
+from zpui_lib.ui import Menu, Printer, Refresher
 import tor
 
 

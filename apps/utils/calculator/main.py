@@ -4,7 +4,7 @@ from decimal import *
 
 from time import sleep
 from threading import Event
-from ui import Canvas, DialogBox
+from zpui_lib.ui import Canvas, DialogBox
 
 menu_name = "Calculator"
 

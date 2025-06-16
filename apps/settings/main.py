@@ -1,9 +1,8 @@
 import os
-import signal
-from actions import FirstBootAction
-from subprocess import check_output, STDOUT, CalledProcessError
-from time import sleep
 import json
+import signal
+from time import sleep
+from subprocess import check_output, STDOUT, CalledProcessError
 
 from pkg_resources import packaging # for pip version check
 
@@ -12,9 +11,10 @@ try:
 except:
     import http.client as httplib
 
-from ui import Menu, PrettyPrinter, DialogBox, ProgressBar, Listbox, UniversalInput, HelpOverlay, TextReader
+from zpui_lib.ui import Menu, PrettyPrinter, DialogBox, ProgressBar, Listbox, UniversalInput, HelpOverlay, TextReader
 from zpui_lib.helpers import setup_logger, read_or_create_config, save_config_method_gen, local_path_gen, get_safe_file_backup_path, BackgroundRunner, BooleanEvent
-from apps import ZeroApp
+from zpui_lib.actions import FirstBootAction
+from zpui_lib.apps import ZeroApp
 
 local_path = local_path_gen(__name__)
 

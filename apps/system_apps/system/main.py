@@ -12,7 +12,7 @@ True
 menu_name = "System info"
 
 from subprocess import call
-from ui import Menu, Printer, Refresher
+from zpui_lib.ui import Menu, Printer, Refresher
 
 import sys_info
 

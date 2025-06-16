@@ -9,7 +9,7 @@ o = None
 
 from time import sleep
 
-from ui import Menu, Printer, PrettyPrinter, Checkbox, MenuExitException
+from zpui_lib.ui import Menu, Printer, PrettyPrinter, Checkbox, MenuExitException
 
 try:
     from zpui_lib.libs import systemctl

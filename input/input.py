@@ -11,7 +11,7 @@ except ModuleNotFoundError:
     from Queue import Queue
     Empty = Queue.Empty
 
-from actions import Action
+from zpui_lib.actions import Action
 from zpui_lib.helpers import setup_logger, KEY_RELEASED, KEY_HELD, KEY_PRESSED
 
 try:

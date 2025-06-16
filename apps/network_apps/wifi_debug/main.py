@@ -2,7 +2,7 @@ menu_name = "WiFi repair"
 
 from time import sleep
 
-from ui import LoadingBar, PrettyPrinter as Printer, TextReader, Listbox, DialogBox
+from zpui_lib.ui import LoadingBar, PrettyPrinter as Printer, TextReader, Listbox, DialogBox
 from zpui_lib.helpers import setup_logger
 
 from zpui_lib.libs import dmesg, dkms_debug

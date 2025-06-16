@@ -5,7 +5,7 @@ o = None
 
 from time import sleep
 
-from ui import Menu, MenuExitException, Printer, IntegerAdjustInput, Refresher, DialogBox
+from zpui_lib.ui import Menu, MenuExitException, Printer, IntegerAdjustInput, Refresher, DialogBox
 
 from utils import RPCClient, RPCCommError
 server = RPCClient('localhost', 4515)

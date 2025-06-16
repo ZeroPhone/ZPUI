@@ -4,7 +4,7 @@ import sys, os
 from subprocess import Popen, PIPE
 import time #Wish I could import some more time...
 
-from ui import Menu, Printer, MenuExitException
+from zpui_lib.ui import Menu, Printer, MenuExitException
 
 import device_info
 

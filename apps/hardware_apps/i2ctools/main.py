@@ -1,7 +1,7 @@
 menu_name = "I2C tools"
 
 from subprocess import call
-from ui import Menu, Printer, PrettyPrinter, DialogBox, LoadingIndicator, UniversalInput, Refresher, IntegerAdjustInput, fvitg
+from zpui_lib.ui import Menu, Printer, PrettyPrinter, DialogBox, LoadingIndicator, UniversalInput, Refresher, IntegerAdjustInput, fvitg
 from zpui_lib.helpers import setup_logger, read_or_create_config, local_path_gen, write_config
 
 from collections import OrderedDict
@@ -151,9 +151,7 @@ main_menu_contents = [
 ["Settings", change_settings]
 ]
 
-def init_app(input, output):
-    global main_menu, callback, i, o
-    i = input; o = output
+def callback():
     main_menu = Menu(main_menu_contents, i, o, "I2C tools menu")
-    callback = main_menu.activate
+    main_menu.activate()
 

@@ -2,8 +2,8 @@ menu_name = "ZeroMenu"
 
 import os
 
-from actions import Action, ContextSwitchAction, FirstBootAction
-from ui import Menu, PrettyPrinter, Checkbox, Listbox
+from zpui_lib.ui import Menu, PrettyPrinter, Checkbox, Listbox
+from zpui_lib.actions import Action, ContextSwitchAction, FirstBootAction
 from zpui_lib.helpers import read_or_create_config, local_path_gen, save_config_gen, setup_logger, is_emulator
 
 i = None

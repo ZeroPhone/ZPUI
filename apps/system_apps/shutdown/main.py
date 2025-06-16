@@ -1,8 +1,9 @@
 menu_name = "Shutdown&reboot"
 
+from zpui_lib.ui import Menu, DialogBox
+from zpui_lib.actions import FirstBootAction
+
 from subprocess import call
-from ui import Menu, DialogBox
-from actions import FirstBootAction
 
 context = None
 def set_context(c):

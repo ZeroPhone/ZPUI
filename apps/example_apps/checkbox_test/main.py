@@ -1,7 +1,7 @@
 menu_name = "Checkbox test"
 
 from subprocess import call
-from ui import Checkbox, Printer
+from zpui_lib.ui import Checkbox, Printer
 
 callback = None
 i = None
@@ -14,10 +14,6 @@ checkbox_contents = [
 ["Fourth element xD", '4_el', True]
 ]
 
-def init_app(input, output):
-    global i, o
-    i = input; o = output
-
 def callback():
-    result = Checkbox(checkbox_contents, i, o, "Shutdown menu").activate()
+    result = Checkbox(checkbox_contents, i, o, "Checkbox test app checkbox").activate()
     Printer(str(result), i, o, 1)

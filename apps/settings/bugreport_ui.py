@@ -6,9 +6,9 @@ import traceback
 from copy import deepcopy
 from uuid import uuid4 as gen_uuid
 
-from ui import Menu, DialogBox, TextReader, LoadingIndicator, PrettyPrinter, PathPicker, Checkbox
+from zpui_lib.ui import Menu, DialogBox, TextReader, LoadingIndicator, PrettyPrinter, PathPicker, Checkbox
 from zpui_lib.helpers import read_or_create_config, local_path_gen, save_config_gen, setup_logger
-from actions import FirstBootAction as FBA
+from zpui_lib.actions import FirstBootAction as FBA
 
 from zpui_lib.libs import dmesg
 from zpui_lib.libs.bugreport.bugreport import BugReport

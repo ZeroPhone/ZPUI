@@ -3,9 +3,9 @@ import os
 import sys
 import traceback
 
-from apps import ZeroApp
+from zpui_lib.apps import ZeroApp
 from zpui_lib.helpers import setup_logger, zpui_running_as_service
-from ui import Printer, Menu, HelpOverlay, GridMenu, Entry, \
+from zpui_lib.ui import Printer, Menu, HelpOverlay, GridMenu, Entry, \
                GridMenuLabelOverlay, GridMenuSidebarOverlay, GridMenuNavOverlay
 
 from PIL import Image, ImageOps

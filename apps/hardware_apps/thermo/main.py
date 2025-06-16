@@ -2,7 +2,7 @@ menu_name = "MLX90614"
 
 from mlx90614 import MLX90614
 
-from ui import Refresher
+from zpui_lib.ui import Refresher
 
 sensor = MLX90614()
 
@@ -26,8 +26,3 @@ o = None #Output device
 
 def callback():
     Refresher(show_temp, i, o, 0.1, name="Temperature monitor").activate()
-
-def init_app(input, output):
-    global i, o
-    i = input; o = output
-

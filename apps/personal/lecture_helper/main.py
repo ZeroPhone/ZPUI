@@ -1,9 +1,8 @@
 menu_name = "Lecture helper"
 
-import os
 from datetime import datetime
 
-from ui import Menu, Printer, Refresher, IntegerAdjustInput, PathPicker, ellipsize
+from zpui_lib.ui import Menu, Printer, Refresher, IntegerAdjustInput, PathPicker, ellipsize
 
 
 i = None
@@ -37,8 +36,7 @@ def start_lecture():
         return
     helper = LectureHelper(file_path, interval)
     helper.start()
-    
-    
+
 class LectureHelper(object):
     refresher = None
     position = 0
@@ -82,7 +80,7 @@ class LectureHelper(object):
         return data
 
     def start(self):
-        self.started = datetime.now() 
+        self.started = datetime.now()
         self.refresher = Refresher(self.get_displayed_data, i, o, 1, self.get_keymap())
         self.refresher.activate()
 

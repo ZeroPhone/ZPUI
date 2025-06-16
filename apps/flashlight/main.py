@@ -3,8 +3,9 @@ menu_name = "Flashlight"
 import os
 from time import sleep
 
-from ui import Canvas
+from zpui_lib.ui import Canvas
 from zpui_lib.helpers import ExitHelper, get_platform
+from zpui_lib.actions import ContextSwitchAction as Action
 
 zerophone_hw = False
 try:
@@ -14,13 +15,10 @@ except:
 else:
     zerophone_hw = True
 
-from actions import ContextSwitchAction as Action
-
-global i, o
-
 led = None
 state = False
 context = None
+i = None; o = None
 
 def can_load():
     # maybe in the future we can check if the screen has backlit output, and if any LEDs are available

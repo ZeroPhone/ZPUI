@@ -2,10 +2,10 @@ import requests
 from time import sleep
 from threading import Event
 
-from apps import ZeroApp
-from actions import FirstBootAction as FBA
+from zpui_lib.apps import ZeroApp
+from zpui_lib.actions import FirstBootAction as FBA
 from zpui_lib.helpers import setup_logger, read_or_create_config, local_path_gen
-from ui import Menu, PrettyPrinter as Printer, LoadingBar, DialogBox
+from zpui_lib.ui import Menu, PrettyPrinter as Printer, LoadingBar, DialogBox
 
 default_ip_source = "https://icanhazip.com"
 

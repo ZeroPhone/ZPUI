@@ -1,6 +1,6 @@
 menu_name = "Canvas test"
 
-from ui import Canvas
+from zpui_lib.ui import Canvas
 
 # this is a funny fps test, in particular, useful for emulator testing
 

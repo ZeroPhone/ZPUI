@@ -6,12 +6,10 @@ from datetime import datetime
 
 from zpui_lib.helpers import setup_logger, BackgroundRunner, BooleanEvent, \
                              read_or_create_config, local_path_gen, save_config_gen
+from zpui_lib.ui import Menu, PrettyPrinter, GraphicsPrinter
+from zpui_lib.actions import BackgroundAction as Action
 
 logger = setup_logger(__name__, "info")
-
-from ui import Menu, PrettyPrinter, GraphicsPrinter
-
-from actions import BackgroundAction as Action
 
 from PIL import ImageChops
 

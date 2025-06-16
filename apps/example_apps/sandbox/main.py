@@ -1,6 +1,6 @@
 menu_name = "Python sandbox"
 
-from ui import Canvas
+from zpui_lib.ui import Canvas
 
 i = None
 o = None

@@ -1,10 +1,10 @@
 from time import sleep, time
 from threading import Event
 
-from ui import Canvas
-from apps import ZeroApp
-from ui.base_ui import BaseUIElement
-from actions import ContextSwitchAction
+from zpui_lib.ui import Canvas
+from zpui_lib.apps import ZeroApp
+from zpui_lib.ui.base_ui import BaseUIElement
+from zpui_lib.actions import ContextSwitchAction
 from zpui_lib.helpers import ExitHelper, setup_logger, remove_left_failsafe, read_or_create_config, local_path_gen, save_config_method_gen
 
 local_path = local_path_gen(__name__)

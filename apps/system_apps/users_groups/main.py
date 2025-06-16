@@ -3,11 +3,10 @@ menu_name = "Users&groups"
 import os
 import pwd
 
-from ui import Menu, UniversalInput, PrettyPrinter as Printer, DialogBox
-from actions import FirstBootAction
+from zpui_lib.ui import Menu, UniversalInput, PrettyPrinter as Printer, DialogBox
 from zpui_lib.helpers import setup_logger
-
 from zpui_lib.libs.linux.passwd import passwd
+from zpui_lib.actions import FirstBootAction
 
 logger = setup_logger(__name__, "warning")
 

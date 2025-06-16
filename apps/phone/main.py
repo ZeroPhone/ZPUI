@@ -8,8 +8,8 @@ from subprocess import call as os_call
 from time import sleep
 import traceback
 
-from ui import Refresher, Menu, Printer, PrettyPrinter, DialogBox
-from ui.experimental import NumberKeypadInputLayer
+from zpui_lib.ui import Refresher, Menu, Printer, PrettyPrinter, DialogBox
+from zpui_lib.ui.experimental import NumberKeypadInputLayer
 from zpui_lib.helpers import BackgroundRunner, ExitHelper
 
 from phone import Phone, Modem, ATError

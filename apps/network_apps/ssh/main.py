@@ -6,8 +6,8 @@ from time import sleep
 from datetime import datetime
 
 from zpui_lib.helpers import read_or_create_config, local_path_gen, save_config_gen, setup_logger, get_safe_file_backup_path
-from ui import Menu, PrettyPrinter as Printer, LoadingIndicator, DialogBox
-from actions import FirstBootAction
+from zpui_lib.ui import Menu, PrettyPrinter as Printer, LoadingIndicator, DialogBox
+from zpui_lib.actions import FirstBootAction
 from zpui_lib.libs import systemctl
 
 import psutil
@@ -28,11 +28,6 @@ logger = setup_logger(__name__, "info")
 i = None
 o = None
 context = None
-
-def init_app(input_obj, output_obj):
-    global i, o
-    i = input_obj
-    o = output_obj
 
 def set_context(c):
     context = c

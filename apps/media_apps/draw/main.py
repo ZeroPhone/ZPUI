@@ -2,11 +2,11 @@ from time import sleep
 from copy import copy
 from collections import OrderedDict
 
-from ui import Canvas, Listbox, PrettyPrinter, FunctionOverlay, HelpOverlay
-from ui.base_ui import BaseUIElement
-from ui.utils import to_be_foreground
+from zpui_lib.ui import Canvas, Listbox, PrettyPrinter, FunctionOverlay, HelpOverlay
+from zpui_lib.ui.base_ui import BaseUIElement
+from zpui_lib.ui.utils import to_be_foreground
 from zpui_lib.helpers import flatten, Singleton, is_emulator
-from apps import ZeroApp
+from zpui_lib.apps import ZeroApp
 
 
 class ToolBucket(Singleton):

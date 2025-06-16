@@ -2,8 +2,8 @@ from time import sleep, strftime, localtime
 from textwrap import wrap
 from threading import Event
 
-from apps import ZeroApp
-from ui import Listbox, PrettyPrinter as Printer, NumpadCharInput, Menu, LoadingIndicator, TextReader, UniversalInput, MessagesMenu, rfa, MenuExitException
+from zpui_lib.apps import ZeroApp
+from zpui_lib.ui import Listbox, PrettyPrinter as Printer, NumpadCharInput, Menu, LoadingIndicator, TextReader, UniversalInput, MessagesMenu, rfa, MenuExitException
 from zpui_lib.helpers import setup_logger, read_or_create_config, local_path_gen, save_config_method_gen, BackgroundRunner
 
 from client import Client, MatrixRequestError

@@ -6,7 +6,7 @@ from functools import wraps
 import time
 import os, sys
 
-from ui import Menu, PrettyPrinter, Checkbox, NumpadNumberInput, LoadingIndicator, HelpOverlay
+from zpui_lib.ui import Menu, PrettyPrinter, Checkbox, NumpadNumberInput, LoadingIndicator, HelpOverlay
 from zpui_lib.libs.if_info import parse_ip_addr, get_network_from_ip, sort_ips
 
 try:

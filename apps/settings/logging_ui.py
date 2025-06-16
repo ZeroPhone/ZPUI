@@ -15,7 +15,7 @@ logger_alias_map = (("root","Main launcher"),
 
 logger_alias_map = OrderedDict(logger_alias_map)
 
-from ui import Menu, Listbox
+from zpui_lib.ui import Menu, Listbox
 
 def get_logger_names():
     return log_system.get_logger_names()

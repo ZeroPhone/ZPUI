@@ -1,9 +1,9 @@
 from time import sleep
 from threading import Event
 
-from ui import Canvas, Refresher
-from ui.base_ui import BaseUIElement
-from apps import ZeroApp
+from zpui_lib.ui import Canvas, Refresher
+from zpui_lib.ui.base_ui import BaseUIElement
+from zpui_lib.apps import ZeroApp
 from zpui_lib.helpers import ExitHelper, setup_logger, remove_left_failsafe, read_or_create_config, local_path_gen, save_config_method_gen
 
 logger = setup_logger(__name__, "info")

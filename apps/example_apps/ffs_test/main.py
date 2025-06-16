@@ -1,11 +1,11 @@
 menu_name = "FFS test app"
 
-from ui import Printer, format_for_screen as ffs
+from zpui_lib.ui import Printer, format_for_screen as ffs
 
 from subprocess import check_output
 
 callback = None
-#Some globals for us
+# Some globals for us
 i = None
 o = None
 

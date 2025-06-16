@@ -4,9 +4,9 @@ import sys
 import yaml
 from datetime import datetime
 
-from apps.zero_app import ZeroApp
+from zpui_lib.apps.zero_app import ZeroApp
 from zpui_lib.helpers import setup_logger, local_path_gen
-from ui import Menu, Printer, Canvas
+from zpui_lib.ui import Menu, Printer, Canvas
 
 local_path = local_path_gen(__name__)
 logger = setup_logger(__name__, "info")

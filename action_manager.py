@@ -1,4 +1,4 @@
-from actions import ContextSwitchAction, FirstBootAction
+from zpui_lib.actions import ContextSwitchAction, FirstBootAction
 
 class ActionManager(object):
     action_name_delimiter = "%"

@@ -1,11 +1,10 @@
 # coding=utf-8
-from apps.zero_app import ZeroApp
-from ui.scrollable_element import TextReader
+from zpui_lib.apps.zero_app import ZeroApp
+from zpui_lib.ui import TextReader
 
 
 class TextReaderExample(ZeroApp):
-    def __init__(self, i, o):
-        super(TextReaderExample, self).__init__(i, o)
+    def init_app(self):
         zen_of_python = """Beautiful is better than ugly.
 Explicit is better than implicit.
 Simple is better than complex.

@@ -1,4 +1,5 @@
-from zpui_lib.helpers import setup_logger
+from time import sleep
+import os
 
 menu_name = "USB control"
 
@@ -10,10 +11,9 @@ except:
 else:
     zerophone_hw = True
 
-from ui import Menu, Printer
-from actions import BackgroundAction
-from time import sleep
-import os
+from zpui_lib.ui import Menu, Printer
+from zpui_lib.helpers import setup_logger
+from zpui_lib.actions import BackgroundAction
 
 logger = setup_logger(__name__, "warning")
 i = None

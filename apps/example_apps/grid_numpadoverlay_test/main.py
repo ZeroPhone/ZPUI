@@ -1,7 +1,6 @@
-from apps import ZeroApp
-from ui import GridMenu
-
-from ui.overlays import GridMenuNavOverlay
+from zpui_lib.apps import ZeroApp
+from zpui_lib.ui import GridMenu
+from zpui_lib.ui.overlays import GridMenuNavOverlay
 
 def func_test(x):
     print(x)

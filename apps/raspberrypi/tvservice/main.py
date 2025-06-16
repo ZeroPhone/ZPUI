@@ -8,7 +8,7 @@ o = None
 
 from time import sleep
 
-from ui import Menu, Printer, MenuExitException
+from zpui_lib.ui import Menu, Printer, MenuExitException
 
 from subprocess import check_output, CalledProcessError
 
@@ -115,7 +115,7 @@ def display_on():
         else:
             pass #All successful.
 
-def launch():
+def callback():
     try:
        status = tvservice.status()
     except OSError as e:
@@ -133,8 +133,3 @@ def launch():
         main_menu = Menu(main_menu_contents, i, o, "tvservice main menu")
         main_menu.activate()
 
-
-def init_app(input, output):
-    global callback, i, o
-    i = input; o = output
-    callback = launch
