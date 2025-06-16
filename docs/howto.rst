@@ -50,7 +50,7 @@ In ``app/main.py``:
     menu_name = "Hello, world!"
 
     # An UI element that does most of the legwork for us
-    from ui import PrettyPrinter as Printer
+    from zpui_lib.ui import PrettyPrinter as Printer
 
     i = None #Input device
     o = None #Output device
@@ -70,7 +70,7 @@ In ``app/main.py``:
 
 .. code-block:: python
 
-    from apps import ZeroApp
+    from zpui_lib.apps import ZeroApp
 
     class YourGreatApp(ZeroApp):
         menu_name = "Skeleton app"
@@ -118,7 +118,7 @@ usual things you'd import in your app - like UI elements
 
 .. code-block:: python
 
-    >>> from ui import Canvas
+    >>> from zpui_lib.ui import Canvas
     >>> c = Canvas(o, interactive=True)
     >>> c.centered_text("Hello world!")
 
@@ -143,7 +143,7 @@ you might want them to confirm their actions. Here's how to ask them that:
 
 .. code-block:: python
 
-    from ui import DialogBox
+    from zpui_lib.ui import DialogBox
 
     message = "Are you sure?"
     choice = DialogBox ('ync', i, o, message=message, name="HDD secure erase app erase confirmation").activate()
@@ -162,7 +162,7 @@ let them choose:
 
 .. code-block:: python
 
-    from ui import Listbox, PrettyPrinter
+    from zpui_lib.ui import Listbox, PrettyPrinter
     ...
     # You pass lists of two elements - first one is the user-friendly label,
     # second is something that your code can actually use
@@ -193,7 +193,7 @@ through a really long list of options to choose from, here's what you can do:
 
 .. code-block:: python
 
-    from ui import Checkbox
+    from zpui_lib.ui import Checkbox
     ...
     # You pass lists of two/three elements - first one is the user-friendly label
     # second is something that you'll receive as a response dictionary key,
@@ -220,7 +220,7 @@ happening. The simplest way is to print something on the screen:
 
 .. code-block:: python
 
-    from ui import PrettyPrinter
+    from zpui_lib.ui import PrettyPrinter
     ...
     PrettyPrinter("Scanning ports", i, o, 5)
     results = scan_ports()
@@ -230,7 +230,7 @@ Or, a little bit prettier:
 
 .. code-block:: python
 
-    from ui import Canvas
+    from zpui_lib.ui import Canvas
     ...
     c = Canvas(o)
     c.centered_text("Scanning ports")
@@ -243,7 +243,7 @@ user-friendly:
 
 .. code-block:: python
 
-    from ui import LoadingIndicator
+    from zpui_lib.ui import LoadingIndicator
     ...
     with LoadingIndicator(i, o, message="Scanning ports"):
         results = scan_ports()
@@ -256,7 +256,7 @@ ProgressBar, which is going to show the user a percentage of the task completed:
 
 .. code-block:: python
 
-    from ui import ProgressBar
+    from zpui_lib.ui import ProgressBar
     ...
     ports = [22, 23, 80, 111, 443]
     with ProgressBar(i, o, message="Scanning ports") as pb:
@@ -281,7 +281,7 @@ process easy for them:
 
 .. code-block:: python
 
-    from ui import PathPicker
+    from zpui_lib.ui import PathPicker
     ...
     # You might already have some kind of path handy - maybe the one that your user
     # picked last time?
@@ -395,7 +395,7 @@ instance and supports some additional arguments:
 
 .. code-block:: python
 
-    from ui import GraphicsPrinter
+    from zpui_lib.ui import GraphicsPrinter
     ...
     # Will display the ZPUI splash image for 1 second
     # By default, it's inverted
@@ -425,7 +425,7 @@ Uou can use the Canvas objects to draw on the screen.
 
 .. code-block:: python
 
-    from ui import Canvas
+    from zpui_lib.ui import Canvas
     ...
     c = Canvas(o) # Create a canvas
     c.point((1, 2)) # Draw a point at x=1, y=2
@@ -605,7 +605,7 @@ For example:
 
 .. code-block:: python
 
-    from ui import Menu
+    from zpui_lib.ui import Menu
     ...
     Menu(contents, i, o, name="Main menu of Frobulator app").activate()
 
@@ -956,7 +956,7 @@ start with:
 
 .. code-block:: python
 
-    from ui import GraphicsPrinter # ZPUI libraries
+    from zpui_lib.ui import GraphicsPrinter # ZPUI libraries
     import json # built-in library
     import smbus # external library, needs to be installed
     ...
@@ -975,7 +975,7 @@ helpful once your app grows big. Here's an example of the end result:
 
     import json # built-in
 
-    from ui import GraphicsPrinter # ZPUI
+    from zpui_lib.ui import GraphicsPrinter # ZPUI
 
     import smbus # external
 

@@ -15,7 +15,7 @@ ProHelper
 
 :ref:`See here for ProHelper documentation and usage examples <process_helper>`
 
-.. automodule:: helpers
+.. automodule:: zpui_lib.helpers
 
 local_path_gen helper
 ---------------------

@@ -6,7 +6,7 @@ UI elements are used in applications and some core system functions to interace 
 
 Using UI elements in your applications is as easy as doing:
 
-``from ui import ElementName``
+``from zpui_lib.ui import ElementName``
 
 and initialising them, passing your UI element contents and parameters, as well as input and output device objects as initialisation arguments.
 

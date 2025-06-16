@@ -6,13 +6,13 @@ Canvas
 
 .. code-block:: python
                       
-    from ui import Canvas
+    from zpui_lib.ui import Canvas
     ...
     c = Canvas(o)
     c.text("Hello world", (10, 20))
     c.display()
 
-.. currentmodule:: ui
+.. currentmodule:: zpui_lib.ui
 
 .. autoclass:: Canvas
     :show-inheritance:

@@ -6,7 +6,7 @@ Menu UI element
 
 .. code-block:: python
                       
-    from ui import Menu
+    from zpui_lib.ui import Menu
     ... 
     menu_contents = [
     ["Do this", do_this],
@@ -18,7 +18,7 @@ Menu UI element
 
 ``Menu`` always returns ``None``, so you don't need to check its return value.
 
-.. currentmodule:: ui
+.. currentmodule:: zpui_lib.ui
 
 .. autoclass:: Menu
     :show-inheritance:

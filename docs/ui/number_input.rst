@@ -6,7 +6,7 @@ Numeric input UI elements
 
 .. code-block:: python
                       
-    from ui import IntegerAdjustInput
+    from zpui_lib.ui import IntegerAdjustInput
     start_from = 0
     number = IntegerAdjustInput(start_from, i, o).activate()
     if number is None: #Input cancelled

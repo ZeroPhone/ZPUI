@@ -6,7 +6,7 @@ Listbox UI element
 
 .. code-block:: python
                       
-    from ui import Listbox
+    from zpui_lib.ui import Listbox
     ... 
     lbc = [
     ["Option1", "option_1"],
@@ -20,7 +20,7 @@ Listbox UI element
 (``element[0]``) if no value was passed. Otherwise, if the user exited ``Listbox``
 by pressing LEFT, returns ``None``.
 
-.. currentmodule:: ui
+.. currentmodule:: zpui_lib.ui
  
 .. autoclass:: Listbox
     :show-inheritance:

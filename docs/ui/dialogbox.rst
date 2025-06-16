@@ -9,7 +9,7 @@ some kind of action/decision.
 
 .. code-block:: python
                       
-    from ui import DialogBox
+    from zpui_lib.ui import DialogBox
     ... 
     choice = DialogBox("ync", i, o, name="My dialogbox of my app").activate()
     if choice: "Yes" was selected
@@ -26,7 +26,7 @@ You can also pass custom labels/return values like this:
                       
     choice = DialogBox([["Abort", "abort"], ["Retry", "retry"], ["Ignore", "ignore"]], i, o, name="My dialogbox of my app").activate()
 
-.. currentmodule:: ui
+.. currentmodule:: zpui_lib.ui
 
 .. autoclass:: DialogBox
     :show-inheritance:
