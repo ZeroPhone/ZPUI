@@ -21,3 +21,4 @@ psutil
 PyRIC
 wpasupplicantconf==0.1.0
 sphinx-rtd-theme
+zpui_lib>=1.0.1
