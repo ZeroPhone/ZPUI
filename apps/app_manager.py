@@ -266,11 +266,11 @@ class AppManager(object):
             try:
                 loaded_app = self.load_app(app, app_path=module_path)
                 logger.info("Loaded external app {}".format(module_path))
-                self.app_list[module_path] = app
+                self.app_list[module_path] = loaded_app
                 menu_name = self.get_app_name(app, module_path)
-                self.bind_context(app, module_path, menu_name)
+                self.bind_context(loaded_app, module_path, menu_name)
                 if self.app_has_after_contexts_hook(app):
-                    after_contexts_apps[module_path] = app
+                    after_contexts_apps[module_path] = loaded_app
             except:
                 logger.exception("Failed to load external app {}".format(module_path))
         base_menu = self.create_menu_structure()
