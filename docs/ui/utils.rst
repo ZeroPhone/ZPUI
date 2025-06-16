@@ -4,6 +4,6 @@
 UI element utilities
 #####################
 
-.. currentmodule:: ui.utils
+.. currentmodule:: zpui_lib.ui.utils
 
 .. autofunction:: fit_image_to_screen

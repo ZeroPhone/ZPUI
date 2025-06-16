@@ -29,7 +29,7 @@ Picking a directory, i.e. to read files from or to store files in:
     if path:
         purge_dir_from_existence(path)
 
-.. currentmodule:: ui
+.. currentmodule:: zpui_lib.ui
 
 .. autoclass:: PathPicker
     :show-inheritance:

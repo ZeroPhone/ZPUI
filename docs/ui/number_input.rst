@@ -13,7 +13,7 @@ Numeric input UI elements
         return
     #process the number
 
-.. currentmodule:: ui
+.. currentmodule:: zpui_lib.ui
 
 .. autoclass:: IntegerAdjustInput
     :members: __init__,activate,deactivate,print_number,print_name
