@@ -232,7 +232,7 @@ class AppManager(object):
                 else:
                     logger.info("Executed 'after all contexts' hook for {}".format(app_path))
         # second: entrypoint-based discovery
-        discovered_apps = entry_points(group='spam.magical')
+        discovered_apps = entry_points(group='zpui_app.3rdparty')
         for app_ep in discovered_apps:
             logger.info(str(app_ep))
             try:
