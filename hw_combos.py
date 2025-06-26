@@ -31,6 +31,15 @@ def update_driver(device_config, user_config, device):
     logger.info("{} config expanded into {} using {}".format(repr(device), repr(device_config), repr(user_config)))
     return device_config
 
+def set_status_bar_height(config, height):
+    if "app_manager" not in config:
+        config["app_manager"] = {}
+    if "status_bar_height" not in config["app_manager"]:
+        config["app_manager"]["status_bar_height"] = height
+        logger.info("Set status bar height to {}".format(height))
+    else:
+        logger.info("Tried to set status bar height to {}, but it's already {}".format(height, config["app_manager"]["status_bar_height"]))
+
 def update_config(config, input_config, output_config):
     # looking out for modifications to the proposed config
     if "input" in config:
@@ -76,6 +85,9 @@ def config_emulator(config):
         if not isinstance(io[1], dict):
             io[1] = {"driver":io[1]}
         io[1]["mode"] = str(config["mode"]) # str is fix for mode "1"
+    if "resolution" in config:
+        if height >= 240:
+            set_status_bar_height(config, 30)
     return io
 
 def config_zpog(config):
@@ -146,6 +158,7 @@ def config_beepy(config):
         io[0]["bus"] = int(config.get("i2c", 1))
     io[0] = [io[0]]
     io[0].append({"driver":"beepy_hid"})
+    set_status_bar_height(config, 30)
     return io
 
 n_mapping = [
