@@ -57,6 +57,7 @@ class AppManager(object):
             self.status_bar_height = sbh
             self._orig_o = self.o
             self.canvas = Canvas(self._orig_o)
+            self.canvas.text("Status bar will go here", (sbh-5, 4), font=("Mukta-SemiBold.ttf", 12))
             self.o = MockOutput(height=self.o.height-sbh, o=self.o, warn_on_display=False)
             def display_image(image):
                 self.update_display(image)
@@ -66,9 +67,7 @@ class AppManager(object):
             self.register_default_plugins()
 
     def update_display(self, image):
-        self.canvas.clear()
         self.canvas.paste(image, (0, self.status_bar_height))
-        self.canvas.text("Status bar will go here", (25, 4), font=("Mukta-SemiBold.ttf", 12))
         self.canvas.display()
 
     def create_main_menu(self, menu_name, contents):
