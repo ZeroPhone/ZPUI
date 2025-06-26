@@ -5,7 +5,7 @@ import traceback
 
 from zpui_lib.apps import ZeroApp
 from zpui_lib.helpers import setup_logger, zpui_running_as_service
-from zpui_lib.ui import Printer, Menu, HelpOverlay, GridMenu, Entry, \
+from zpui_lib.ui import Printer, Menu, HelpOverlay, GridMenu, Entry, Canvas, MockOutput, \
                GridMenuLabelOverlay, GridMenuSidebarOverlay, GridMenuNavOverlay
 
 from PIL import Image, ImageOps
@@ -52,9 +52,24 @@ class AppManager(object):
         self.cm = context_manager
         self.i, self.o = self.cm.get_io_for_context("main")
         self.config = config if config else {}
-        #logger.warning(self.config)
+        if "status_bar_height" in self.config:
+            sbh = self.config["status_bar_height"]
+            self.status_bar_height = sbh
+            self._orig_o = self.o
+            self.canvas = Canvas(self._orig_o)
+            self.o = MockOutput(height=self.o.height-sbh, o=self.o, warn_on_display=False)
+            def display_image(image):
+                self.update_display(image)
+            self.o.display_image = display_image
+        logger.debug("Config: {}".format(self.config))
         if default_plugins and self.config.get("default_overlays", True):
             self.register_default_plugins()
+
+    def update_display(self, image):
+        self.canvas.clear()
+        self.canvas.paste(image, (0, self.status_bar_height))
+        self.canvas.text("Status bar will go here", (25, 4), font=("Mukta-SemiBold.ttf", 12))
+        self.canvas.display()
 
     def create_main_menu(self, menu_name, contents):
         dir = "resources/icons/"
