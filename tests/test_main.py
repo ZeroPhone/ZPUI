@@ -49,10 +49,21 @@ class TestMainPy(unittest.TestCase):
         e_wrapper_called = Event()
         def e_wrapper(cb):
             e_wrapper_called.set()
+        # exception_wrapper here is used as a way of detecting that the very last line of `launch()` gets executed
         with patch.object(main_py, 'exception_wrapper', side_effect = e_wrapper):
-            #with patch.object(main_py, 'exception_wrapper', side_effect = e_wrapper):
             main_py.launch(name="apps/example_apps/test/")
         assert(e_wrapper_called.is_set())
+
+    @patch.object(main_py, 'config_paths', test_config_paths)
+    def test_launch_test_all(self):
+        e_wrapper_called = Event()
+        def e_wrapper(cb):
+            e_wrapper_called.set()
+        # exception_wrapper here is used as a way of detecting that the very last line of `launch()` gets executed
+        with patch.object(main_py, 'exception_wrapper', side_effect = e_wrapper):
+            main_py.launch()
+        assert(e_wrapper_called.is_set())
+
 
 if __name__ == '__main__':
     unittest.main()
