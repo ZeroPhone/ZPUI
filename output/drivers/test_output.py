@@ -14,6 +14,8 @@ class Screen(GraphicalOutputDevice, CharacterOutputDevice):
     cursor_pos = (0, 0) #x, y
     width = 128
     height = 64
+    rows = height//8
+    cols = width//6
 
     def __init__(self):
         pass
