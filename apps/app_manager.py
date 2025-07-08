@@ -51,6 +51,7 @@ class AppManager(object):
         self.app_directory = app_directory
         self.cm = context_manager
         self.i, self.o = self.cm.get_io_for_context("main")
+        self.orig_o = self.o
         self.config = config if config else {}
         if "status_bar_height" in self.config:
             sbh = self.config["status_bar_height"]
@@ -236,7 +237,7 @@ class AppManager(object):
             if interactive:
                 if self.failed_apps:
                     failed_app_names = [os.path.split(p)[1] for p in self.failed_apps.keys()]
-                    Printer(["Failed to load:"]+failed_app_names, self.i, self.o, 0.5)
+                    Printer(["Failed to load:"]+failed_app_names, self.i, self.orig_o, 0.5)
             # execute after_context functions
             for app_path, app in after_contexts_apps.items():
                 try:
