@@ -153,7 +153,7 @@ class TestDrivers(unittest.TestCase):
         module_patch.stop()
         #print([(key, sys.modules[key]) for key in sys.modules.keys() if key.startswith('luma.emulator')])
         # so that no ugly exception is raised when the test finishes
-        main_py.input_processor.atexit()
+        main_py.zpui.input_processor.atexit()
 
     def test_hid_driver(self):
         input_config = {"driver":"hid", "kwargs":{"name":"test"}}
@@ -177,7 +177,7 @@ class TestDrivers(unittest.TestCase):
         # Checking if we removed all imports
         # print([(key, sys.modules[key]) for key in sys.modules.keys() if key.startswith('evdev')])
         # so that no ugly exception is raised when the test finishes
-        main_py.input_processor.atexit()
+        main_py.zpui.input_processor.atexit()
 
     #@unittest.skip("broken test, can't properly patch the imports =(")
 
@@ -195,7 +195,7 @@ class TestDrivers(unittest.TestCase):
         assert(isinstance(i, main_py.input.InputProxy))
         assert(isinstance(o, main_py.output.OutputProxy))
         # so that no ugly exception is raised when the test finishes
-        main_py.input_processor.atexit()
+        main_py.zpui.input_processor.atexit()
 
     #@unittest.skip("broken test, can't properly patch the imports =(")
     def test_pi_gpio_matrix_driver(self):
@@ -212,7 +212,7 @@ class TestDrivers(unittest.TestCase):
         assert(isinstance(i, main_py.input.InputProxy))
         assert(isinstance(o, main_py.output.OutputProxy))
         # so that no ugly exception is raised when the test finishes
-        main_py.input_processor.atexit()
+        main_py.zpui.input_processor.atexit()
 
     def test_custom_i2c_driver(self):
         input_config = {"driver":"custom_i2c"}
@@ -231,7 +231,7 @@ class TestDrivers(unittest.TestCase):
         assert(isinstance(i, main_py.input.InputProxy))
         assert(isinstance(o, main_py.output.OutputProxy))
         # so that no ugly exception is raised when the test finishes
-        main_py.input_processor.atexit()
+        main_py.zpui.input_processor.atexit()
         module_patch.stop()
 
     def test_input_driver_attach_detach(self):
@@ -241,13 +241,13 @@ class TestDrivers(unittest.TestCase):
         with patch.object(main_py, 'load_config') as mocked:
             mocked.return_value = (config, "test_config.json")
             i, o = main_py.init()
-        assert(len(main_py.input_processor.drivers) == 1)
-        name = main_py.input_processor.attach_driver(test_input.InputDevice())
-        assert(len(main_py.input_processor.drivers) == 2)
-        main_py.input_processor.detach_driver(name)
-        assert(len(main_py.input_processor.drivers) == 1)
+        assert(len(main_py.zpui.input_processor.drivers) == 1)
+        name = main_py.zpui.input_processor.attach_driver(test_input.InputDevice())
+        assert(len(main_py.zpui.input_processor.drivers) == 2)
+        main_py.zpui.input_processor.detach_driver(name)
+        assert(len(main_py.zpui.input_processor.drivers) == 1)
         # so that no ugly exception is raised when the test finishes
-        main_py.input_processor.atexit()
+        main_py.zpui.input_processor.atexit()
 
 if __name__ == '__main__':
     unittest.main()

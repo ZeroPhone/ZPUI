@@ -8,7 +8,7 @@ from zpui_lib.actions import FirstBootAction as FBA
 from zpui_lib.helpers import is_emulator, setup_logger, flatten, local_path_gen, cb_needs_key_state, KEY_HELD
 from zpui_lib.ui import DialogBox, Canvas, HelpOverlay, Refresher, GraphicsPrinter, RefresherExitException, PrettyPrinter as Printer, GraphicsPrinter
 
-from __main__ import cm
+from __main__ import zpui
 
 logger = setup_logger(__name__, "info")
 
@@ -240,7 +240,7 @@ class FirstbootWizard(ZeroApp):
             return []
 
     def do_firstboot(self):
-        firstboot_actions = cm.am.get_firstboot_actions()
+        firstboot_actions = zpui.cm.am.get_firstboot_actions()
         # Skipping actions that shouldn't be run in an emulator
         if is_emulator():
             firstboot_action_names = [name for name, action in firstboot_actions.items() if not action.not_on_emulator]
@@ -309,7 +309,7 @@ class FirstbootWizard(ZeroApp):
                 # because short names are used in dependencies.
                 action_fullname_by_name = {}
                 def get_prov_and_name(action_fullname):
-                    return action_fullname.split(cm.am.action_name_delimiter, 1)
+                    return action_fullname.split(zpui.cm.am.action_name_delimiter, 1)
                 # First, creating a lookup table for looking up dependencies
                 for action_fullname in firstboot_action_names:
                     _, action_name = get_prov_and_name(action_fullname)

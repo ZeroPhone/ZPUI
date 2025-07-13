@@ -101,8 +101,8 @@ def change_adjust_amount():
 
 def set_global_callbacks():
     import __main__ #HHHHHAAAAAAAAAAAXXXX
-    __main__.input_processor.set_global_callback("KEY_VOLUMEUP", plus_volume)
-    __main__.input_processor.set_global_callback("KEY_VOLUMEDOWN", minus_volume)
+    __main__.zpui.input_processor.set_global_callback("KEY_VOLUMEUP", plus_volume)
+    __main__.zpui.input_processor.set_global_callback("KEY_VOLUMEDOWN", minus_volume)
 
 def init_app(input, output):
     global i, o, callback

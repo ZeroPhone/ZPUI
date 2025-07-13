@@ -99,8 +99,8 @@ main_menu_contents = [
 
 def set_global_callbacks():
     import __main__ #HHHHHAAAAAAAAAAAXXXX
-    __main__.input_processor.set_global_callback("KEY_PROG1", mocp_next)
-    __main__.input_processor.set_global_callback("KEY_CAMERA", mocp_prev)
+    __main__.zpui.input_processor.set_global_callback("KEY_PROG1", mocp_next)
+    __main__.zpui.input_processor.set_global_callback("KEY_CAMERA", mocp_prev)
 
 def init_app(input, output):
     global i, o

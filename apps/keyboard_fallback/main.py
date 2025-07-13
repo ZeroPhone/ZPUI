@@ -8,7 +8,8 @@ from zpui_lib.helpers import ExitHelper, setup_logger, remove_left_failsafe, rea
 
 logger = setup_logger(__name__, "info")
 
-from __main__ import input_device_manager as device_manager
+from __main__ import zpui
+device_manager = zpui.input_device_manager
 
 zerophone_hw = False
 try:

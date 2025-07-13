@@ -36,16 +36,16 @@ config_paths.append(local_path('config.json'))
 if not is_emulator():
     config_paths.append(local_path('default_config.yaml'))
 
-input_processor = None
-input_device_manager = None
-screen = None
-cm = None
-config = None
-config_path = None
-app_man = None
+class ZPUI():
+    def suspend_zpui():
+        pass
+
+    def unsuspend_zpui():
+        self.cm.switch_to_context("main")
+
+zpui = ZPUI()
 
 def load_config():
-    config = None
     # Load config
     for config_path in config_paths:
         #Only try to load the config file if it's present
@@ -90,31 +90,30 @@ hacks.basestring_hack()
 def init():
     """Initialize input and output objects"""
 
-    global input_processor, input_device_manager, screen, cm, config, config_path
-    config, config_path = load_config()
+    zpui.config, zpui.config_path = load_config()
 
-    if config is None:
+    if zpui.config is None:
         sys.exit('Failed to load any config files!')
 
     # Get hardware manager
-    input_config, output_config = hw_combos.get_io_configs(config)
+    zpui.input_config, zpui.output_config = hw_combos.get_io_configs(zpui.config)
 
     # Initialize output
     try:
-        screen = output.init(output_config)
-        screen.default_font = canvas.get_default_font()
-        if "color" in screen.type: # screen can do color output - let's see if there's a color in config
+        zpui.screen = output.init(zpui.output_config)
+        zpui.screen.default_font = canvas.get_default_font()
+        if "color" in zpui.screen.type: # screen can do color output - let's see if there's a color in config
             # either of the two parameters are possible - ui-color or ui_color; both are the same thing obvi
-            color = config.get("ui_color", "")
-            color = config.get("ui-color", color)
+            color = zpui.config.get("ui_color", "")
+            color = zpui.config.get("ui-color", color)
             #print("color", color)
             if color:
                 canvas.global_default_color = color
             # also passing color to the screen object (used for char output)
-            c = canvas.Canvas(screen) # running canvas init so that color gets processed
-            if hasattr(screen, "set_color"):
-                screen.set_color(c.default_color)
-            screen.default_color = c.default_color
+            c = canvas.Canvas(zpui.screen) # running canvas init so that color gets processed
+            if hasattr(zpui.screen, "set_color"):
+                zpui.screen.set_color(c.default_color)
+            zpui.screen.default_color = c.default_color
             canvas.global_default_color = c.default_color # setting the canvas-global color after it's been processed by the canvas
 
     except:
@@ -123,11 +122,11 @@ def init():
         sys.exit(2)
 
     # Initialize the context manager
-    cm = ContextManager()
+    zpui.cm = ContextManager()
     # Initialize input
     try:
         # Now we can show errors on the display
-        input_processor, input_device_manager = input.init(input_config, cm)
+        zpui.input_processor, zpui.input_device_manager = input.init(zpui.input_config, zpui.cm)
     except:
         logging.exception('Failed to initialize the input object')
         logging.exception(traceback.format_exc())
@@ -135,19 +134,19 @@ def init():
         sys.exit(3)
 
     # Tying objects together
-    if hasattr(screen, "set_backlight_callback"):
-        screen.set_backlight_callback(input_processor)
-    if hasattr(screen, "reattach_callback"):
-        for dname, driver in input_processor.initial_drivers.items():
+    if hasattr(zpui.screen, "set_backlight_callback"):
+        zpui.screen.set_backlight_callback(zpui.input_processor)
+    if hasattr(zpui.screen, "reattach_callback"):
+        for dname, driver in zpui.input_processor.initial_drivers.items():
             if hasattr(driver, "reattach_cbs"):
                 # tying the screen's reattach callback into the input device
-                driver.reattach_cbs.append(screen.reattach_callback)
+                driver.reattach_cbs.append(zpui.screen.reattach_callback)
                 logger.info("attached screen reattach callback to driver {}".format(dname))
-    cm.init_io(input_processor, screen)
-    c = cm.contexts["main"]
+    zpui.cm.init_io(zpui.input_processor, zpui.screen)
+    c = zpui.cm.contexts["main"]
     c.register_action(ContextSwitchAction("switch_main_menu", None, menu_name="Main menu"))
-    cm.switch_to_context("main")
-    i, o = cm.get_io_for_context("main")
+    zpui.cm.switch_to_context("main")
+    i, o = zpui.cm.get_io_for_context("main")
 
     return i, o
 
@@ -158,11 +157,9 @@ def launch(name=None, **kwargs):
     single-app mode (if ``name`` kwarg is passed).
     """
 
-    global app_man
-
     i, o = init()
-    appman_config = config.get("app_manager", {})
-    app_man = AppManager('apps', cm, config=appman_config)
+    zpui.appman_config = zpui.config.get("app_manager", {})
+    zpui.app_man = AppManager('apps', zpui.cm, config=zpui.appman_config)
 
     if name is None:
         try:
@@ -172,9 +169,9 @@ def launch(name=None, **kwargs):
             logging.exception('Failed to load the splash screen')
 
         # Load all apps
-        app_menu = app_man.load_all_apps()
-        runner = app_menu.activate
-        cm.switch_to_start_context()
+        zpui.app_menu = zpui.app_man.load_all_apps()
+        runner = zpui.app_menu.activate
+        zpui.cm.switch_to_start_context()
     else:
         if is_emulator():
             c = canvas.Canvas(o)
@@ -186,12 +183,12 @@ def launch(name=None, **kwargs):
 
         # Load only single app
         try:
-            context_name, app = app_man.load_single_app_by_path(name, threaded=False)
+            context_name, app = zpui.app_man.load_single_app_by_path(name, threaded=False)
         except:
             logging.exception('Failed to load the app: {0}'.format(name))
-            input_processor.atexit()
+            zpui.input_processor.atexit()
             raise
-        cm.switch_to_context(context_name)
+        zpui.cm.switch_to_context(context_name)
         runner = app.on_start if hasattr(app, "on_start") else app.callback
 
     exception_wrapper(runner)
@@ -219,7 +216,7 @@ def exception_wrapper(callback):
         logging.info('Exiting ZPUI')
         Printer("Exiting ZPUI", None, screen, 0)
     finally:
-        input_processor.atexit()
+        zpui.input_processor.atexit()
         sys.exit(status)
 
 
