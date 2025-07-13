@@ -82,7 +82,7 @@ def process_choice(choice, bugreport, li):
        bugreport.add_dir(dir)
     elif choice == "zpui_info":
        import __main__
-       bugreport.add_file(__main__.config_path)
+       bugreport.add_file(__main__.zpui.config_path)
        try:
            branch = git_if.get_current_branch()
            head = git_if.get_head_for_branch(branch)[:10]
