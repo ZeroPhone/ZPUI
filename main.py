@@ -130,7 +130,7 @@ def init():
     except:
         logging.exception('Failed to initialize the input object')
         logging.exception(traceback.format_exc())
-        Printer(['Oops. :(', 'y u make mistake'], None, screen, 0)
+        Printer(['Oops. :(', 'y u make mistake'], None, zpui.screen, 0)
         sys.exit(3)
 
     # Tying objects together
@@ -206,15 +206,15 @@ def exception_wrapper(callback):
         callback()
     except KeyboardInterrupt:
         logging.info('Caught KeyboardInterrupt')
-        Printer(["Does Ctrl+C", "hurt scripts?"], None, screen, 0)
+        Printer(["Does Ctrl+C", "hurt scripts?"], None, zpui.screen, 0)
         status = 1
     except:
         logging.exception('A wild exception appears!')
-        Printer(["A wild exception", "appears!"], None, screen, 0)
+        Printer(["A wild exception", "appears!"], None, zpui.screen, 0)
         status = 1
     else:
         logging.info('Exiting ZPUI')
-        Printer("Exiting ZPUI", None, screen, 0)
+        Printer("Exiting ZPUI", None, zpui.screen, 0)
     finally:
         zpui.input_processor.atexit()
         sys.exit(status)
