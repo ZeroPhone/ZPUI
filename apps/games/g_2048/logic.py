@@ -49,6 +49,9 @@ class GameOf2048(object):
             new.append(row)
         return new
 
+    def set_matrix(self, matrix):
+        self.matrix = matrix
+
     def add_random_digit(self):
         if not any([cell == 0 for cell in flatten(self.matrix)]):
             # No place available to add
