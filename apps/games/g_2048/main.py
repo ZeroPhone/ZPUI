@@ -3,7 +3,7 @@ from time import sleep
 
 from zpui_lib.apps import ZeroApp
 from zpui_lib.ui import DialogBox, ffs, Canvas
-from zpui_lib.helpers import ExitHelper, local_path_gen
+from zpui_lib.helpers import ExitHelper, local_path_gen, get_platform
 
 from logic import GameOf2048
 
@@ -77,11 +77,23 @@ class GameApp(ZeroApp):
         self.game = GameOf2048(4, 4)
 
     def set_keymap(self):
-        keymap = {"KEY_LEFT": lambda: self.make_a_move("left"),
-                  "KEY_RIGHT": lambda: self.make_a_move("right"),
-                  "KEY_UP": lambda: self.make_a_move("up"),
-                  "KEY_DOWN": lambda: self.make_a_move("down"),
-                  "KEY_ENTER": self.confirm_exit}
+        left = lambda: self.make_a_move("left")
+        right = lambda: self.make_a_move("right")
+        up = lambda: self.make_a_move("up")
+        down = lambda: self.make_a_move("down")
+        enter = self.confirm_exit
+        keymap = {"KEY_LEFT": left,
+                  "KEY_RIGHT": right,
+                  "KEY_UP": up,
+                  "KEY_DOWN": down,
+                  "KEY_ENTER": enter}
+        if "beepy" in get_platform() or "emulator" in get_platform():
+            # extra keys on keyboard
+            keymap["KEY_E"] = up
+            keymap["KEY_S"] = left
+            keymap["KEY_F"] = right
+            keymap["KEY_D"] = enter
+            keymap["KEY_X"] = down
         self.i.stop_listen()
         self.i.set_keymap(keymap)
         self.i.listen()
