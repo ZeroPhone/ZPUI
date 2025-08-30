@@ -224,12 +224,7 @@ class GameApp(ZeroApp):
                      "lose": "You lost!",
                      "not over": ""}[game_state]
         font = (self.font[0], 24)
-        if game_state == "lose":
-            sl, st, sw, sh = c.get_text_bounds_compensated(state_str, font=font)
-            sx, sy = c.center_box(sw, sh)
-            c.clear((sx, sy, sw, sh))
-            c.centered_text(state_str, font=font)
-        elif game_state == "win":
+        if game_state in ["lose", "win"]:
             sl, st, sw, sh = c.get_text_bounds_compensated(state_str, font=font)
             sx, sy = c.center_box(sw, sh)
             c.clear((sx, sy, sx+sw, sy+sh))
