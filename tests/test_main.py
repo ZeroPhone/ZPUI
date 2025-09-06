@@ -40,12 +40,14 @@ class TestMainPy(unittest.TestCase):
 
     @patch.object(main_py, 'config_paths', test_config_paths)
     def test_init(self):
+        main_py.zpui = main_py.ZPUI()
         i, o = main_py.init()
         assert(isinstance(i, main_py.input.InputProxy))
         assert(isinstance(o, main_py.output.OutputProxy))
 
     @patch.object(main_py, 'config_paths', test_config_paths)
     def test_launch_test_app(self):
+        main_py.zpui = main_py.ZPUI()
         e_wrapper_called = Event()
         def e_wrapper(cb):
             e_wrapper_called.set()
@@ -56,6 +58,7 @@ class TestMainPy(unittest.TestCase):
 
     @patch.object(main_py, 'config_paths', test_config_paths)
     def test_launch_test_all(self):
+        main_py.zpui = main_py.ZPUI()
         e_wrapper_called = Event()
         def e_wrapper(cb):
             e_wrapper_called.set()

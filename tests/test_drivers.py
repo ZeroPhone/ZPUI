@@ -65,44 +65,49 @@ class TestDrivers(unittest.TestCase):
         config = deepcopy(base_config)
         config["output"][0] = output_config
         assert(config["input"][0]["driver"] == "test_input")
-        with patch.object(main_py, 'load_config') as mocked:
-            mocked.return_value = (config, "test_config.json")
-            i, o = main_py.init()
+        # resetting main_py and mocking the config
+        main_py.zpui = main_py.ZPUI()
+        main_py.zpui.config = config
+        i, o = main_py.init()
         assert(isinstance(i, main_py.input.InputProxy))
         assert(isinstance(o, main_py.output.OutputProxy))
+        assert output_config["driver"] in main_py.zpui.screen.__module__
 
     def test_ssd1306(self):
         output_config = {"driver":"ssd1306", "kwargs":{"hw":"dummy"}}
         config = deepcopy(base_config)
         config["output"][0] = output_config
         assert(config["input"][0]["driver"] == "test_input")
-        with patch.object(main_py, 'load_config') as mocked:
-            mocked.return_value = (config, "test_config.json")
-            i, o = main_py.init()
+        main_py.zpui = main_py.ZPUI()
+        main_py.zpui.config = config
+        i, o = main_py.init()
         assert(isinstance(i, main_py.input.InputProxy))
         assert(isinstance(o, main_py.output.OutputProxy))
+        assert output_config["driver"] in main_py.zpui.screen.__module__
 
     def test_ili9341(self):
         output_config = {"driver":"ili9341", "kwargs":{"hw":"dummy"}}
         config = deepcopy(base_config)
         config["output"][0] = output_config
         assert(config["input"][0]["driver"] == "test_input")
-        with patch.object(main_py, 'load_config') as mocked:
-            mocked.return_value = (config, "test_config.json")
-            i, o = main_py.init()
+        main_py.zpui = main_py.ZPUI()
+        main_py.zpui.config = config
+        i, o = main_py.init()
         assert(isinstance(i, main_py.input.InputProxy))
         assert(isinstance(o, main_py.output.OutputProxy))
+        assert output_config["driver"] in main_py.zpui.screen.__module__
 
     def test_st7735(self):
         output_config = {"driver":"st7735", "kwargs":{"hw":"dummy"}}
         config = deepcopy(base_config)
         config["output"][0] = output_config
         assert(config["input"][0]["driver"] == "test_input")
-        with patch.object(main_py, 'load_config') as mocked:
-            mocked.return_value = (config, "test_config.json")
-            i, o = main_py.init()
+        main_py.zpui = main_py.ZPUI()
+        main_py.zpui.config = config
+        i, o = main_py.init()
         assert(isinstance(i, main_py.input.InputProxy))
         assert(isinstance(o, main_py.output.OutputProxy))
+        assert output_config["driver"] in main_py.zpui.screen.__module__
 
     def test_st7735_with_params(self):
         output_config = {"driver":"st7735", "kwargs":{"hw":"dummy", "rotate":1, \
@@ -110,11 +115,12 @@ class TestDrivers(unittest.TestCase):
         config = deepcopy(base_config)
         config["output"][0] = output_config
         assert(config["input"][0]["driver"] == "test_input")
-        with patch.object(main_py, 'load_config') as mocked:
-            mocked.return_value = (config, "test_config.json")
-            i, o = main_py.init()
+        main_py.zpui = main_py.ZPUI()
+        main_py.zpui.config = config
+        i, o = main_py.init()
         assert(isinstance(i, main_py.input.InputProxy))
         assert(isinstance(o, main_py.output.OutputProxy))
+        assert output_config["driver"] in main_py.zpui.screen.__module__
         assert(o.height == 160)
 
     def test_sh1106_with_backlight(self):
@@ -122,17 +128,18 @@ class TestDrivers(unittest.TestCase):
         config = deepcopy(base_config)
         config["output"][0] = output_config
         assert(config["input"][0]["driver"] == "test_input")
-        with patch.object(main_py, 'load_config') as mocked:
-            mocked.return_value = (config, "test_config.json")
-            i, o = main_py.init()
+        main_py.zpui = main_py.ZPUI()
+        main_py.zpui.config = config
+        i, o = main_py.init()
         assert(isinstance(i, main_py.input.InputProxy))
         assert(isinstance(o, main_py.output.OutputProxy))
+        assert output_config["driver"] in main_py.zpui.screen.__module__
 
     #@unittest.skip("broken test, can't properly patch the imports =(")
     def test_pygame_driver(self):
         input_config = {"driver":"pygame_input"}
         config = deepcopy(base_config)
-        config["input"][0] = input_config
+        config["input"][0] = deepcopy(input_config)
         assert(config["output"][0]["driver"] == "test_output")
         module_patch = patch.dict('sys.modules', {"luma.emulator.device":Mock(), \
                                                   "luma.emulator":Mock()})
@@ -142,14 +149,15 @@ class TestDrivers(unittest.TestCase):
         #print(sys.modules['luma.emulator'])
         #print(sys.modules['luma.emulator.device'])
         import emulator as emulator_py
+        main_py.zpui = main_py.ZPUI()
+        main_py.zpui.config = config
         with patch.object(emulator_py.Emulator, 'init_hw') as init_hw, \
           patch.object(emulator_py.Emulator, 'runner') as runner, \
           patch.object(emulator_py.EmulatorProxy, 'start_process'):
-            with patch.object(main_py, 'load_config') as mocked:
-                mocked.return_value = (config, "test_config.json")
-                i, o = main_py.init()
+            i, o = main_py.init()
         assert(isinstance(i, main_py.input.InputProxy))
         assert(isinstance(o, main_py.output.OutputProxy))
+        assert input_config["driver"] in list(main_py.zpui.input_processor.drivers.values())[0].__module__
         module_patch.stop()
         #print([(key, sys.modules[key]) for key in sys.modules.keys() if key.startswith('luma.emulator')])
         # so that no ugly exception is raised when the test finishes
@@ -158,21 +166,22 @@ class TestDrivers(unittest.TestCase):
     def test_hid_driver(self):
         input_config = {"driver":"hid", "kwargs":{"name":"test"}}
         config = deepcopy(base_config)
-        config["input"][0] = input_config
+        config["input"][0] = deepcopy(input_config)
         assert(config["output"][0]["driver"] == "test_output")
         module_patch = patch.dict('sys.modules', {"evdev":Mock()})
         module_patch.start()
         import sys; #print([(key, sys.modules[key]) for key in sys.modules.keys() if key.startswith('evdev')])
         sys.modules['evdev'].configure_mock(device2=Mock())
         #print(sys.modules['evdev'])
+        main_py.zpui = main_py.ZPUI()
+        main_py.zpui.config = config
         from input.drivers import hid
         with patch.object(hid.InputDevice, 'init_hw') as init_hw, \
           patch.object(hid.InputDevice, 'runner') as runner:
-            with patch.object(main_py, 'load_config') as mocked:
-                mocked.return_value = (config, "test_config.json")
-                i, o = main_py.init()
+            i, o = main_py.init()
         assert(isinstance(i, main_py.input.InputProxy))
         assert(isinstance(o, main_py.output.OutputProxy))
+        assert input_config["driver"] in list(main_py.zpui.input_processor.drivers.values())[0].__module__
         module_patch.stop()
         # Checking if we removed all imports
         # print([(key, sys.modules[key]) for key in sys.modules.keys() if key.startswith('evdev')])
@@ -184,16 +193,17 @@ class TestDrivers(unittest.TestCase):
     def test_pi_gpio_driver(self):
         input_config = {"driver":"pi_gpio"}
         config = deepcopy(base_config)
-        config["input"][0] = input_config
+        config["input"][0] = deepcopy(input_config)
         assert(config["output"][0]["driver"] == "test_output")
+        main_py.zpui = main_py.ZPUI()
+        main_py.zpui.config = config
         with patch.object(pi_gpio.InputDevice, 'init_hw') as init_hw, \
           patch.object(pi_gpio.InputDevice, 'runner') as runner:
-            with patch.object(main_py, 'load_config') as mocked:
-                mocked.return_value = (config, "test_config.json")
-                i, o = main_py.init()
+            i, o = main_py.init()
             init_hw.assert_called_once()
         assert(isinstance(i, main_py.input.InputProxy))
         assert(isinstance(o, main_py.output.OutputProxy))
+        assert input_config["driver"] in list(main_py.zpui.input_processor.drivers.values())[0].__module__
         # so that no ugly exception is raised when the test finishes
         main_py.zpui.input_processor.atexit()
 
@@ -201,35 +211,37 @@ class TestDrivers(unittest.TestCase):
     def test_pi_gpio_matrix_driver(self):
         input_config = {"driver":"pi_gpio_matrix"}
         config = deepcopy(base_config)
-        config["input"][0] = input_config
+        config["input"][0] = deepcopy(input_config)
         assert(config["output"][0]["driver"] == "test_output")
+        main_py.zpui = main_py.ZPUI()
+        main_py.zpui.config = config
         with patch.object(pi_gpio_matrix.InputDevice, 'init_hw') as init_hw, \
           patch.object(pi_gpio_matrix.InputDevice, 'runner') as runner:
-            with patch.object(main_py, 'load_config') as mocked:
-                mocked.return_value = (config, "test_config.json")
-                i, o = main_py.init()
+            i, o = main_py.init()
             init_hw.assert_called_once()
         assert(isinstance(i, main_py.input.InputProxy))
         assert(isinstance(o, main_py.output.OutputProxy))
+        assert input_config["driver"] in list(main_py.zpui.input_processor.drivers.values())[0].__module__
         # so that no ugly exception is raised when the test finishes
         main_py.zpui.input_processor.atexit()
 
     def test_custom_i2c_driver(self):
         input_config = {"driver":"custom_i2c"}
         config = deepcopy(base_config)
-        config["input"][0] = input_config
+        config["input"][0] = deepcopy(input_config)
         assert(config["output"][0]["driver"] == "test_output")
         module_patch = patch.dict('sys.modules', {"smbus":Mock()})
         module_patch.start()
         from input.drivers import custom_i2c
+        main_py.zpui = main_py.ZPUI()
+        main_py.zpui.config = config
         with patch.object(custom_i2c.InputDevice, 'init_hw') as init_hw, \
           patch.object(custom_i2c.InputDevice, 'runner') as runner:
-            with patch.object(main_py, 'load_config') as mocked:
-                mocked.return_value = (config, "test_config.json")
-                i, o = main_py.init()
+            i, o = main_py.init()
             init_hw.assert_called_once()
         assert(isinstance(i, main_py.input.InputProxy))
         assert(isinstance(o, main_py.output.OutputProxy))
+        assert input_config["driver"] in list(main_py.zpui.input_processor.drivers.values())[0].__module__
         # so that no ugly exception is raised when the test finishes
         main_py.zpui.input_processor.atexit()
         module_patch.stop()
@@ -238,9 +250,9 @@ class TestDrivers(unittest.TestCase):
         config = deepcopy(base_config)
         assert(config["output"][0]["driver"] == "test_output")
         assert(config["input"][0]["driver"] == "test_input")
-        with patch.object(main_py, 'load_config') as mocked:
-            mocked.return_value = (config, "test_config.json")
-            i, o = main_py.init()
+        main_py.zpui = main_py.ZPUI()
+        main_py.zpui.config = config
+        i, o = main_py.init()
         assert(len(main_py.zpui.input_processor.drivers) == 1)
         name = main_py.zpui.input_processor.attach_driver(test_input.InputDevice())
         assert(len(main_py.zpui.input_processor.drivers) == 2)
