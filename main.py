@@ -38,9 +38,20 @@ if not is_emulator():
 
 class ZPUI():
     def suspend_zpui():
-        pass
+        if hasattr(zpui.screen, "suspend"):
+            zpui.screen.suspend()
+            print("Suspended screen")
+        if hasattr(zpui.input_device_manager, "suspend"):
+            zpui.input_device_manager.suspend()
+            print("Suspended input device manager")
 
     def unsuspend_zpui():
+        if hasattr(zpui.screen, "unsuspend"):
+            zpui.screen.unsuspend()
+            print("Unsuspended screen")
+        if hasattr(zpui.input_device_manager, "unsuspend"):
+            zpui.input_device_manager.unsuspend()
+            print("Unsuspended input device manager")
         self.cm.switch_to_context("main")
 
 zpui = ZPUI()
@@ -90,7 +101,11 @@ hacks.basestring_hack()
 def init():
     """Initialize input and output objects"""
 
-    zpui.config, zpui.config_path = load_config()
+    if not getattr(zpui, "config", None):
+        zpui.config, zpui.config_path = load_config()
+    else:
+        zpui.config_path = "pre-supplied"
+    logging.info("Loaded config: {}".format(zpui.config))
 
     if zpui.config is None:
         sys.exit('Failed to load any config files!')
@@ -141,7 +156,7 @@ def init():
             if hasattr(driver, "reattach_cbs"):
                 # tying the screen's reattach callback into the input device
                 driver.reattach_cbs.append(zpui.screen.reattach_callback)
-                logger.info("attached screen reattach callback to driver {}".format(dname))
+                logging.info("attached screen reattach callback to driver {}".format(dname))
     zpui.cm.init_io(zpui.input_processor, zpui.screen)
     c = zpui.cm.contexts["main"]
     c.register_action(ContextSwitchAction("switch_main_menu", None, menu_name="Main menu"))
@@ -225,14 +240,14 @@ def dump_threads(*args):
     Helpful signal handler for debugging threads
     """
 
-    logger.critical('\nSIGUSR received, dumping threads!\n')
+    logging.critical('\nSIGUSR received, dumping threads!\n')
     for i, th in enumerate(threading.enumerate()):
-        logger.critical("{} - {}".format(i, th))
+        logging.critical("{} - {}".format(i, th))
     for th in threading.enumerate():
-        logger.critical(th)
+        logging.critical(th)
         log = traceback.format_stack(sys._current_frames()[th.ident])
         for frame in log:
-            logger.critical(frame)
+            logging.critical(frame)
 
 
 def spawn_rconsole(*args):
@@ -242,12 +257,12 @@ def spawn_rconsole(*args):
     try:
         from rfoo.utils import rconsole
     except ImportError:
-        logger.exception("can't import rconsole - python-rfoo not installed? Install and try again?")
+        logging.exception("can't import rconsole - python-rfoo not installed? Install and try again?")
         return False
     try:
         rconsole.spawn_server(port=rconsole_port)
     except:
-        logger.exception("Can't spawn rconsole!")
+        logging.exception("Can't spawn rconsole!")
 
 
 if __name__ == '__main__':
@@ -303,15 +318,15 @@ if __name__ == '__main__':
     # Check if another instance is running
     if not is_emulator():
         if args.ignore_pid:
-            logger.info("Skipping PID check");
+            logging.info("Skipping PID check");
         else:
             is_interactive = not zpui_running_as_service()
             do_kill = zpui_running_as_service()
             try:
                 pidcheck.check_and_create_pid(pid_path, interactive=is_interactive, kill_not_stop=do_kill)
             except:
-                logger.error("PID check failed! Proceeding to launch nevertheless")
-                logger.debug(traceback.format_exc())
+                logging.error("PID check failed! Proceeding to launch nevertheless")
+                logging.debug(traceback.format_exc())
                 # one reason this happens is that pid_path is not available on i.e. Armbian, when running as non-root user
                 # will have to maybe iterate through paths in the future? that does need the systemctl file to be modified, sadly
 
