@@ -71,8 +71,13 @@ class InputDevice(HIDDevice):
 
     def store_and_replace_tt(self):
         """Stores and replaces beepy kbd driver touch threshold"""
-        with open(self.tt_path, 'rb') as f:
-           self.orig_tt = f.read().strip()
+        self.orig_tt = None # failsafe
+        try:
+            with open(self.tt_path, 'rb') as f:
+               self.orig_tt = f.read().strip()
+        except FileNotFoundError:
+            # no beepy-kbd loaded, let's quietly fail
+            return
         tt_bytes = bytes(str(self.tt), "ascii")
         logger.info("replacing the original touch threshold {} with {}".format( repr(self.orig_tt), repr(tt_bytes) ))
         with open(self.tt_path, 'wb') as f:
