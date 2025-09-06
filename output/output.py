@@ -2,6 +2,9 @@ from functools import wraps
 from copy import deepcopy
 import importlib
 
+from zpui_lib.helpers import setup_logger
+logger = setup_logger(__name__)
+
 # These base classes document functions that
 # different output devices are expected to have.
 
@@ -193,17 +196,21 @@ def init(driver_configs):
     if not isinstance(driver_configs, list):
         driver_configs = [driver_configs]
     # Currently only the first screen in the config is initialized
-    driver_config = driver_configs[0]
-    driver_name = driver_config["driver"]
-    driver_module = importlib.import_module("output.drivers." + driver_name)
-    args = driver_config["args"] if "args" in driver_config else []
-    if "kwargs" not in driver_config:
-        # a shortening letting us avoid building yaml or json staircases with magic words
-        kwargs = driver_config # taking the root level dict
-        kwargs.pop("driver") # and removing the driver name from it
-        # that's our kwargs now
-    else:
-        kwargs = driver_config["kwargs"]
+    try:
+        driver_config = driver_configs[0]
+        driver_name = driver_config["driver"]
+        driver_module = importlib.import_module("output.drivers." + driver_name)
+        args = driver_config["args"] if "args" in driver_config else []
+        if "kwargs" not in driver_config:
+            # a shortening letting us avoid building yaml or json staircases with magic words
+            kwargs = driver_config # taking the root level dict
+            kwargs.pop("driver") # and removing the driver name from it
+            # that's our kwargs now
+        else:
+            kwargs = driver_config["kwargs"]
+    except:
+        logger.exception(driver_configs)
+        raise
     return driver_module.Screen(*args, **kwargs)
 
 if __name__ == "__main__":
