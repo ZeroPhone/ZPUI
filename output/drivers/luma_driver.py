@@ -15,7 +15,7 @@ from luma.core.error import DeviceNotFoundError as DNFError
 from PIL import ImageChops
 
 from zpui_lib.helpers import setup_logger
-logger = setup_logger(__name__, "warning")
+logger = setup_logger(__name__, "info")
 
 from output.drivers.backlight import *
 try:
@@ -39,6 +39,7 @@ class LumaScreen(GraphicalOutputDevice, CharacterOutputDevice, BacklightManager)
     cursor_enabled = False
     cursor_pos = (0, 0) #x, y
     device_mode = None
+    suspended = False
 
     hw = None
     port = None
@@ -107,6 +108,7 @@ class LumaScreen(GraphicalOutputDevice, CharacterOutputDevice, BacklightManager)
 
     @enable_backlight_wrapper
     def enable_backlight(self):
+        if self.suspended: return # do not control the backlight if suspended
         if self.device.real: # has the actual device been created yet?
             try:
                 self.device.show()
@@ -115,6 +117,7 @@ class LumaScreen(GraphicalOutputDevice, CharacterOutputDevice, BacklightManager)
 
     @disable_backlight_wrapper
     def disable_backlight(self):
+        if self.suspended: return # do not control the backlight if suspended
         if self.device.real: # has the actual device been created yet?
             try:
                 self.device.hide()
@@ -125,9 +128,18 @@ class LumaScreen(GraphicalOutputDevice, CharacterOutputDevice, BacklightManager)
     def display_image(self, image):
         """Displays a PIL Image object onto the display
         Also saves it for the case where display needs to be refreshed"""
+        if self.suspended: return
         with self.busy_flag:
             self.current_image = image
             self._display_image(image)
+
+    def suspend(self):
+        logger.info("Suspended display {}".format(self))
+        self.suspended = True
+
+    def unsuspend(self):
+        logger.info("Unsuspended display {}".format(self))
+        self.suspended = False
 
     def trigger_backlight_on_change(self, func_name, *args, **kwargs):
         """
@@ -177,6 +189,7 @@ class LumaScreen(GraphicalOutputDevice, CharacterOutputDevice, BacklightManager)
         """Displays data on display. This function does the actual work of printing things to display.
 
         ``*args`` is a list of strings, where each string corresponds to a row of the display, starting with 0."""
+        if self.suspended: return # do not output to screen if suspended
         image = self.display_data_onto_image(*args)
         with self.busy_flag:
             self.current_image = image

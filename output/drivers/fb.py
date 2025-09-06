@@ -41,6 +41,7 @@ class Screen(GraphicalOutputDevice, CharacterOutputDevice):
     char_height = 8
 
     real = True
+    suspended = False
     width = None
     height = None
 
@@ -86,6 +87,16 @@ class Screen(GraphicalOutputDevice, CharacterOutputDevice):
         #getattr(self.device, "mode", self.device_mode)
         #BacklightManager.init_backlight(self, **kwargs)
 
+    def suspend(self):
+        logger.info("Suspended display {}".format(self))
+        self.suspended = True
+
+    def unsuspend(self):
+        logger.info("Unsuspended display {}; refreshing image".format(self))
+        self.suspended = False
+        if self.current_image:
+            self._display_data(self.current_image)
+
     def atexit(self):
         try:
             with open('/sys/class/graphics/fbcon/cursor_blink', 'wb') as f:
@@ -106,6 +117,7 @@ class Screen(GraphicalOutputDevice, CharacterOutputDevice):
         Displays a PIL Image object onto the display.
         Also saves it for the case where display needs to be refreshed
         """
+        if self.suspended: return
         with self.busy_flag:
             self.current_image = image
             self._display_image(image)
@@ -159,6 +171,7 @@ class Screen(GraphicalOutputDevice, CharacterOutputDevice):
         """Displays data on display. This function does the actual work of printing things to display.
 
         ``*args`` is a list of strings, where each string corresponds to a row of the display, starting with 0."""
+        if self.suspended: return
         image = self.display_data_onto_image(*args)
         with self.busy_flag:
             self.current_image = image

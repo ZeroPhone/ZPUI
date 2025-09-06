@@ -37,22 +37,32 @@ if not is_emulator():
     config_paths.append(local_path('default_config.yaml'))
 
 class ZPUI():
-    def suspend_zpui():
-        if hasattr(zpui.screen, "suspend"):
-            zpui.screen.suspend()
-            print("Suspended screen")
-        if hasattr(zpui.input_device_manager, "suspend"):
-            zpui.input_device_manager.suspend()
-            print("Suspended input device manager")
+    suspended = threading.Event()
 
-    def unsuspend_zpui():
-        if hasattr(zpui.screen, "unsuspend"):
-            zpui.screen.unsuspend()
-            print("Unsuspended screen")
-        if hasattr(zpui.input_device_manager, "unsuspend"):
-            zpui.input_device_manager.unsuspend()
-            print("Unsuspended input device manager")
-        self.cm.switch_to_context("main")
+    def suspend(self):
+        if not self.suspended.is_set():
+            if hasattr(self.screen, "suspend"):
+                self.screen.suspend()
+                logger.info("Suspended screen {}".format(self.screen))
+            if hasattr(self.input_processor, "suspend"):
+                self.input_processor.suspend()
+                logger.info("Suspended input device manager")
+            self.suspended.set()
+
+    def unsuspend(self):
+        if self.suspended.is_set():
+            if hasattr(self.screen, "unsuspend"):
+                self.screen.unsuspend()
+                logger.info("Unsuspended screen {}".format(self.screen))
+            if hasattr(self.input_processor, "unsuspend"):
+                self.input_processor.unsuspend()
+                logger.info("Unsuspended input device manager")
+            self.cm.switch_to_context("main")
+            self.suspended.clear()
+
+    def unsuspend_signal(self, *a):
+        # argument catcher
+        return self.unsuspend()
 
 zpui = ZPUI()
 
@@ -274,6 +284,7 @@ if __name__ == '__main__':
     signal.signal(signal.SIGUSR1, dump_threads)
     signal.signal(signal.SIGUSR2, spawn_rconsole)
     signal.signal(signal.SIGHUP, logger.on_reload)
+    signal.signal(signal.SIGCONT, zpui.unsuspend_signal)
 
     # Setup argument parsing
     parser = argparse.ArgumentParser(description='ZPUI runner')

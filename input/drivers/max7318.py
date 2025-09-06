@@ -74,9 +74,10 @@ class InputDevice(InputSkeleton):
         button_states = []
         while not self.stop_flag:
             while GPIO.input(self.int_pin) == False and self.enabled:
+                if self.suspended: continue
                 data0 = (~self.bus.read_byte_data(self.addr, 0x00)&0xFF)
                 data1 = (~self.bus.read_byte_data(self.addr, 0x01)&0xFF)
-                data = data0 | (data1 << 8) 
+                data = data0 | (data1 << 8)
                 self.process_data(data)
                 self.previous_data = data
             sleep(0.01)
@@ -85,10 +86,10 @@ class InputDevice(InputSkeleton):
         """Polling loop. Stops when ``stop_flag`` is set to True."""
         button_states = []
         while not self.stop_flag:
-            if self.enabled:
+            if self.enabled and not self.suspended:
                 data0 = (~self.bus.read_byte_data(self.addr, 0x00)&0xFF)
                 data1 = (~self.bus.read_byte_data(self.addr, 0x01)&0xFF)
-                data = data0 | (data1 << 8) 
+                data = data0 | (data1 << 8)
                 if data != self.previous_data:
                     self.process_data(data)
                     self.previous_data = data

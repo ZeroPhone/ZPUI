@@ -4,7 +4,7 @@ from time import sleep
 from zpui_lib.helpers import setup_logger
 from input.drivers.skeleton import InputSkeleton
 
-logger = setup_logger(__name__, "warning")
+logger = setup_logger(__name__, "info")
 
 def get_input_devices():
     """Returns list of all the available InputDevices"""
@@ -86,12 +86,23 @@ class InputDevice(InputSkeleton):
         self.device.grab() #Can throw exception if already grabbed
         return True
 
+    def update_suspend(self):
+        if self.suspended:
+            logger.info("Suspended - ungrabbing device {} {}".format(self.name, self.path))
+            self.device.ungrab()
+        else:
+            logger.info("Unsuspended - grabbing device {} {}".format(self.name, self.path))
+            self.device.grab()
+
     def runner(self):
         """Blocking event loop which just calls supplied callbacks in the keymap."""
         while not self.stop_flag:
             if not self.check_connection():
                 # Looping while the device is not found
                 sleep(self.connection_check_sleep)
+                continue
+            if self.suspended:
+                sleep(0.01)
                 continue
             try:
                 event = self.device.read_one()

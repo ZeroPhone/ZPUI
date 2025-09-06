@@ -56,6 +56,7 @@ class InputDevice(InputSkeleton):
         """Polling loop. Stops when ``stop_flag`` is set to True."""
         pressed_state = True if self.active_high else False
         while not self.stop_flag:
+            if self.suspended: sleep(0.01); continue
             for i, pin_num in enumerate(self.button_pins):
                 button_state = self.GPIO.input(pin_num)
                 if button_state != self.button_states[i]:

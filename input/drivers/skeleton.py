@@ -17,6 +17,7 @@ class InputSkeleton(object):
     * main thread to exit immediately if self.stop_flag is True"""
 
     enabled = True
+    suspended = False
     stop_flag = False
     available_keys = None
     status_available = False
@@ -60,6 +61,22 @@ class InputSkeleton(object):
                 logger.exception("Unexpected exception while setting up hardware")
                 self.init_hw_error_msg_filter = True
             return False
+
+    def suspend(self):
+        if not self.suspended:
+            self.suspended = True
+            if hasattr(self, "update_suspend"):
+                self.update_suspend()
+        else:
+            logger.error("Trying to suspend a device that is already suspended!")
+
+    def unsuspend(self):
+        if self.suspended:
+            self.suspended = False
+            if hasattr(self, "update_suspend"):
+                self.update_suspend()
+        else:
+            logger.error("Trying to unsuspend a device that is not suspended!")
 
     def start(self):
         """Sets the ``enabled`` for loop functions to start sending keycodes."""

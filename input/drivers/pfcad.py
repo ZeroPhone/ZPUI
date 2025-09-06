@@ -34,6 +34,7 @@ class InputDevice(object):
         """Polling loop. Stops when ``stop_flag`` is set to True."""
         button_states = []
         while not self.stop_flag:
+            if self.suspended: sleep(0.01); continue
             data = self.cad.switch_port.value
             if data != self.previous_data:
                 self.process_data(data)

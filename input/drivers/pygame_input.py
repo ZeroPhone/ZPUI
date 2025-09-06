@@ -71,6 +71,8 @@ class InputDevice(InputSkeleton):
             event = self.emulator.poll_input()
             if event is None:
                 continue
+            if self.suspended:
+                continue
 
             key = event['key']
             state = event['state']

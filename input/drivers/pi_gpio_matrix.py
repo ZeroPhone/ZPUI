@@ -42,6 +42,7 @@ class InputDevice(InputSkeleton):
         """Polling loop. Stops when ``stop_flag`` is set to True."""
         while not self.stop_flag:
             for row_num, row_pin in enumerate(self.rows):
+                if self.suspended: sleep(0.01); continue
                 prev_row_state = self.button_states[row_num]
                 if self.GPIO.input(row_pin) != any(prev_row_state):
                     for col in self.cols: self.GPIO.output(col, False)

@@ -41,5 +41,13 @@ class Screen(OutputDevice):
         logger.debug('Creating emulator instance')
         self.emulator = emulator.get_emulator(**kwargs)
 
+    def suspend(self):
+        logger.info("Suspended emulator output (does not do anything)")
+        self.suspended = True
+
+    def unsuspend(self):
+        logger.info("Suspended emulator output (does not do anything)")
+        self.suspended = False
+
     def __getattr__(self, name):
         return getattr(self.emulator, name)

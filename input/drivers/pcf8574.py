@@ -104,6 +104,7 @@ class InputDevice(InputSkeleton):
         button_states = []
         while not self.stop_flag:
             while GPIO.input(self.int_pin) == False and self.enabled:
+                if self.suspended: continue
                 data = (~self.bus.read_byte(self.addr)&0xFF)
                 self.process_data(data)
                 self.previous_data = data

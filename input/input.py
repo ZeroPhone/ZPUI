@@ -50,6 +50,21 @@ class InputProcessor(object):
             name = self.attach_driver(driver)
             self.initial_drivers[name] = driver
         atexit.register(self.atexit)
+        self.suspended = False
+
+    def suspend(self):
+        self.suspended = True
+        for driver_name, driver in self.drivers.items():
+            if hasattr(driver, "suspend"):
+                driver.suspend()
+                logger.info("Suspending driver {}".format(driver_name))
+
+    def unsuspend(self):
+        self.suspended = False
+        for driver_name, driver in self.drivers.items():
+            if hasattr(driver, "unsuspend"):
+                driver.unsuspend()
+                logger.info("Unsuspending driver {}".format(driver_name))
 
     def receive_key(self, key):
         """

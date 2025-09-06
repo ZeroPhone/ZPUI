@@ -86,6 +86,9 @@ class InputDevice(InputSkeleton):
                 continue
             while GPIO.input(self.int_pin) == False and self.enabled:
                 logger.debug("GPIO low, reading data")
+                if self.suspended:
+                    sleep(0.01)
+                    continue
                 try:
                     data = self.bus.read_byte(self.addr)
                     logger.debug("Received {:#010b}".format(data))
