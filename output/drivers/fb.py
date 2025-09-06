@@ -95,7 +95,7 @@ class Screen(GraphicalOutputDevice, CharacterOutputDevice):
         logger.info("Unsuspended display {}; refreshing image".format(self))
         self.suspended = False
         if self.current_image:
-            self._display_data(self.current_image)
+            self._display_image(self.current_image)
 
     def atexit(self):
         try:
