@@ -531,14 +531,13 @@ def init(driver_configs, context_manager):
     """ This function is called by main.py to read the input configuration,
     pick the corresponding drivers and initialize InputProcessor. Returns
     the InputProcessor instance created.`"""
-    if isinstance(driver_configs, str):
-        # just a driver name provided, good, we can do that
-        driver_configs = [{"driver":driver_configs}]
     # allow providing a dict instead of a list if there's only one driver
     if not isinstance(driver_configs, list):
         driver_configs = [driver_configs]
     drivers = []
     for driver_config in driver_configs:
+        if isinstance(driver_config, str):
+            driver_config = {"driver":driver_config}
         driver_name = driver_config["driver"]
         driver_module = importlib.import_module("input.drivers."+driver_name)
         args = driver_config.get("args", [])
