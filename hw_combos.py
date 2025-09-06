@@ -355,6 +355,14 @@ class TestCombination(unittest.TestCase):
         assert(i == [{'driver': 'pcf8574', 'addr': 63}, {'driver': 'beepy_hid'}])
         assert(o == {'driver': 'beepy_fb', 'fb_num': 1})
 
+    def test_bc_plus_beepykbd(self):
+        """tests that beepy config works"""
+        config = {"device":"zpui_bc_v1_qwiic", "input":"beepy_hid"}
+        i, o = get_io_configs(config)
+        #print(i, o)
+        assert(i == [{'driver': 'pcf8574', 'addr': 63}, 'beepy_hid'])
+        assert(o == {'driver': 'sh1106', 'hw': 'i2c'})
+
 
 if __name__ == '__main__':
     unittest.main()
