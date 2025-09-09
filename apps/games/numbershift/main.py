@@ -55,9 +55,11 @@ class GameApp(ZeroApp):
             elif start_new is True:
                 self.start_new_game()
         # By now, the `game` property should have a game
+        """
         # test field one move away from a win
         self.game["field"] = [1, 2, 3, 4,  5, 6, 7, 8,  9, 10, 11, 0,  13, 14, 15, 12]
         self.game["pointer"] = [3, 2]
+        """
         # Let's launch the main loop
         while not self.do_exit.is_set():
             self.game_loop()
