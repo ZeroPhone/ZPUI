@@ -54,7 +54,7 @@ class BeepyApp(ZeroApp):
 
     def try_detect_driver(self):
         try:
-            read_file(self.batt_volt_path)
+            self.read_file(self.batt_volt_path)
         except:
             logger.exception("Beepy driver is not loaded?")
             return False
