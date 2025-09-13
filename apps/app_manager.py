@@ -399,7 +399,10 @@ class AppManager(object):
         subdir_import_path = subdir_path.replace('/', '.')
         try:
             subdir_object = importlib.import_module(subdir_import_path + '.__init__')
-            return subdir_object._menu_name
+            if hasattr(subdir_object, "_menu_name"):
+                return subdir_object._menu_name
+            else:
+                return subdir_path.rsplit('/')[-1].replace('_', ' ').capitalize()
         except:
             logger.exception("Exception while loading __init__.py for subdir {}".format(subdir_path))
             return os.path.split(subdir_path)[1].capitalize().replace("_", " ")
