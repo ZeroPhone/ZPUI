@@ -1,10 +1,9 @@
 menu_name = "Return to console"
 
-import os
 from time import sleep
 
 from zpui_lib.ui import Canvas
-from zpui_lib.helpers import ExitHelper, get_platform
+from zpui_lib.helpers import get_platform
 from zpui_lib.actions import ContextSwitchAction as Action
 
 context = None
@@ -23,4 +22,11 @@ def set_context(c):
 
 def callback():
     from __main__ import zpui
+    c = Canvas(o)
+    c.centered_text("Now press Enter", font=("Fixedsys62.ttf", 32))
+    c.display()
     zpui.suspend()
+    if "emulator" in get_platform():
+        # just for testing
+        sleep(2)
+        zpui.unsuspend()
