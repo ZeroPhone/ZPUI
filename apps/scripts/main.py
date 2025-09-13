@@ -30,7 +30,9 @@ default_config = """{
   "name":"wget google main page",
   "args":["http://www.google.com"]}
 ],
-"history":[]
+"history":[],
+"autosave_output":false,
+"autoshow_output":false
 }"""
 
 logger = setup_logger(__name__)
@@ -75,15 +77,31 @@ def call_external(script_list, shell=False):
         if not output:
             return
         if isinstance(output, bytes): output = output.decode("ascii")
-        answer = DialogBox("yn", i, o, message="Show output?").activate()
+        do_autosave = config.get("autosave_output", False)
+        if do_autosave:
+            try:
+                save_output(script_list, output)
+            except: # damn this needs better processing huh
+                # but this will do for now, to avoid the funny bug where a command isn't saved in history
+                logger.exception("Failed to save command output!")
+        do_autoshow = config.get("autoshow_output", False)
+        if not do_autoshow:
+            answer = DialogBox("yn", i, o, message="Show output?").activate()
+        else:
+            answer = True
         if answer:
             do_show = True
             while do_show:
                 TextReader(output, i, o, autohide_scrollbars=True, h_scroll=True).activate()
-                answer = DialogBox(["y", 'n', ["Show again", "showagain"]], i, o, message="Save output?").activate()
-                if answer != "showagain":
-                    do_show = False
-            if answer:
+                if do_autosave:
+                    answer = DialogBox("yn", i, o, message="Show again?").activate()
+                    if not answer:
+                        do_show = False
+                else:
+                    answer = DialogBox(["y", 'n', ["Show again", "showagain"]], i, o, message="Save output?").activate()
+                    if answer != "showagain":
+                        do_show = False
+            if answer and not do_autosave: # gotta avoid saving the output
                 try:
                     save_output(script_list, output)
                 except: # damn this needs better processing huh
@@ -102,11 +120,16 @@ def save_output(command, output):
     if not os.path.exists(old_dir) or not os.path.isdir(old_dir):
         logger.error("{} not found or not dir, using '/' instead".format(old_dir))
         old_dir = "/" #fallback
-    dir = PathPicker(old_dir, i, o, dirs_only=True).activate()
-    if not dir:
-        return
-    # Saving the path into the config
-    config["output_dir"] = dir
+    do_autosave = config.get("autosave_output", False)
+    if not do_autosave:
+        # we do not need to ask the user for the directory if the app is set to autosave output
+        dir = PathPicker(old_dir, i, o, dirs_only=True).activate()
+        if not dir:
+            return
+        # Saving the path into the config
+        config["output_dir"] = dir
+    else:
+        dir = old_dir
     save_config(config)
     path = os.path.join(dir, filename)
     logger.info("Saving output into {}".format(path))
@@ -178,6 +201,44 @@ def menu_history_entry(num):
         return c
     Menu([], i, o, contents_hook=get_mc, name="Scripts app history entry {} menu".format(num)).activate()
 
+def settings_menu():
+    c = [
+      ["Auto-show output", autoshow_output_set],
+      ["Auto-save output", autosave_output_set],
+      ["Auto-save location", autosave_location_set],
+    ]
+    Menu(c, i, o, name="Scripts app settings menu").activate()
+
+def autosave_output_set():
+    do_autosave = config.get("autosave_output", False)
+    db = DialogBox([("Always", True), ("Ask", False)], i, o, message="Auto-save output?")
+    db.set_start_option(0 if do_autosave else 1)
+    answer = db.activate()
+    if answer == None:
+        return
+    config["autosave_output"] = answer
+    save_config(config)
+
+def autoshow_output_set():
+    do_autoshow = config.get("autoshow_output", False)
+    db = DialogBox([("Always", True), ("Ask", False)], i, o, message="Auto-save output?")
+    db.set_start_option(0 if do_autoshow else 1)
+    answer = db.activate()
+    if answer != None:
+        config["autoshow_output"] = answer
+        save_config(config)
+
+def autosave_location_set():
+    old_dir = config.get("output_dir", '/')
+    if not os.path.exists(old_dir) or not os.path.isdir(old_dir):
+        logger.error("{} not found or not dir, using '/' instead".format(old_dir))
+        old_dir = "/" #fallback
+    dir = PathPicker(old_dir, i, o, dirs_only=True).activate()
+    if not dir:
+        return
+    # Saving the path into the config
+    config["output_dir"] = dir
+    save_config(config)
 
 def history_menu():
     def get_mc():
@@ -214,6 +275,9 @@ def callback():
             relpath = local_path(scripts_dir, script)
             if relpath not in scripts_in_config:
                 script_menu_contents.append([os.path.join(scripts_dir, script), lambda x=relpath: try_call_external([x])])
+        script_menu_contents += [
+                                ["Settings", settings_menu]
+        ]
         return script_menu_contents
     main_menu = Menu([], i, o, contents_hook=contents_hook, name="Script menu")
     main_menu.activate()
