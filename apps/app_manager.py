@@ -78,15 +78,12 @@ class AppManager(object):
             provider = self.zpui.cm.get_provider("status_bar")
             if provider: # needs to have a provider okok
                 self.status_bar_provider = provider
-                print(self.status_bar_provider.notify_update)
                 self.status_bar_provider.notify_update = self.on_status_bar_update
                 self.draw_status_bar()
 
     def on_status_bar_update(self, name=None):
-        print("update pls", name)
         self.draw_status_bar()
         self.canvas.display()
-        pass
 
     def draw_status_bar(self):
         try:
