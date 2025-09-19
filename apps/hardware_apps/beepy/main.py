@@ -8,7 +8,7 @@ import os
 
 from zpui_lib.apps import ZeroApp
 from zpui_lib.ui import Menu, Printer, PrettyPrinter, Canvas
-from zpui_lib.helpers import ExitHelper, local_path_gen, setup_logger, remove_left_failsafe, BackgroundRunner
+from zpui_lib.helpers import ExitHelper, local_path_gen, setup_logger, remove_left_failsafe, BackgroundRunner, get_platform
 
 from smbus import SMBus
 
@@ -56,13 +56,18 @@ class BeepyApp(ZeroApp):
         try:
             self.read_file(self.batt_volt_path)
         except:
-            logger.exception("Beepy driver is not loaded?")
+            if "emulator" in get_platform():
+                logger.info("Beepy driver not found but emulator detected, loading the app anyway")
+            else:
+                logger.exception("Beepy driver is not loaded?")
             return False
         return True
 
     def can_load(self):
-        return True # debug
-        return self.driver_found # to be used in the future
+        if "emulator" in get_platform():
+            return True # for debug purposes
+        else:
+            return self.driver_found
 
     def get_backlight(self):
         # not all driver versions support reading the backlight level
