@@ -235,6 +235,25 @@ class Context(object):
         """
         return self.event_cb(self.name, "request_global_keymap", keymap)
 
+    def set_provider(self, provider_type, provider):
+        """
+        A function for apps to use to set themselves as providers for different roles.
+        """
+        print("set_provider", provider_type, provider)
+        return self.event_cb(self.name, "set_provider", provider_type, provider)
+
+    def get_provider(self, provider_type):
+        """
+        A function for apps to use to get providers for different roles.
+        """
+        return self.event_cb(self.name, "get_provider", provider_type)
+
+    def get_providers_by_type(self, provider_type_start):
+        """
+        A function for apps to use to get providers for roles that start with a specific name.
+        """
+        return self.event_cb(self.name, "get_providers_by_type", provider_type_start)
+
 
 class ContextManager(object):
 
@@ -248,6 +267,7 @@ class ContextManager(object):
     def __init__(self):
         self.contexts = {}
         self.previous_contexts = {}
+        self.providers = {}
         self.switching_contexts = Lock()
         self.am = ActionManager(self)
 
@@ -587,5 +607,34 @@ class ContextManager(object):
                     logger.warning("Context {} set a global callback on {} (function: {})".format(context_alias, key, cb.__name__))
                     results[key] = True
             return results
+        elif event ==  "set_provider":
+            return self.set_provider(*args, **kwargs)
+        elif event ==  "get_provider":
+            return self.get_provider(*args, **kwargs)
+        elif event ==  "get_providers_by_type":
+            return self.get_providers_by_type(*args, **kwargs)
         else:
             logger.warning("Unknown event: {}!".format(event))
+
+    def get_provider(self, provider_type, *args, **kwargs):
+        """
+        A function for AppManager to use when initializing main context menus,
+        to fetch a status bar to be shown above the menus.
+        Is currently extremely simplistic, but might become more complex later.
+        """
+        return self.providers.get(provider_type, None)
+
+    def get_providers_by_type(self, provider_type_start, *args, **kwargs):
+        """
+        A function for AppManager to use when initializing main context menus,
+        to fetch a status bar to be shown above the menus.
+        Is currently extremely simplistic, but might become more complex later.
+        """
+        return {name:provider for name, provider in self.providers.items() if name.startswith(provider_type_start)}
+
+    def set_provider(self, provider_type, provider):
+        """
+        A function for apps to use to claim a status bar provider role.
+        Is currently extremely simplistic, but might become more complex later.
+        """
+        self.providers[provider_type] = provider
