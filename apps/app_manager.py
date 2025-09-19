@@ -40,7 +40,7 @@ class AppManager(object):
     """
     ordering_cache = {}
 
-    def __init__(self, app_directory, context_manager, config=None, default_plugins=True):
+    def __init__(self, app_directory, context_manager, zpui, config=None, default_plugins=True):
         self.subdir_menus = {}
         self.subdir_menu_contents = {}
         self.subdir_menu_creators = {}
@@ -50,15 +50,21 @@ class AppManager(object):
         self.failed_apps = {}
         self.app_directory = app_directory
         self.cm = context_manager
+        self.zpui = zpui
         self.i, self.o = self.cm.get_io_for_context("main")
         self.orig_o = self.o
         self.config = config if config else {}
+        self.has_status_bar = False
         if "status_bar_height" in self.config:
+            # status bar provider
+            self.has_status_bar = True
             sbh = self.config["status_bar_height"]
             self.status_bar_height = sbh
             self._orig_o = self.o
             self.canvas = Canvas(self._orig_o)
-            self.canvas.text("Status bar will go here", (sbh-5, 4), font=("Mukta-SemiBold.ttf", 12))
+            # placeholder
+            self.canvas.text("Status bar failed to load", (sbh-5, 4), font=("Mukta-SemiBold.ttf", 12))
+            # virtual output given to main and app menus, so that the menu can be drawn on it
             self.o = MockOutput(height=self.o.height-sbh, o=self.o, warn_on_display=False)
             def display_image(image):
                 self.update_display(image)
@@ -66,6 +72,27 @@ class AppManager(object):
         logger.debug("Config: {}".format(self.config))
         if default_plugins and self.config.get("default_overlays", True):
             self.register_default_plugins()
+
+    def after_load(self):
+        if self.has_status_bar:
+            provider = self.zpui.cm.get_provider("status_bar")
+            if provider: # needs to have a provider okok
+                self.status_bar_provider = provider
+                print(self.status_bar_provider.notify_update)
+                self.status_bar_provider.notify_update = self.on_status_bar_update
+                self.draw_status_bar()
+
+    def on_status_bar_update(self, name=None):
+        print("update pls", name)
+        self.draw_status_bar()
+        self.canvas.display()
+        pass
+
+    def draw_status_bar(self):
+        try:
+            self.status_bar_provider.output_image(self.canvas, self.status_bar_height)
+        except:
+            logger.exception("Couldn't update status bar!")
 
     def update_display(self, image):
         self.canvas.paste(image, (0, self.status_bar_height))
@@ -200,13 +227,13 @@ class AppManager(object):
     def load_all_apps(self, interactive=True):
         apps_blocked_in_config = self.config.get("do_not_load", [])
         self.subdir_paths.append(self.app_directory.rstrip("/"))
+        # apps having an "execute_after_contexts" hook
+        after_contexts_apps = {}
         # first: directory-based discovery
         for path, subdirs, modules in app_walk(self.app_directory):
             for subdir in subdirs:
                 subdir_path = os.path.join(path, subdir)
                 self.subdir_paths.append(subdir_path)
-            # apps having an "execute_after_contexts" hook
-            after_contexts_apps = {}
             for _module in modules:
                 module_path = os.path.join(path, _module)
                 try:
@@ -238,14 +265,6 @@ class AppManager(object):
                 if self.failed_apps:
                     failed_app_names = [os.path.split(p)[1] for p in self.failed_apps.keys()]
                     Printer(["Failed to load:"]+failed_app_names, self.i, self.orig_o, 0.5)
-            # execute after_context functions
-            for app_path, app in after_contexts_apps.items():
-                try:
-                    self.execute_after_contexts(app)
-                except:
-                    logger.exception("Failed to execute 'after all contexts' hook for {}".format(app_path))
-                else:
-                    logger.info("Executed 'after all contexts' hook for {}".format(app_path))
         # second: entrypoint-based discovery
         discovered_apps = entry_points(group='zpui_app.3rdparty')
         for app_ep in discovered_apps:
@@ -288,6 +307,14 @@ class AppManager(object):
                     after_contexts_apps[module_path] = loaded_app
             except:
                 logger.exception("Failed to load external app {}".format(module_path))
+        # execute after_context functions
+        for app_path, app in after_contexts_apps.items():
+            try:
+                self.execute_after_contexts(app)
+            except:
+                logger.exception("Failed to execute 'after all contexts' hook for {}".format(app_path))
+            else:
+                logger.info("Executed 'after all contexts' hook for {}".format(app_path))
         base_menu = self.create_menu_structure()
         return base_menu
 

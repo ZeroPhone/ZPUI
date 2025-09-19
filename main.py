@@ -184,7 +184,7 @@ def launch(name=None, **kwargs):
 
     i, o = init()
     zpui.appman_config = zpui.config.get("app_manager", {})
-    zpui.app_man = AppManager('apps', zpui.cm, config=zpui.appman_config)
+    zpui.app_man = AppManager('apps', zpui.cm, zpui, config=zpui.appman_config)
 
     if name is None:
         try:
@@ -195,6 +195,7 @@ def launch(name=None, **kwargs):
 
         # Load all apps
         zpui.app_menu = zpui.app_man.load_all_apps()
+        zpui.app_man.after_load()
         runner = zpui.app_menu.activate
         zpui.cm.switch_to_start_context()
     else:
