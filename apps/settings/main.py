@@ -11,10 +11,12 @@ try:
 except:
     import http.client as httplib
 
-from zpui_lib.ui import Menu, PrettyPrinter, DialogBox, ProgressBar, Listbox, UniversalInput, HelpOverlay, TextReader
+from zpui_lib.ui import Menu, PrettyPrinter, DialogBox, ProgressBar, Listbox, UniversalInput, HelpOverlay, TextReader, Zone, crop, replace_color
 from zpui_lib.helpers import setup_logger, read_or_create_config, save_config_method_gen, local_path_gen, get_safe_file_backup_path, BackgroundRunner, BooleanEvent
 from zpui_lib.actions import FirstBootAction
 from zpui_lib.apps import ZeroApp
+
+from PIL import Image
 
 local_path = local_path_gen(__name__)
 
@@ -524,6 +526,7 @@ class SettingsApp(ZeroApp):
                     if self.git_updater.update_is_interesting():
                         logger.info("ZPUI updates available! {}".format(update_result))
                         self.updates_available.set(True)
+                        self.status_updates_zone.request_refresh()
                         pass # uhhhh emit a notification? lol
                     else:
                         logger.info("ZPUI updates available, but marked as uninteresting")
@@ -532,10 +535,24 @@ class SettingsApp(ZeroApp):
         except:
             logger.exception("Problem when automatically fetching updates!")
 
+    def status_updates_get(self):
+        return bool(self.updates_available)
+
+    def status_updates_icon(self, zone, value):
+        if not value:
+            return crop(zone.canvas.get_image()) # just empty image; we never use the canvas anyway
+        icon = Image.open(local_path("updates_icon.png"))
+        icon = icon.convert(zone.o_params["device_mode"])
+        if "color" in zone.o_params['type']:
+            icon = replace_color(icon, "white", zone.canvas.default_color)
+        return icon
+
     def set_context(self, c):
         self.context = c
         self.context.register_firstboot_action(bugreport_ui.autosend_optin_fba)
         self.context.register_firstboot_action(self.update_zpui_fba)
+        self.status_updates_zone = Zone(self.status_updates_get, self.status_updates_icon, name="ZPUI updates")
+        self.context.set_provider("statusbar_updates", self.status_updates_zone)
 
     def init_app(self):
         # globals for the remainder of the UI to use, until it's refactored
