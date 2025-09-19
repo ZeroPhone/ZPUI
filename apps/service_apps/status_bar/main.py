@@ -53,7 +53,6 @@ def execute_after_contexts():
     zones["notifs"] = Zone(lambda: True, draw_notifs, name="Notifications", trimmable=True)
     added_providers = (name for name in zones if name!= "notifs")
     markup = [[ZS(5), "notifs", "...", *added_providers, ZS(5)]]
-    print(markup)
 
 class StatusBar():
     zm = None
@@ -61,7 +60,8 @@ class StatusBar():
         pass
 
     def notify_update(self, name=None):
-        print("Default call 2 ugh")
+        pass
+        #print("Default call 2 ugh")
 
     def output_image(self, c, height):
         #if canvas != c:
