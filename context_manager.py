@@ -239,7 +239,6 @@ class Context(object):
         """
         A function for apps to use to set themselves as providers for different roles.
         """
-        print("set_provider", provider_type, provider)
         return self.event_cb(self.name, "set_provider", provider_type, provider)
 
     def get_provider(self, provider_type):
