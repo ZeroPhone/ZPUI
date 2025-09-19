@@ -10,8 +10,8 @@ from subprocess import check_output, CalledProcessError
 
 from zpui_lib.apps import ZeroApp
 from zpui_lib.actions import FirstBootAction
-from zpui_lib.helpers import read_or_create_config, local_path_gen, setup_logger
-from zpui_lib.ui import Menu, Refresher, Canvas, IntegerAdjustInput, Listbox, LoadingBar, PrettyPrinter as Printer, PurposeOverlay
+from zpui_lib.helpers import read_or_create_config, local_path_gen, setup_logger, BackgroundRunner
+from zpui_lib.ui import Menu, Refresher, Canvas, IntegerAdjustInput, Listbox, LoadingBar, PrettyPrinter as Printer, PurposeOverlay, Zone, MockOutput, crop
 
 logger = setup_logger(__name__, "warning")
 local_path = local_path_gen(__name__)
@@ -22,15 +22,53 @@ class ClockApp(ZeroApp, Refresher):
         super(ClockApp, self).__init__(i, o)
         self.menu_name = "Clock"
         self.countdown = None
+        self.time_str = None
         self.refresher = Refresher(self.on_refresh, i, o, keymap={"KEY_RIGHT":self.countdown_settings, "KEY_DOWN":self.force_sync_time})
         default_config = '{}'
         config_filename = "config.json"
         self.config = read_or_create_config(local_path(config_filename), default_config, self.menu_name+" app")
+        self.status_clock_zone = Zone(self.status_clock_get, self.status_clock_draw, i_pass_self=True, name="Clock", caching=False)
+        self.sc_update_runner = BackgroundRunner(self.status_clock_callupdate_thread)
+        self.sc_update_runner.run()
 
     def set_context(self, c):
         self.context = c
         c.register_firstboot_action(FirstBootAction("set_timezone", self.set_timezone, depends=None, not_on_emulator=True))
         c.register_firstboot_action(FirstBootAction("force_sync_time", self.force_sync_time, depends=["set_timezone", "check_connectivity"], not_on_emulator=True))
+        c.set_provider("statusbar_clock", self.status_clock_zone)
+
+    def status_clock_callupdate_thread(self):
+        # refresh every 60-ish seconds,
+        # aiming to call for refresh at the :00 second
+        time_str = self.time_str
+        until_refresh = 0
+        while True:
+            current_time = datetime.now()
+            while self.status_clock_get() == time_str: # and until_refresh > 30:
+                #print("Tuneup", time_str, self.time_str)
+                time.sleep(1)
+            #print("timestr", time_str)
+            self.status_clock_zone.request_refresh()
+            current_time = datetime.now()
+            until_refresh = 60 - current_time.second
+            #print("Clock - calling for zone refresh in ", until_refresh-1, current_time.minute, current_time.second)
+            time_str = self.time_str
+            #time.sleep(0.3)
+            time.sleep(until_refresh-1)
+
+    def status_clock_get(self):
+        #time_format = "%H:%M:%S"
+        time_format = "%H:%M"
+        current_time = datetime.now()
+        self.time_str = time.strftime(time_format)
+        #print("timestr_get", self.time_str)
+        return self.time_str
+
+    def status_clock_draw(self, zone, value):
+        text_size = int(zone.canvas.height // 2)
+        zone.canvas.clear()
+        zone.canvas.text(value, (zone.o_params["height"]-5, 4), font=("Mukta-Bold.ttf", text_size))
+        return crop(zone.canvas.get_image(), min_height=zone.o_params["height"], align="vcenter")
 
     def force_sync_time(self):
         Printer("Syncing time", self.i, self.o, 0)
