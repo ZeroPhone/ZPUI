@@ -11,12 +11,10 @@ try:
 except:
     import http.client as httplib
 
-from zpui_lib.ui import Menu, PrettyPrinter, DialogBox, ProgressBar, Listbox, UniversalInput, HelpOverlay, TextReader, Zone, crop, replace_color
+from zpui_lib.ui import Menu, PrettyPrinter, DialogBox, ProgressBar, Listbox, UniversalInput, HelpOverlay, TextReader, Zone, crop, replace_color, open_image
 from zpui_lib.helpers import setup_logger, read_or_create_config, save_config_method_gen, local_path_gen, get_safe_file_backup_path, BackgroundRunner, BooleanEvent
 from zpui_lib.actions import FirstBootAction
 from zpui_lib.apps import ZeroApp
-
-from PIL import Image
 
 local_path = local_path_gen(__name__)
 
@@ -541,7 +539,7 @@ class SettingsApp(ZeroApp):
     def status_updates_icon(self, zone, value):
         if not value:
             return crop(zone.canvas.get_image()) # just empty image; we never use the canvas anyway
-        icon = Image.open(local_path("updates_icon.png"))
+        icon = open_image(local_path("updates_icon.png"))
         icon = icon.convert(zone.o_params["device_mode"])
         if "color" in zone.o_params['type']:
             icon = replace_color(icon, "white", zone.canvas.default_color)

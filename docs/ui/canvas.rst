@@ -20,4 +20,4 @@ Canvas
 
 .. autoclass:: MockOutput
 
-.. autofunction:: crop, expand_coords, replace_color, swap_colors
+.. autofunction:: open_image, invert_image, crop, expand_coords, replace_color, swap_colors

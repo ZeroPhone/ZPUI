@@ -6,9 +6,7 @@ import traceback
 from zpui_lib.apps import ZeroApp
 from zpui_lib.helpers import setup_logger, zpui_running_as_service
 from zpui_lib.ui import Printer, Menu, HelpOverlay, GridMenu, Entry, Canvas, MockOutput, \
-               GridMenuLabelOverlay, GridMenuSidebarOverlay, GridMenuNavOverlay
-
-from PIL import Image, ImageOps
+               GridMenuLabelOverlay, GridMenuSidebarOverlay, GridMenuNavOverlay, open_image, invert_image
 
 if sys.version_info < (3, 10):
     from importlib_metadata import entry_points
@@ -103,15 +101,15 @@ class AppManager(object):
         for entry in contents:
             for icon_name, icon_path in icon_paths.items():
                 if entry.basename.startswith(icon_name):
-                    entry.icon = Image.open(icon_path)
+                    entry.icon = open_image(icon_path)
                     used_icons.append(icon_name)
                     continue
             else:
                 pass
         if zpui_running_as_service():
-            exit_entry = Entry("Restart ZPUI", "exit", icon=Image.open(icon_paths["exit"]))
+            exit_entry = Entry("Restart ZPUI", "exit", icon=open_image(icon_paths["exit"]))
         else:
-            exit_entry = Entry("Exit", "exit", icon=Image.open(icon_paths["exit"]))
+            exit_entry = Entry("Exit", "exit", icon=open_image(icon_paths["exit"]))
         #print([x for x, y, in icon_paths if x not in used_icons])
         font = ("Fixedsys62.ttf", 16)
         menu = GridMenu(contents, self.i, self.o, font=font, name="Main menu", exitable=False, navigation_wrap=False)
@@ -120,7 +118,7 @@ class AppManager(object):
         return menu
 
     def sidebar_cb(self, c, ui_el, coords):
-        sidebar_image = ImageOps.invert(Image.open("resources/sidebar.png").convert('L'))
+        sidebar_image = invert_image(open_image("resources/sidebar.png").convert('L'))
         sidebar_image.convert(c.o.device_mode)
         c.image.paste(sidebar_image, (coords.left+3, coords.top-5))
 
