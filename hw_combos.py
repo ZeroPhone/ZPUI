@@ -226,35 +226,35 @@ class TestCombination(unittest.TestCase):
     def test_simple(self):
         """tests that it runs when a device isn't provided"""
         config = {"input":"test1", "output":"test2"}
-        i, o = get_io_configs(config)
+        i, o, _ = get_io_configs(config)
         assert(i == "test1")
         assert(o == "test2")
 
     def test_emulator(self):
         """tests that it runs when a device isn't provided"""
         config = {"device":"emulator"}
-        i, o = get_io_configs(config)
+        i, o, _ = get_io_configs(config)
         assert(i == "pygame_input")
         assert(o == "pygame_emulator")
 
     def test_zpog(self):
         """tests that zpog config parses"""
         config = {"device":"zerophone_og"}
-        i, o = get_io_configs(config)
+        i, o, _ = get_io_configs(config)
         assert(o == "sh1106")
         assert(i == "custom_i2c")
 
     def test_zpbc1q(self):
         """tests that it zp businesscard v1 qwiic config parses"""
         config = {"device":"zpui_bc_v1_qwiic"}
-        i, o = get_io_configs(config)
+        i, o, _ = get_io_configs(config)
         assert(i == {'driver': 'pcf8574', 'addr': 63})
         assert(o == {'driver': 'sh1106', 'hw': 'i2c'})
 
     def test_zpbc1q_rotate(self):
         """tests that it zp businesscard v1 qwiic config with rotation parses"""
         config = {"device":{"driver":"zpui_bc_v1_qwiic", "rotate":"N"}}
-        i, o = get_io_configs(config)
+        i, o, _ = get_io_configs(config)
         assert(i['driver'] == 'pcf8574')
         assert(i['addr'] == 63)
         assert(i['mapping'] == n_mapping)
@@ -263,7 +263,7 @@ class TestCombination(unittest.TestCase):
     def test_zpbc1_rotate(self):
         """tests that it zp businesscard v1 config with rotation parses"""
         config = {"device":{"driver":"zpui_bc_v1", "rotate":"N"}}
-        i, o = get_io_configs(config)
+        i, o, _ = get_io_configs(config)
         assert(i['driver'] == 'pi_gpio')
         assert(i['mapping'] == n_mapping)
         assert(o == {'driver': 'sh1106', 'hw': 'i2c'})
@@ -271,72 +271,72 @@ class TestCombination(unittest.TestCase):
     def test_zpbc1(self):
         """tests that it zp businesscard v1 config parses"""
         config = {"device":"zpui_bc_v1"}
-        i, o = get_io_configs(config)
+        i, o, _ = get_io_configs(config)
         assert(i == {'driver': 'pi_gpio', 'button_pins': [27, 25, 24, 17, 23, 5, 22, 18]})
         assert(o == {'driver': 'sh1106', 'hw': 'i2c'})
 
     def test_mods_drivers(self):
         config = {"device":"emulator", "input":{"driver":0, "test1":"test2"}}
-        i, o = get_io_configs(config)
+        i, o, _ = get_io_configs(config)
         assert(i == {'driver': 'pygame_input', 'test1': 'test2'})
         assert(o == 'pygame_emulator')
 
     def test_mods_and_adds_drivers(self):
         config = {"device":"emulator", "input":[{"driver":0, "test1":"test2"}, "test3"], "output":[{"driver":0, "test4":"test5"}, "test6"]}
-        i, o = get_io_configs(config)
+        i, o, _ = get_io_configs(config)
         assert(i == [{'driver': 'pygame_input', 'test1': 'test2'}, 'test3'])
         assert(o == [{'driver': 'pygame_emulator', 'test4': 'test5'}, 'test6'])
 
     def test_zpbc1_i2cbus(self):
         """tests that it zp businesscard v1 config can be modded with i2c"""
         config = {"device":"zpui_bc_v1", "i2c":"2"}
-        i, o = get_io_configs(config)
+        i, o, _ = get_io_configs(config)
         assert(i == {'driver': 'pi_gpio', 'button_pins': [27, 25, 24, 17, 23, 5, 22, 18]})
         assert(o == {'driver': 'sh1106', 'hw': 'i2c', 'port': 2})
 
     def test_zpbc1q_i2cbus(self):
         """tests that it zp businesscard v1 qwiic config parses"""
         config = {"device":"zpui_bc_v1_qwiic", "i2c":"2"}
-        i, o = get_io_configs(config)
+        i, o, _ = get_io_configs(config)
         assert(i == {'driver': 'pcf8574', 'addr': 63, 'bus': 2})
         assert(o == {'driver': 'sh1106', 'hw': 'i2c', 'port': 2})
 
     def test_waveshare_oled(self):
         """tests that zp waveshare oled hat config works"""
         config = {"device":"waveshare_oled_hat"}
-        i, o = get_io_configs(config)
+        i, o, _ = get_io_configs(config)
         assert(i == {'driver': 'pi_gpio', 'button_pins': [6, 21, 26, 20, 19, 5, 16, 13]})
         assert(o == {'driver': 'sh1106', 'hw': 'spi', 'dc': 24, 'rst': 25})
 
     def test_waveshare_oled_i2c(self):
         """tests that waveshare oled hat config with screen hw parses"""
         config = {"device":"waveshare_oled_hat", "screen_hw":"i2c"}
-        i, o = get_io_configs(config)
+        i, o, _ = get_io_configs(config)
         assert(i == {'driver': 'pi_gpio', 'button_pins': [6, 21, 26, 20, 19, 5, 16, 13]})
         assert(o == {'driver': 'sh1106', 'hw': 'i2c', "rst": 25})
 
     def test_zpog_i2cbus(self):
         """tests that zpog config parses"""
         config = {"device":"zerophone_og", "i2c": "2"}
-        i, o = get_io_configs(config)
+        i, o, _ = get_io_configs(config)
         assert(o == {"driver": "sh1106", "port": 2})
         assert(i == {"driver":"custom_i2c", "bus": 2})
 
     def test_emulator_resolution(self):
         """tests that it runs with emulator driver and resolution provided"""
         config = {"device":"emulator", "resolution":"400x240"}
-        i, o = get_io_configs(config)
+        i, o, _ = get_io_configs(config)
         assert(i == "pygame_input")
         assert(o == {'driver': 'pygame_emulator', 'width': 400, 'height': 240})
         config = {"device":"emulator", "resolution":"400*240"}
-        i, o = get_io_configs(config)
+        i, o, _ = get_io_configs(config)
         assert(i == "pygame_input")
         assert(o == {'driver': 'pygame_emulator', 'width': 400, 'height': 240})
 
     def test_emulator_mode(self):
         """tests that it runs with emulator driver and resolution provided"""
         config = {"device":"emulator", "mode":"RGB"}
-        i, o = get_io_configs(config)
+        i, o, _ = get_io_configs(config)
         assert(i == "pygame_input")
         assert(o == {'driver': 'pygame_emulator', 'mode': "RGB"})
         config = {"device":"emulator", "resolution":"400*240", "mode":"RGB"}
@@ -344,21 +344,21 @@ class TestCombination(unittest.TestCase):
         assert(o == {'driver': 'pygame_emulator', 'mode': "RGB"})
         # tests for a bug where mode "1" is YAML parsed as integer
         config = {"device":"emulator", "resolution":"400*240", "mode":1}
-        i, o = get_io_configs(config)
+        i, o, _ = get_io_configs(config)
         assert(i == "pygame_input")
         assert(o == {'driver': 'pygame_emulator', "mode":"1", 'width': 400, 'height': 240})
 
     def test_beepy(self):
         """tests that beepy config works"""
         config = {"device":"beepy"}
-        i, o = get_io_configs(config)
+        i, o, _ = get_io_configs(config)
         assert(i == [{'driver': 'pcf8574', 'addr': 63}, {'driver': 'beepy_hid'}])
         assert(o == {'driver': 'beepy_fb', 'fb_num': 1})
 
     def test_bc_plus_beepykbd(self):
         """tests that beepy config works"""
         config = {"device":"zpui_bc_v1_qwiic", "input":"beepy_hid"}
-        i, o = get_io_configs(config)
+        i, o, _ = get_io_configs(config)
         #print(i, o)
         assert(i == [{'driver': 'pcf8574', 'addr': 63}, 'beepy_hid'])
         assert(o == {'driver': 'sh1106', 'hw': 'i2c'})
