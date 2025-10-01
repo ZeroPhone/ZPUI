@@ -11,6 +11,7 @@ from logging.handlers import RotatingFileHandler
 
 from zpui_lib.helpers import read_config, local_path_gen, logger, env, read_or_create_config, \
                     zpui_running_as_service, is_emulator, pidcheck
+from zpui_lib.helpers.env import add_platform_device
 from zpui_lib.helpers.logger import LoggingConfig
 if __name__ == "__main__": LoggingConfig().autosave = True # "no log_conf.ini clutter by default" mechanism
 from zpui_lib import hacks
@@ -121,7 +122,9 @@ def init():
         sys.exit('Failed to load any config files!')
 
     # Get hardware manager
-    zpui.input_config, zpui.output_config = hw_combos.get_io_configs(zpui.config)
+    zpui.input_config, zpui.output_config, zpui.device = hw_combos.get_io_configs(zpui.config)
+    if zpui.device != None:
+        add_platform_device(zpui.device)
 
     # Initialize output
     try:

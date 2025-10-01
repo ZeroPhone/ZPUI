@@ -61,13 +61,13 @@ def get_io_configs(config):
         input_config, output_config = update_config(config, input_config, output_config)
         logger.info("created configs, input: {}, output: {}".format(input_config, output_config))
         # TODO merge 'device' and 'input'/'output' configs!!
-        return input_config, output_config
+        return input_config, output_config, device_name
     else:
         if "input" not in config:
             raise ValueError("No 'device' or 'input' section found in config - an input device is required!")
         if "output" not in config:
             raise ValueError("No 'device' or 'output' section found in config - an output device is required!")
-        return config["input"], config["output"]
+        return config["input"], config["output"], None
 
 def config_emulator(config):
     io = ["pygame_input", "pygame_emulator"]
