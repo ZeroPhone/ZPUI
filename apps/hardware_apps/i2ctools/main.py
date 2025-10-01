@@ -2,7 +2,7 @@ menu_name = "I2C tools"
 
 from subprocess import call
 from zpui_lib.ui import Menu, Printer, PrettyPrinter, DialogBox, LoadingIndicator, UniversalInput, Refresher, IntegerAdjustInput, fvitg
-from zpui_lib.helpers import setup_logger, read_or_create_config, local_path_gen, write_config
+from zpui_lib.helpers import setup_logger, read_or_create_config, local_path_gen, write_config, get_platform
 
 from collections import OrderedDict
 from time import sleep
@@ -66,6 +66,13 @@ def scan_i2c_bus():
          found_devices[device] = "ok"
     return found_devices
 
+device_notes = {
+    "beepy":{0x1f:"RP2040", 0x22:"FUSB302", 0x2e:"TPM?", 0x48:"touchscreen?", 0x51:"RTC?"}, # need to separate it from Beepy
+    "zpui_bc_v1_qwiic":{0x3c:"OLED", 0x3f:"keypad"},
+    "zpui_bc_v1":{0x3c:"OLED", 0x3f:"keypad"},
+    "zerophone_og":{0x12:"ATMega328P"},
+}
+
 def scan_i2c_devices():
     try:
         with LoadingIndicator(i, o, message="Scanning I2C bus"):
@@ -76,11 +83,25 @@ def scan_i2c_devices():
         return
     if isinstance(devices, str):
         PrettyPrinter("I2C scan failed! ({})".format(devices.capitalize()), i, o, 3)
+        return
     if not devices:
         Printer("No devices found", i, o, 2)
     else:
-        device_menu_contents = [["{} - {}".format(hex(dev), state), lambda x=dev: i2c_device_menu(x)] for dev, state in devices.items()]
-        Menu(device_menu_contents, i, o, "I2C tools app, scan results menu").activate()
+        # user-friendly disambiguations for scan results
+        notes = {}
+        for device in get_platform():
+            notes_entry = device_notes.get(device, {})
+            notes.update(notes_entry)
+        def ch():
+            device_menu_contents = []
+            for dev, state in devices.items():
+                if dev in notes:
+                    description = notes[dev]
+                    device_menu_contents.append(["{} ({}) - {}".format(hex(dev), description, state), lambda x=dev: i2c_device_menu(x)])
+                else:
+                    device_menu_contents.append(["{} - {}".format(hex(dev), state), lambda x=dev: i2c_device_menu(x)])
+            return device_menu_contents
+        Menu([], i, o, contents_hook=ch, name="I2C tools app, scan results menu").activate()
 
 def i2c_device_menu(addr):
     m_c = [["Simple read", lambda: i2c_read_ui(addr)],
