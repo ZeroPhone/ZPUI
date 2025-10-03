@@ -103,9 +103,12 @@ class AppManager(object):
                 if entry.basename.startswith(icon_name):
                     entry.icon = open_image(icon_path)
                     used_icons.append(icon_name)
-                    continue
+                    break
             else:
-                pass
+                try:
+                    entry.icon = open_image(os.path.join(dir, "placeholder.png"))
+                except:
+                    logger.exception("Failed to load placeholder, continuing icon-less")
         if zpui_running_as_service():
             exit_entry = Entry("Restart ZPUI", "exit", icon=open_image(icon_paths["exit"]))
         else:
