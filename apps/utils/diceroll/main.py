@@ -8,7 +8,7 @@ from time import sleep
 logger = setup_logger(__name__, "info")
 
 class App(ZeroApp):
-    menu_name = "Dice roll" # App name as seen in main menu while using the system
+    menu_name = "Dice" # App name as seen in main menu while using the system
 
     def draw_dice(self, c, size=70, start_x=0, start_y=0, value=1):
         r = int(size // 14)
