@@ -20,7 +20,8 @@ Guides:
 
 * :doc:`Installing and updating ZPUI <setup>`
 * :ref:`Installing ZPUI emulator <emulator>`
-* :doc:`App development - how to ... ? <howto>`
+* :doc:`Developing your first app <tutorial_1>`
+* :doc:`App development how-tos <howto>`
 * :doc:`ZPUI configuration files <config>`
 * :doc:`Hacking on UI <hacking_ui>`
 * :doc:`Logging configuration <logging>`
@@ -51,6 +52,7 @@ References:
 
    setup.rst
    config.rst
+   tutorial_1.rst
    crash_course.rst
    howto.rst
    ui.rst
