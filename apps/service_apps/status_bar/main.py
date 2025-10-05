@@ -1,6 +1,6 @@
 from zpui_lib.ui import MockOutput, Canvas ,Zone, ZoneSpacer as ZS, \
-                 VerticalZoneSpacer as VZS, ZoneManager, crop
-from zpui_lib.helpers import setup_logger
+                 VerticalZoneSpacer as VZS, ZoneManager, crop, Checkbox
+from zpui_lib.helpers import setup_logger, read_or_create_config, local_path_gen, save_config_gen
 
 from copy import copy
 
@@ -15,6 +15,12 @@ i = None; o = None
 zones = {}
 markup = []
 
+local_path = local_path_gen(__name__)
+
+default_config = "disabled_items: []"
+config = read_or_create_config(local_path("config.yaml"), default_config, menu_name+" app")
+save_config = save_config_gen(local_path("config.yaml"))
+
 def can_load():
     return True
 
@@ -24,8 +30,34 @@ def set_context(c):
         context = c
         status_bar = StatusBar()
         context.set_provider("status_bar", status_bar)
+        context.set_provider("settings_statusbar", settings_statusbar)
+
+def settings_statusbar():
+    cb_contents = []
+    statusbar_prefix = "statusbar_"
+    providers = context.get_providers_by_type(statusbar_prefix)
+    logger.debug("Found status bar zone providers: {}".format(providers))
+    for name, zone in providers.items():
+        hr_name = name[len(statusbar_prefix):].replace("_", " ").capitalize()
+        cb_contents.append([hr_name, name, name not in config["disabled_items"]])
+    cb_contents.append(["Notifications", "notifs", "notifs" not in config["disabled_items"]])
+    cb = Checkbox(cb_contents, i, o, name="Statusbar app item toggles setting")
+    result = cb.activate()
+    if result:
+        for name, state in result.items():
+            if not state:
+                if name not in  config["disabled_items"]:
+                    config["disabled_items"].append(name)
+            elif state and name in config["disabled_items"]: # enabled but included in disabled items, removing
+                config["disabled_items"].remove(name)
+        save_config(config)
+
+settings_statusbar.name = "Statusbar settings"
 
 def execute_after_contexts():
+    generate_markup()
+
+def generate_markup():
     global zones, markup
     statusbar_prefix = "statusbar_"
     providers = context.get_providers_by_type(statusbar_prefix)
@@ -52,7 +84,17 @@ def execute_after_contexts():
         return crop(zone.canvas.get_image(), min_height=zone.o_params["height"], align="vcenter")
     zones["notifs"] = Zone(lambda: True, draw_notifs, name="Notifications", trimmable=True)
     added_providers = (name for name in zones if name!= "notifs")
-    markup = [[ZS(5), "notifs", "...", *added_providers, ZS(5)]]
+    markup = [[]]
+    if "notifs" not in config["disabled_items"]:
+        markup[0].append(ZS(5))
+        markup[0].append("notifs")
+    markup[0].append("...")
+    for provider in added_providers:
+        if provider not in config["disabled_items"]:
+            markup[0].append(provider)
+    markup[0].append(ZS(5))
+    return markup
+    #markup = [[ZS(5), "notifs", "...", *added_providers, ZS(5)]]
 
 class StatusBar():
     zm = None
