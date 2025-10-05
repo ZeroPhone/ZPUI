@@ -60,7 +60,7 @@ class Context(object):
         """
         return self.i, self.o
 
-    def activate(self, start_thread=True):
+    def activate(self, start_thread=True, func=None):
         """
         Starts the context - if it's threaded, starts the thread, otherwise it assumes
         that there's already a running thread and does nothing. In latter case, throws
@@ -70,7 +70,7 @@ class Context(object):
         if self.is_threaded() and start_thread:
             if not self.thread_is_active():
                 self.verify_target()
-                self.start_thread()
+                self.start_thread(func=func)
             else:
                 logger.debug("A thread for the {} context seems to already be active, not doing anything".format(self.name))
         else:
@@ -105,14 +105,15 @@ class Context(object):
         except AttributeError: # py3
             return self.thread and self.thread.is_alive()
 
-    def start_thread(self):
+    def start_thread(self, func=None):
         """
         Actually launches the context thread (based on the target function,
         wrapped into the ``context_target_wrapper()``.
         """
-        wrapped_target = context_target_wrapper(self, self.target)
+        target = self.target if not func else func
+        wrapped_target = context_target_wrapper(self, target)
         if self.thread: del self.thread
-        self.thread = Thread(target=wrapped_target, name="Thread for context {} (target: {})".format(self.name, self.target.__name__))
+        self.thread = Thread(target=wrapped_target, name="Thread for context {} (target: {})".format(self.name, target.__name__))
         self.thread.daemon = True
         self.thread.start()
 
@@ -247,6 +248,12 @@ class Context(object):
         """
         return self.event_cb(self.name, "get_provider", provider_type)
 
+    def get_provider_provider(self, provider_type):
+        """
+        A function for apps to use to learn which context is providing a specific provider.
+        """
+        return self.event_cb(self.name, "get_provider_provider", provider_type)
+
     def get_providers_by_type(self, provider_type_start):
         """
         A function for apps to use to get providers for roles that start with a specific name.
@@ -267,6 +274,7 @@ class ContextManager(object):
         self.contexts = {}
         self.previous_contexts = {}
         self.providers = {}
+        self.provider_providers = {}
         self.switching_contexts = Lock()
         self.am = ActionManager(self)
 
@@ -320,7 +328,7 @@ class ContextManager(object):
         """
         self.contexts[context_alias].menu_name = menu_name
 
-    def switch_to_context(self, context_alias, start_thread=True):
+    def switch_to_context(self, context_alias, start_thread=True, func=None):
         """
         Lets you switch to another context by its alias.
         """
@@ -329,7 +337,7 @@ class ContextManager(object):
             self.previous_contexts[context_alias] = self.current_context
             with self.switching_contexts:
                 try:
-                    self.unsafe_switch_to_context(context_alias, start_thread=start_thread)
+                    self.unsafe_switch_to_context(context_alias, start_thread=start_thread, func=func)
                 except ContextError:
                     logger.exception("A ContextError was caught")
                     self.previous_contexts.pop(context_alias)
@@ -337,7 +345,7 @@ class ContextManager(object):
                 else:
                     return True
 
-    def unsafe_switch_to_context(self, context_alias, do_raise=True, start_thread=True):
+    def unsafe_switch_to_context(self, context_alias, do_raise=True, start_thread=True, func=None):
         """
         This is a non-thread-safe context switch function. Not to be used directly
         - is only for internal usage. In case an exception is raised, sets things as they
@@ -364,7 +372,7 @@ class ContextManager(object):
                 raise
         # Activating the context - restoring everything if it fails
         try:
-            self.contexts[context_alias].activate(start_thread=start_thread)
+            self.contexts[context_alias].activate(start_thread=start_thread, func=func)
         except:
             logger.exception("Switching to the {} context failed - couldn't activate the context!".format(context_alias))
             # Activating IO of the previous context
@@ -607,9 +615,11 @@ class ContextManager(object):
                     results[key] = True
             return results
         elif event ==  "set_provider":
-            return self.set_provider(*args, **kwargs)
+            return self.set_provider(context_alias, *args, **kwargs)
         elif event ==  "get_provider":
             return self.get_provider(*args, **kwargs)
+        elif event ==  "get_provider_provider":
+            return self.get_provider_provider(*args, **kwargs)
         elif event ==  "get_providers_by_type":
             return self.get_providers_by_type(*args, **kwargs)
         else:
@@ -631,9 +641,17 @@ class ContextManager(object):
         """
         return {name:provider for name, provider in self.providers.items() if name.startswith(provider_type_start)}
 
-    def set_provider(self, provider_type, provider):
+    def get_provider_provider(self, provider_type):
+        """
+        A function for apps to use to figure out which context provides a specific provider.
+        Is currently extremely simplistic, but might become more complex later.
+        """
+        return self.provider_providers.get(provider_type, None)
+
+    def set_provider(self, context_alias, provider_type, provider):
         """
         A function for apps to use to claim a status bar provider role.
         Is currently extremely simplistic, but might become more complex later.
         """
         self.providers[provider_type] = provider
+        self.provider_providers[provider_type] = context_alias
