@@ -18,9 +18,10 @@ def get_menu_contents():
         for name, provider in providers.items():
             pp = context.get_provider_provider(name)
             if pp == None: break # should not happen, but hey
-            def cb():
-                cm.switch_to_context(pp, func=provider)
-            mc.append([provider.name, cb])
+            def cb(fpp=pp, fprovider=provider): # hack to work around variables being rewritten in the scope
+                cm.switch_to_context(fpp, func=fprovider)
+            prov_name = getattr(provider, "name", name)
+            mc.append([prov_name, cb])
     else:
         logger.error("CM failed to bind, will not be able to switch to contexts!")
     mc.append(["Failed apps", failed_apps])
