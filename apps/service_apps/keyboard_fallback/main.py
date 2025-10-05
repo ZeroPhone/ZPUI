@@ -22,6 +22,8 @@ else:
 
 class KeyboardFallbackApp(ZeroApp):
 
+    menu_name = "Keyboard fallback" # only used in the settings "non-loaded app" list right now
+
     do_not_activate_events = ["usb_keyboard_connected"]
 
     def can_load(self):

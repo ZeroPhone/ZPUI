@@ -42,6 +42,8 @@ firstboot_action_ordering = \
 ]
 
 class FirstbootWizard(ZeroApp):
+    menu_name = "First boot wizard" # only used in the settings "non-loaded app" list right now
+
     def can_load(self):
         # needs to be updated for and tested on platforms that are not ZP
         # also, its behaviour needs to be checked to be made less annoying
