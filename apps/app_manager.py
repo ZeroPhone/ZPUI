@@ -2,6 +2,7 @@ import importlib
 import os
 import sys
 import traceback
+from copy import copy
 
 from zpui_lib.apps import ZeroApp
 from zpui_lib.helpers import setup_logger, zpui_running_as_service
@@ -46,6 +47,7 @@ class AppManager(object):
         self.subdir_paths = []
         self.app_list = {}
         self.failed_apps = {}
+        self.nonloaded_apps = {}
         self.app_directory = app_directory
         self.cm = context_manager
         self.zpui = zpui
@@ -255,7 +257,7 @@ class AppManager(object):
                         if self.app_has_after_contexts_hook(app):
                             after_contexts_apps[module_path] = app
                     else:
-                        self.mark_app_as_unloaded(app, module_path, s)
+                        self.mark_app_as_nonloaded(app, module_path, s)
                 except:
                     logger.exception("Failed to load app {}".format(module_path))
                     self.failed_apps[module_path] = traceback.format_exc()
@@ -314,7 +316,22 @@ class AppManager(object):
             else:
                 logger.info("Executed 'after all contexts' hook for {}".format(app_path))
         base_menu = self.create_menu_structure()
+        self.register_hooks()
         return base_menu
+
+    def nonloaded_apps_provider(self):
+        return copy(self.nonloaded_apps)
+
+    def failed_apps_provider(self):
+        return copy(self.failed_apps)
+
+    def register_hooks(self):
+        try:
+            main_context = self.cm.contexts["main"]
+            main_context.set_provider("appmanager_nonloaded", self.nonloaded_apps_provider)
+            main_context.set_provider("appmanager_failed", self.failed_apps_provider)
+        except:
+            logger.exception("Failed to register app hooks")
 
     def app_has_callback(self, app):
         return (hasattr(app, "callback") and callable(app.callback)) or \
@@ -385,8 +402,10 @@ class AppManager(object):
         self.pass_context_to_app(app, app_path, context)
         return app
 
-    def mark_app_as_unloaded(self, app, app_path, s):
+    def mark_app_as_nonloaded(self, app, app_path, s):
         logger.info("App {} not loaded. Reason given: {}".format(app_path, repr(s)))
+        name = app.menu_name if hasattr(app, "menu_name") else app_path
+        self.nonloaded_apps[app_path] = (name, s)
 
     def pass_context_to_app(self, app, app_path, context):
         """

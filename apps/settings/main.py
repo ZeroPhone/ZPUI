@@ -20,6 +20,7 @@ local_path = local_path_gen(__name__)
 
 import bugreport_ui
 import logging_ui
+import appsettings_ui
 import about
 
 logger = setup_logger(__name__, "info")
@@ -551,6 +552,7 @@ class SettingsApp(ZeroApp):
         self.context.register_firstboot_action(self.update_zpui_fba)
         self.status_updates_zone = Zone(self.status_updates_get, self.status_updates_icon, name="ZPUI updates")
         self.context.set_provider("statusbar_updates", self.status_updates_zone)
+        appsettings_ui.context = self.context
 
     def init_app(self):
         # globals for the remainder of the UI to use, until it's refactored
@@ -560,6 +562,8 @@ class SettingsApp(ZeroApp):
         # globals for other modules
         logging_ui.i = self.i
         logging_ui.o = self.o
+        appsettings_ui.i = self.i
+        appsettings_ui.o = self.o
         bugreport_ui.i = self.i
         bugreport_ui.o = self.o
         bugreport_ui.git_if = GitInterface
@@ -581,6 +585,7 @@ class SettingsApp(ZeroApp):
             c = [["Update ZPUI", self.git_updater.update, self.git_updater.settings],
                  # ["Bugreport", bugreport_ui.main_menu], # no longer working, big sad
                  ["Logging settings", logging_ui.config_logging],
+                 ["App settings", appsettings_ui.config_apps],
                  ["About", about.about]]
             if self.updates_available:
                 l = ["Updates available!", self.git_updater.show_updates]
