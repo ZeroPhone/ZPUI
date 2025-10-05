@@ -67,9 +67,9 @@ class Context(object):
         an exception if it detects that a supposedly non-threaded context has the ``threaded``
         flag set.
         """
-        if self.is_threaded() and start_thread:
+        if (self.is_threaded() or func) and start_thread:
             if not self.thread_is_active():
-                self.verify_target()
+                self.verify_target(func=func)
                 self.start_thread(func=func)
             else:
                 logger.debug("A thread for the {} context seems to already be active, not doing anything".format(self.name))
@@ -78,16 +78,18 @@ class Context(object):
                 logger.debug("Main context does not have thread target, that is to be expected")
             elif not start_thread:
                 logger.info("Instructed not to start the thread for context {}".format(self.name))
-            elif self.threaded:
+            elif self.threaded and not func:
                 logger.warning("Context {} does not have a target! Raising an exception".format(self.name))
                 raise ContextError("Context {} does not have a target!".format(self.name))
+            else:
+                raise ContextError("Reached context {} activation path we're not supposed to reach!".format(self.name))
 
-    def verify_target(self):
+    def verify_target(self, func=None):
         """
         Checks whether a valid target is set - at the very least, a callable.
         """
-        if not callable(self.target):
-            raise ContextError("Context {} expected callable target, got {}!".format(self.name, type(self.target)))
+        if not callable(self.target if not func else func):
+            raise ContextError("Context {} expected callable target, got {}!".format(self.name, type(self.target if not func else func)))
 
     def is_threaded(self):
         """
