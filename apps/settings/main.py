@@ -564,6 +564,11 @@ class SettingsApp(ZeroApp):
         logging_ui.o = self.o
         appsettings_ui.i = self.i
         appsettings_ui.o = self.o
+        try:
+            from __main__ import zpui
+            appsettings_ui.cm = zpui.cm
+        except:
+            logger.exception("Failure binding cm to the appsettings module")
         bugreport_ui.i = self.i
         bugreport_ui.o = self.o
         bugreport_ui.git_if = GitInterface

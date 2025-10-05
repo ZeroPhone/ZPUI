@@ -1,5 +1,6 @@
 i = None
 o = None
+cm = None
 context = None
 
 import zpui_lib.helpers.logger as log_system
@@ -13,8 +14,15 @@ def get_menu_contents():
     providers = context.get_providers_by_type(settings_prefix)
     logger.debug("Settings providers: {}".format(providers))
     mc = []
-    for name, provider in providers.items():
-        pass
+    if cm != None:
+        for name, provider in providers.items():
+            pp = context.get_provider_provider(name)
+            if pp == None: break # should not happen, but hey
+            def cb():
+                cm.switch_to_context(pp, func=provider)
+            mc.append([provider.name, cb])
+    else:
+        logger.error("CM failed to bind, will not be able to switch to contexts!")
     mc.append(["Failed apps", failed_apps])
     mc.append(["Non-loaded apps", nonloaded_apps])
     return mc
@@ -34,7 +42,6 @@ def failed_apps():
             mc.append([app_path, tr.activate])
         if not mc:
             mc = [["No failed apps!", TextReader("yippie!!!", i, o, name="Textreader for no failed apps").activate]]
-        print(mc)
         Menu(mc, i, o, name="App settings failed apps menu").activate()
 
 def nonloaded_apps():
@@ -50,5 +57,4 @@ def nonloaded_apps():
             mc.append([name, tr.activate])
         if not mc:
             mc = [["No non-loaded apps!", TextReader("yippie!!!", i, o, name="Textreader for no nonloaded apps").activate]]
-        print(mc)
         Menu(mc, i, o, name="App settings nonloaded apps menu").activate()
