@@ -7,8 +7,9 @@ import sys
 import os
 
 from zpui_lib.apps import ZeroApp
-from zpui_lib.ui import Menu, Printer, PrettyPrinter, Canvas
+from zpui_lib.ui import Menu, Printer, PrettyPrinter, Canvas, IntegerInDecrementInput
 from zpui_lib.helpers import ExitHelper, local_path_gen, setup_logger, remove_left_failsafe, BackgroundRunner, get_platform
+
 
 from smbus import SMBus
 
@@ -69,6 +70,14 @@ class BeepyApp(ZeroApp):
         else:
             return self.driver_found
 
+    def set_backlight(self):
+        current_backlight_level = self.get_backlight() if self.get_backlight() is not None else 120
+        number_input = IntegerInDecrementInput(current_backlight_level, self.i, self.o, interval=10, max=255, min=0)
+        backlight_level =  number_input.activate()
+        logger.info("Setting backlight level to {}".format(backlight_level))
+        with open(os.path.join(self.fw_dir, "keyboard_backlight"), "w") as f:
+            f.write(str(backlight_level))
+
     def get_backlight(self):
         # not all driver versions support reading the backlight level
         return self.try_read_file(self.backlight_path)
@@ -84,7 +93,7 @@ class BeepyApp(ZeroApp):
             battery = self.get_battery()
             battery_str = "Battery: {}V".format(battery) if battery != None else "Battery V: Uknown"
             mc = [
-                  [backlight_str],
+                  [backlight_str, self.set_backlight],
                   [battery_str],
                   #["Keypad presence", self.test_keypad_presence],
                   #["I2C GPIO expander", self.test_i2c_gpio],
