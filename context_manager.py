@@ -68,7 +68,7 @@ class Context(object):
         flag set.
         """
         if (self.is_threaded() or func) and start_thread:
-            if not self.thread_is_active():
+            if not self.thread_is_active() or func:
                 self.verify_target(func=func)
                 self.start_thread(func=func)
             else:
@@ -86,7 +86,7 @@ class Context(object):
                     pass # all is good, we have a function to switch to
             #else:
             #    raise ContextError("Reached context {} activation path we're not supposed to reach!".format(self.name))
-            # rn can't figure out a great way to actually add an exception that doesn't cause CM tests failing
+            # TODO: rn can't figure out a great way to actually add an exception that doesn't cause CM tests failing
             logger.error("Reached context {} activation path we're probably not supposed to reach!".format(self.name))
 
     def verify_target(self, func=None):
