@@ -5,7 +5,7 @@ from threading import Event
 from zpui_lib.apps import ZeroApp
 from zpui_lib.actions import FirstBootAction as FBA
 from zpui_lib.helpers import setup_logger, read_or_create_config, local_path_gen
-from zpui_lib.ui import Menu, PrettyPrinter as Printer, LoadingBar, DialogBox
+from zpui_lib.ui import Menu, LoadingBar, DialogBox, TextReader
 
 default_ip_source = "https://icanhazip.com"
 
@@ -42,6 +42,9 @@ class InternetTools(ZeroApp):
             result = self.check_connectivity(cancel_setter = lb.set_on_left)
             if result is False:
                 lb.set_message("No connectivity!")
+                sleep(1)
+            else:
+                lb.set_message("Connected!")
                 sleep(1)
         return result
 
@@ -83,7 +86,7 @@ class InternetTools(ZeroApp):
                 lb.set_message("Can't get IP!")
                 sleep(1)
                 return
-        Printer(ip, self.i, self.o, 3)
+        TextReader(ip, self.i, self.o, name="Internet tools app IP address TR").activate()
 
     def on_start(self):
         mc = [["Check connectivity", self.check_connectivity_ui],
