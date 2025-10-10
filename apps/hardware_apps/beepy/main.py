@@ -71,7 +71,7 @@ class BeepyApp(ZeroApp):
             return self.driver_found
 
     def set_backlight(self):
-        current_backlight_level = self.get_backlight() if self.get_backlight() is not None else 120
+        current_backlight_level = int(self.get_backlight()) if self.get_backlight() is not None else 120
         number_input = IntegerInDecrementInput(current_backlight_level, self.i, self.o, interval=10, max=255, min=0)
         backlight_level =  number_input.activate()
         logger.info("Setting backlight level to {}".format(backlight_level))
