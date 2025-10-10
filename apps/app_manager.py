@@ -268,7 +268,7 @@ class AppManager(object):
         # second: entrypoint-based discovery
         discovered_apps = entry_points(group='zpui_app.3rdparty')
         for app_ep in discovered_apps:
-            logger.info(str(app_ep))
+            logger.debug("Loading endpoint app: "+str(app_ep))
             try:
                 app = app_ep.load()
             except:
@@ -314,7 +314,7 @@ class AppManager(object):
             except:
                 logger.exception("Failed to execute 'after all contexts' hook for {}".format(app_path))
             else:
-                logger.info("Executed 'after all contexts' hook for {}".format(app_path))
+                logger.debug("Executed 'after all contexts' hook for {}".format(app_path))
         base_menu = self.create_menu_structure()
         self.register_hooks()
         return base_menu

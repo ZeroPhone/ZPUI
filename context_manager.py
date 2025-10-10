@@ -87,7 +87,8 @@ class Context(object):
             #else:
             #    raise ContextError("Reached context {} activation path we're not supposed to reach!".format(self.name))
             # TODO: rn can't figure out a great way to actually add an exception that doesn't cause CM tests failing
-            logger.error("Reached context {} activation path we're probably not supposed to reach!".format(self.name))
+            if self.name != "main":
+                logger.error("Reached context {} activation path we're probably not supposed to reach!".format(self.name))
 
     def verify_target(self, func=None):
         """
