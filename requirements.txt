@@ -17,6 +17,6 @@ kmodpy
 psutil
 PyRIC
 wpasupplicantconf==0.1.0
-zpui_lib>=1.2.5
+zpui_lib>=1.2.6
 pyyaml
 qrcode[pil]
