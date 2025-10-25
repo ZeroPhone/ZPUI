@@ -92,4 +92,5 @@ class InputDevice(InputSkeleton):
         self.emulator.quit()
 
     def atexit(self):
+        self.emulator.quit()
         InputSkeleton.atexit(self)
