@@ -100,7 +100,10 @@ class EmulatorProxy(object):
 
     def quit(self):
         DummyCallableRPCObject(self.child_queue, 'quit', self.o_lock)()
-        self.proc.join()
+        try:
+            self.proc.join()
+        except AttributeError:
+            pass
 
     def __getattr__(self, name):
         # Raise an exception if the attribute being called
