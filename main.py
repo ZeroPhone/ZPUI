@@ -2,6 +2,7 @@
 
 import argparse
 import logging
+import inspect
 import os
 import signal
 import sys
@@ -279,6 +280,59 @@ def spawn_rconsole(*args):
         logging.exception("Can't spawn rconsole!")
 
 
+# log coloring code from https://stackoverflow.com/questions/384076/how-can-i-color-python-logging-output
+
+class CustomFormatter(logging.Formatter):
+
+    """
+    A log handler that adds colors to console output,
+    as well as tries to print local variables when exceptions occur.
+    """
+
+    grey = "\x1b[38;20m"
+    yellow = "\x1b[33;20m"
+    red = "\x1b[31;20m"
+    bold_red = "\x1b[31;1m"
+    reset = "\x1b[0m"
+    #format_str = "[%(levelname)s] (%(filename)s:%(lineno)d) %(asctime)s %(name)s: %(message)s" # (%(filename)s:%(lineno)d)"
+
+    def __init__(self, fmt, datefmt, *args, colored=True, **kwargs):
+        self.fmt = fmt
+        self.datefmt = datefmt
+        logging.Formatter.__init__(self, fmt, datefmt, *args, **kwargs)
+        #self.old_format = logging.Formatter.format
+        self.colored = colored
+        self.set_formats()
+
+    def set_formats(self):
+        if self.colored:
+            self.FORMATS = {
+                logging.DEBUG: self.grey + self.fmt + self.reset,
+                logging.INFO: self.grey + self.fmt + self.reset,
+                logging.WARNING: self.yellow + self.fmt + self.reset,
+                logging.ERROR: self.red + self.fmt + self.reset,
+                logging.CRITICAL: self.bold_red + self.fmt + self.reset
+            }
+        else:
+            self.FORMATS = {}
+
+    def format(self, record):
+        log_fmt = self.FORMATS.get(record.levelno, self.fmt)
+        if record.exc_info:
+            # this is where we try and print local variables
+            try:
+                locals = inspect.trace()[-1][0].f_locals
+                locals_str = "\nlocals: {}".format(str(locals))
+            except:
+                pass
+            else:
+                if self.colored:
+                    log_fmt = self.red + self.fmt + locals_str + self.reset
+                else:
+                    log_fmt = self.fmt + locals_str
+        sub_formatter = logging.Formatter(log_fmt, self.datefmt)
+        return sub_formatter.format(record)
+
 if __name__ == '__main__':
     """
     Parses arguments, initializes logging, launches ZPUI
@@ -312,14 +366,15 @@ if __name__ == '__main__':
 
     # Setup logging
     logger = logging.getLogger()
-    formatter = logging.Formatter(*logging_format)
+    formatter = CustomFormatter(*logging_format)
+    formatter_nocolor = CustomFormatter(*logging_format, colored=False)
 
     # Rotating file logs (for debugging crashes)
     rotating_handler = RotatingFileHandler(
         logging_path,
         maxBytes=logfile_size,
         backupCount=files_to_store)
-    rotating_handler.setFormatter(formatter)
+    rotating_handler.setFormatter(formatter_nocolor)
     logger.addHandler(rotating_handler)
 
     # Live console logging
