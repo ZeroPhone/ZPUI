@@ -252,6 +252,8 @@ class Emulator(object):
         Accepts **kwargs but ignores them - hack, since other (i.e. backlight-enabled)
         drivers can accept (and sometimes are sent) kwargs.
         """
+        if image == None:
+            raise ValueError("None passed to display_image! Did you forget a return statement somewhere?")
         with self.busy_flag:
             self.current_image = image
             self._display_image(image)
