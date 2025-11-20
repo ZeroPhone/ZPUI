@@ -273,6 +273,7 @@ class AppManager(object):
                 app = app_ep.load()
             except:
                 logger.exception("Failing to load entrypoint for external app {}".format(app_ep))
+                self.failed_apps[str(app_ep)] = traceback.format_exc()
                 continue
             app_name = app_ep.name
             try:
@@ -296,6 +297,7 @@ class AppManager(object):
                     module_path += app_name
             except:
                 logger.exception("Can't get module_path or add subdir for external app {}".format(app_ep))
+                self.failed_apps[str(app_ep)] = traceback.format_exc()
                 continue
             try:
                 loaded_app = self.load_app(app, app_path=module_path)
@@ -307,6 +309,7 @@ class AppManager(object):
                     after_contexts_apps[module_path] = loaded_app
             except:
                 logger.exception("Failed to load external app {}".format(module_path))
+                self.failed_apps[module_path] = traceback.format_exc()
         # execute after_context functions
         for app_path, app in after_contexts_apps.items():
             try:
