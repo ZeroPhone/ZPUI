@@ -29,6 +29,7 @@ class BeepyApp(ZeroApp):
     batt_raw_path = "battery_raw"
     batt_volt_path = "battery_volts"
     mux_fusb_path = "mux_fusb"
+    charger_enable_path = "charger_enabled"
     backlight_path = "keyboard_backlight"
 
     """
@@ -110,6 +111,21 @@ class BeepyApp(ZeroApp):
         logger.info("Setting FUSB mux state to {}".format(str(int(state))))
         self.set_file_binary(self.mux_fusb_path, state)
 
+    def charger_enable_get(self):
+        state = self.try_read_file(self.charger_enable_path)
+        if state == None: return None
+        return bool(int(state)) # convert "1"/"0" to True/False
+
+    def charger_enable_toggle(self):
+        state = self.charger_enable_get()
+        new_state = not state
+        logger.info("Setting FUSB mux state from {} to {}".format(str(int(state)), str(int(new_state))))
+        self.set_file_binary(self.charger_enable_path, new_state)
+
+    def charger_enable_set(self, state):
+        logger.info("Setting FUSB mux state to {}".format(str(int(state))))
+        self.set_file_binary(self.charger_enable_path, state)
+
     def on_start(self):
         def ch():
             backlight = self.backlight_get()
@@ -117,12 +133,16 @@ class BeepyApp(ZeroApp):
             battery = self.get_battery()
             battery_str = "Battery: {}V".format(battery) if battery != None else "Battery V: Unknown"
             mux_fusb = self.mux_fusb_get()
+            charger_enabled = self.charger_enable_get()
             mc = [
                   [backlight_str, self.backlight_set],
                   [battery_str],
             ]
+            if charger_enabled != None:
+                state = "on" if charger_enabled == True else "off"
+                mc.append(["Charging: {}".format(state), self.charger_enable_toggle])
             if mux_fusb != None:
-                state = "unknown" if mux_fusb == None else ("Pi Zero" if mux_fusb == True else "RP2040")
+                state = "Pi Zero" if mux_fusb == True else "RP2040"
                 mc.append(["FUSB302 mux: {}".format(state), self.mux_fusb_toggle])
             return mc
         Menu([], self.i, self.o, contents_hook=ch, name="Beepy control app main menu").activate()
