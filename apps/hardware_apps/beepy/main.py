@@ -72,8 +72,10 @@ class BeepyApp(ZeroApp):
             return self.driver_found
 
     def set_file_binary(self, path, state):
-        state = str(int(state))
+        if state not in ["0", "1"]:
+            state = str(int(state))
         with open(os.path.join(self.fw_dir, path), "w") as f:
+            logger.debug("Writing {} into {}".format(repr(state), os.path.join(self.fw_dir, path)))
             f.write(state)
 
     def backlight_set(self):
@@ -106,7 +108,7 @@ class BeepyApp(ZeroApp):
 
     def mux_fusb_set(self, state):
         logger.info("Setting FUSB mux state to {}".format(str(int(state))))
-        self.set_file_binary(self.usb_keyboard_path, state)
+        self.set_file_binary(self.mux_fusb_path, state)
 
     def on_start(self):
         def ch():
