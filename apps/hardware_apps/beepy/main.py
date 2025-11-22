@@ -28,6 +28,7 @@ class BeepyApp(ZeroApp):
     batt_per_path = "battery_percent"
     batt_raw_path = "battery_raw"
     batt_volt_path = "battery_volts"
+    mux_fusb_path = "mux_fusb"
     backlight_path = "keyboard_backlight"
 
     """
@@ -70,15 +71,21 @@ class BeepyApp(ZeroApp):
         else:
             return self.driver_found
 
-    def set_backlight(self):
-        current_backlight_level = int(self.get_backlight()) if self.get_backlight() is not None else 120
+    def set_file_binary(self, path, state):
+        state = str(int(state))
+        with open(os.path.join(self.fw_dir, path), "w") as f:
+            f.write(state)
+
+    def backlight_set(self):
+        current_backlight_level = int(self.backlight_get()) if self.backlight_get() is not None else 120
         number_input = IntegerInDecrementInput(current_backlight_level, self.i, self.o, interval=10, max=255, min=0)
         backlight_level =  number_input.activate()
-        logger.info("Setting backlight level to {}".format(backlight_level))
-        with open(os.path.join(self.fw_dir, "keyboard_backlight"), "w") as f:
-            f.write(str(backlight_level))
+        if backlight_level != None:
+            logger.info("Setting backlight level to {}".format(backlight_level))
+            with open(os.path.join(self.fw_dir, "keyboard_backlight"), "w") as f:
+                f.write(str(backlight_level))
 
-    def get_backlight(self):
+    def backlight_get(self):
         # not all driver versions support reading the backlight level
         return self.try_read_file(self.backlight_path)
 
@@ -86,24 +93,35 @@ class BeepyApp(ZeroApp):
         # not all driver versions support reading the backlight level
         return self.try_read_file(self.batt_volt_path)
 
+    def mux_fusb_get(self):
+        state = self.try_read_file(self.mux_fusb_path)
+        if state == None: return None
+        return bool(int(state)) # convert "1"/"0" to True/False
+
+    def mux_fusb_toggle(self):
+        state = self.mux_fusb_get()
+        new_state = not state
+        logger.info("Setting FUSB mux state from {} to {}".format(str(int(state)), str(int(new_state))))
+        self.set_file_binary(self.mux_fusb_path, state)
+
+    def mux_fusb_set(self, state):
+        logger.info("Setting FUSB mux state to {}".format(str(int(state))))
+        self.set_file_binary(self.usb_keyboard_path, state)
+
     def on_start(self):
         def ch():
-            backlight = self.get_backlight()
+            backlight = self.backlight_get()
             backlight_str = "Backlight: {}".format(backlight) if backlight != None else "Backlight"
             battery = self.get_battery()
-            battery_str = "Battery: {}V".format(battery) if battery != None else "Battery V: Uknown"
+            battery_str = "Battery: {}V".format(battery) if battery != None else "Battery V: Unknown"
+            mux_fusb = self.get_mux_fusb()
             mc = [
-                  [backlight_str, self.set_backlight],
+                  [backlight_str, self.backlight_set],
                   [battery_str],
-                  #["Keypad presence", self.test_keypad_presence],
-                  #["I2C GPIO expander", self.test_i2c_gpio],
-                  #["Screen", self.test_screen],
-                  #["Keypad", self.test_keypad],
-                  #["Charger", self.test_charger],
-                  #["RGB LED", self.test_rgb_led],
-                  #["USB port", self.test_usb_port],
-                  #["Headphone jack", self.test_headphone_jack]
             ]
+            if mux_fusb != None:
+                state = "unknown" if mux_fusb == None else ("Pi Zero" if mux_fusb == True else "RP2040")
+                mc.append(["FUSB302 mux: {}".format(state), mux_fusb_toggle])
             return mc
         Menu([], self.i, self.o, contents_hook=ch, name="Beepy control app main menu").activate()
 
