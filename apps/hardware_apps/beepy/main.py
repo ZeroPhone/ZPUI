@@ -104,7 +104,7 @@ class BeepyApp(ZeroApp):
         state = self.mux_fusb_get()
         new_state = not state
         logger.info("Setting FUSB mux state from {} to {}".format(str(int(state)), str(int(new_state))))
-        self.set_file_binary(self.mux_fusb_path, state)
+        self.set_file_binary(self.mux_fusb_path, new_state)
 
     def mux_fusb_set(self, state):
         logger.info("Setting FUSB mux state to {}".format(str(int(state))))
