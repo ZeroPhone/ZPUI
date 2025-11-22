@@ -121,7 +121,7 @@ class BeepyApp(ZeroApp):
             ]
             if mux_fusb != None:
                 state = "unknown" if mux_fusb == None else ("Pi Zero" if mux_fusb == True else "RP2040")
-                mc.append(["FUSB302 mux: {}".format(state), mux_fusb_toggle])
+                mc.append(["FUSB302 mux: {}".format(state), self.mux_fusb_toggle])
             return mc
         Menu([], self.i, self.o, contents_hook=ch, name="Beepy control app main menu").activate()
 
