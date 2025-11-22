@@ -114,7 +114,7 @@ class BeepyApp(ZeroApp):
             backlight_str = "Backlight: {}".format(backlight) if backlight != None else "Backlight"
             battery = self.get_battery()
             battery_str = "Battery: {}V".format(battery) if battery != None else "Battery V: Unknown"
-            mux_fusb = self.get_mux_fusb()
+            mux_fusb = self.mux_fusb_get()
             mc = [
                   [backlight_str, self.backlight_set],
                   [battery_str],
