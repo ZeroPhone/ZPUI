@@ -153,6 +153,13 @@ class Context(object):
         """
         return self.event_cb(self.name, "list_contexts")
 
+    def request_zpui(self):
+        """
+        Request ZPUI object for an app. Returns the zpui object if the app is
+        in the whitelist for the ZPUI object, or None if it's not.
+        """
+        return self.event_cb(self.name, "request_zpui")
+
     def request_exclusive(self):
         """
         Request exclusive context switch for an app. You can't switch away from it until
@@ -277,8 +284,15 @@ class ContextManager(object):
     initial_contexts = ["main"]
     start_context = "main"
     allowed_exclusive_contexts = ["apps.service_apps.lockscreen", "apps.service_apps.firstboot_wizard"]
+    allowed_zpui_contexts = ["apps.service_apps.keyboard_fallback", # for getting device_manager
+                             "apps.service_apps.firstboot_wizard", # for getting context_manager
+                             "apps.hardware_apps.beepy", # for suspend/unsuspend in USB input mode
+                             "apps.utils.minimize", # for suspend/unsuspend
+                             #"apps.settings", # for getting the contextmanager (but currently request_zpui is a little tricky to weave into the code)
+    ]
 
-    def __init__(self):
+    def __init__(self, zpui=None):
+        self.zpui = zpui
         self.contexts = {}
         self.previous_contexts = {}
         self.providers = {}
@@ -548,6 +562,16 @@ class ContextManager(object):
         elif event == "register_firstboot_action":
             action = args[0]
             self.am.register_firstboot_action(action, context_alias)
+        elif event == "request_zpui":
+            if context_alias in self.allowed_zpui_contexts:
+                if not self.zpui:
+                    logger.warning("Context {} requested ZPUI object but none was assigned!".format(context_alias))
+                    return None
+                logger.info("Context {} requested ZPUI object, allowing".format(context_alias))
+                return self.zpui
+            else:
+                logger.warning("Context {} requested ZPUI object - not allowed!".format(context_alias))
+                return None
         elif event == "request_exclusive":
             if self.exclusive_context and self.exclusive_context != context_alias:
                 logger.warning("Context {} requested exclusive switch but {} already got it".format(context_alias, self.exclusive_context))

@@ -8,9 +8,6 @@ from zpui_lib.helpers import ExitHelper, setup_logger, remove_left_failsafe, rea
 
 logger = setup_logger(__name__, "info")
 
-from __main__ import zpui
-device_manager = zpui.input_device_manager
-
 zerophone_hw = False
 try:
     from zerophone_hw import USB_DCDC
@@ -34,11 +31,17 @@ class KeyboardFallbackApp(ZeroApp):
         self.pop_on_event = Event()
         self.pop_on_event.set()
         self.c = Canvas(self.o)
-        device_manager.register_monitor_callback(self.process_dm_event)
         self.i.set_streaming(self.deactivate)
         self.state = None
         self.status_image = "No image"
         self.r = Refresher(self.get_status_image, self.i, self.o, name="Keyboard fallback status refresher")
+
+    def set_context(self, c):
+        self.context = c
+        self.context.set_target(self.show_status)
+        self.zpui = self.context.request_zpui()
+        self.device_manager = self.zpui.input_device_manager
+        self.device_manager.register_monitor_callback(self.process_dm_event)
 
     def deactivate(self, keyname, *args, **kwargs):
         # Upon receiving *any* key when active, it's our hint from the user
@@ -84,10 +87,6 @@ class KeyboardFallbackApp(ZeroApp):
             if self.state == "usb_keyboard_connected":
                 self.r.deactivate()
                 self.context.signal_background()
-
-    def set_context(self, c):
-        self.context = c
-        c.set_target(self.show_status)
 
     def get_status_image(self):
         return self.status_image

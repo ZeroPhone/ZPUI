@@ -151,7 +151,7 @@ def init():
         sys.exit(2)
 
     # Initialize the context manager
-    zpui.cm = ContextManager()
+    zpui.cm = ContextManager(zpui=zpui)
     # Initialize input
     try:
         # Now we can show errors on the display

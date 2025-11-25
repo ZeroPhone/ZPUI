@@ -7,6 +7,7 @@ from zpui_lib.helpers import get_platform
 from zpui_lib.actions import ContextSwitchAction as Action
 
 context = None
+zpui = None
 i = None; o = None
 
 def can_load():
@@ -15,13 +16,19 @@ def can_load():
     return False, "Minimizing ZPUI is currently not supported on platforms other than Beepy"
 
 def set_context(c):
-    global context
+    global context, zpui
     if can_load() == True:
         context = c
         context.register_action(Action("minimize_zpui", c.request_switch, menu_name="Minimize ZPUI (console)", description="Put ZPUI into background so console can be accessed"))
+        zpui = context.request_zpui()
+        if zpui == None:
+            logger.error("ZPUI object not assigned - permission error?")
+            return
 
 def callback():
-    from __main__ import zpui
+    if zpui == None:
+        logger.error("ZPUI object not assigned - error during init?")
+        return
     c = Canvas(o)
     c.centered_text("Now press Enter", font=("Fixedsys62.ttf", 32))
     c.display()
