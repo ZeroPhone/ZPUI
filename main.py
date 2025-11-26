@@ -59,7 +59,7 @@ class ZPUI():
             if hasattr(self.input_processor, "unsuspend"):
                 self.input_processor.unsuspend()
                 logger.info("Unsuspended input device manager")
-            self.cm.switch_to_context("main")
+            #self.cm.switch_to_context("main") # WHY, why did I do this? I forgor
             self.suspended.clear()
 
     def unsuspend_signal(self, *a):
