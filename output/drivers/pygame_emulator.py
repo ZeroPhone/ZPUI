@@ -46,7 +46,7 @@ class Screen(OutputDevice):
         self.suspended = True
 
     def unsuspend(self):
-        logger.info("Suspended emulator output (does not do anything)")
+        logger.info("Unsuspended emulator output (dummy)")
         self.suspended = False
 
     def __getattr__(self, name):
