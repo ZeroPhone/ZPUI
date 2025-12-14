@@ -51,7 +51,6 @@ class TailscaleTools(ZeroApp):
         TextReader(text, self.i, self.o, name="Tailscale failure reader").activate()
 
     def is_connected(self):
-        Printer("Disconnecting tailscale!", self.i, self.o, 0.1)
         pc = ProHelper([self.config["binary"], "status"], output_callback = None)
         pc.run()
         for i in range(30):
