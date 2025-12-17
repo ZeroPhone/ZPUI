@@ -112,12 +112,13 @@ def set_keymap():
             "KEY_UP": lambda:make_a_move("up"),
             "KEY_DOWN": lambda:make_a_move("down"),
             "KEY_ENTER": confirm_exit}
-    if "beepy" in get_platform():
+    if "beepy" in get_platform() or "emulator" in get_platform():
         # Beepy/Blepis extra up/down/left/right keys
         keymap.update({"KEY_S": lambda:make_a_move("left"),
                        "KEY_F": lambda:make_a_move("right"),
                        "KEY_E": lambda:make_a_move("up"),
-                       "KEY_D": lambda:make_a_move("down")})
+                       "KEY_D": lambda:make_a_move("down"),
+                       "KEY_X": lambda:make_a_move("down")})
     i.stop_listen()
     i.set_keymap(keymap)
     i.listen()
