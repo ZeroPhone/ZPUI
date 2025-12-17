@@ -3,7 +3,7 @@ menu_name = "Flashlight"
 import os
 from time import sleep
 
-from zpui_lib.ui import Canvas, Menu, Checkbox, PrettyPrinter as Printer
+from zpui_lib.ui import Canvas, Menu, Checkbox, PrettyPrinter as Printer, DialogBox
 from zpui_lib.helpers import ExitHelper, get_platform, read_or_create_config, local_path_gen, save_config_gen
 from zpui_lib.actions import ContextSwitchAction as Action
 
@@ -22,7 +22,9 @@ i = None; o = None
 
 local_path = local_path_gen(__name__)
 
-default_config = "disabled_lights: []"
+default_config = """\
+disabled_lights: []
+alerts: {}"""
 config = read_or_create_config(local_path("config.yaml"), default_config, menu_name+" app")
 save_config = save_config_gen(local_path("config.yaml"))
 
@@ -118,14 +120,29 @@ def set_led(new_state):
 
 def callback():
     global state
-    # check - are all possible lights disabled?
+    # first, remind the user that they can reconfigure the flashlight at any point
+    # in the settings app
+    if not config["alerts"].get("settings", {}).get("acknowledged", False):
+        message = "Configure flashlight\nsources in Settings!"
+        db = DialogBox([["Ok", None]], i, o, message=message, name="Flashlight app settings alarm")
+        db.context = context
+        db.activate()
+        config["alerts"]["settings"] = {}
+        config["alerts"]["settings"]["acknowledged"] = True
+        save_config(config)
     lights = get_platform_lights()
+    # check - are all possible lights disabled?
     if all([light in config["disabled_lights"] for light in lights]):
         Printer("All available lights disabled!", i, o, 3)
         return
     # do we have a color screen? if so, block
     # first thing to do: toggle the LED
-    state = not state
+    # but first, special case: we only have the screen available/activated, and it's white
+    active_lights = [light for light in lights if light not in config["disabled_lights"]]
+    only_screen_and_is_white = ((active_lights == ["screen"]) and state)
+    print(active_lights, only_screen_and_is_white, state)
+    if not only_screen_and_is_white:
+        state = not state
     set_led(state)
     # now, fill the canvas with white
     # damn, wish I could filter this out on the Memory LCD
