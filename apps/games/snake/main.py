@@ -3,7 +3,7 @@ from threading import Event, Lock
 from random import randint
 
 from zpui_lib.ui import Canvas, DialogBox, Menu, Listbox, MockOutput, GraphicsPrinter, fit_image_to_dims, replace_color, open_image, invert_image
-from zpui_lib.helpers import ExitHelper, local_path_gen
+from zpui_lib.helpers import ExitHelper, local_path_gen, get_platform
 
 menu_name = "Snake"
 
@@ -52,17 +52,20 @@ def callback():
     splash()
     load_scores()
     set_field_size()
-    mc = [  ["Start", start_game],
-            ["Difficulty", change_difficulty],
-            ["Highscores", see_highscores]]
-    Menu(mc, i, o, name="Snake game main menu").activate()
+    def get_mc():
+        mc = [  ["Start", start_game],
+                ["Difficulty: {}".format(difficulty_lc[level-1][0]), change_difficulty],
+                ["Highscores", see_highscores]]
+        return mc
+    Menu([], i, o, contents_hook=get_mc, name="Snake game main menu").activate()
+
+difficulty_lc = [["Too young to die", 1], ["Hurt me plenty", 2], ["Nightmare !", 3]]
 
 def change_difficulty():
     global speed, level
-    lc = [["Too young to die", 1], ["Hurt me plenty", 2], ["Nightmare !", 3]]
-    selected_level = Listbox(lc, i, o, name="Level").activate()
+    selected_level = Listbox(difficulty_lc, i, o, name="Level", selected=level).activate()
     # If user presses Left, Listbox returns None
-    if selected_level:
+    if selected_level != None:
         level = selected_level
         if level == 3:
             speed = 0.05
@@ -109,6 +112,12 @@ def set_keymap():
             "KEY_UP": lambda:make_a_move("up"),
             "KEY_DOWN": lambda:make_a_move("down"),
             "KEY_ENTER": confirm_exit}
+    if "beepy" in get_platform():
+        # Beepy/Blepis extra up/down/left/right keys
+        keymap.update({"KEY_S": lambda:make_a_move("left"),
+                       "KEY_F": lambda:make_a_move("right"),
+                       "KEY_E": lambda:make_a_move("up"),
+                       "KEY_D": lambda:make_a_move("down")})
     i.stop_listen()
     i.set_keymap(keymap)
     i.listen()
