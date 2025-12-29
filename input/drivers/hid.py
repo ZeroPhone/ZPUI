@@ -21,14 +21,21 @@ def get_path_by_name(name):
     path = None
     for dev in get_input_devices():
         if dev.name == name:
-            path = dev.fn
+            try:
+                path = dev.path
+            except AttributeError:
+                path = dev.fn
     return path
 
 def get_name_by_path(path):
     """Gets HID device path by name, returns None if not found."""
     name = None
     for dev in get_input_devices():
-        if dev.fn == path:
+        try:
+            dev_path = dev.path
+        except AttributeError:
+            dev_path = dev.fn
+        if dev_path == path:
             name = dev.name
     return name
 
