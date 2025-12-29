@@ -5,7 +5,7 @@ from subprocess import Popen, check_output
 from time import sleep
 import traceback
 
-from pkg_resources import packaging # for pip version check
+from packaging.version import Version
 
 print("TODO warning about raspberry pi i2c enable")
 print("TODO i2c bus number config")
@@ -214,7 +214,7 @@ def setup():
         output = check_output(["pip", "--version"])
         if isinstance(output, bytes): output = output.decode("utf-8")
         _, ver, _ = output.split(' ', 2)
-        if packaging.version.parse(ver) > packaging.version.parse("23.0.0"):
+        if Version(ver) > Version("23.0.0"):
             cmdline.append("--break-system-packages")
         call_interactive(cmdline + pip)
 
