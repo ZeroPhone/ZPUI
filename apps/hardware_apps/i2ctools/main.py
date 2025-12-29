@@ -52,7 +52,7 @@ def scan_i2c_bus():
       except IOError as e:
          if e.errno == 16:
              found_devices[device] = "busy"
-         elif e.errno == 121:
+         elif e.errno in (5, 121):
              pass
          elif e.errno == 110:
              # bus crashout, scan isn't worth continuing
