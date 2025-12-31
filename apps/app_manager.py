@@ -265,17 +265,33 @@ class AppManager(object):
                 if self.failed_apps:
                     failed_app_names = [os.path.split(p)[1] for p in self.failed_apps.keys()]
                     Printer(["Failed to load:"]+failed_app_names, self.i, self.orig_o, 0.5)
-        # second: entrypoint-based discovery
-        discovered_apps = entry_points(group='zpui_app.3rdparty')
-        for app_ep in discovered_apps:
+        # second: entrypoint-based and config-file-based app loading
+        discovered_apps = list(entry_points(group='zpui_app.3rdparty'))
+        # workaround for systems where entrypoints don't work for one reason or another
+        manual_apps = self.config.get("app_paths", [])
+        for app_ep in discovered_apps + manual_apps:
             logger.debug("Loading endpoint app: "+str(app_ep))
+            app_name = None
             try:
-                app = app_ep.load()
+                if isinstance(app_ep, dict):
+                    app_path = app_ep["path"]
+                    # example path: "/home/arya/ZPUI/zpui-example-app/src/ > zpui_hackmesh < /app.py"
+                    if not app_path.endswith(".py"):
+                        raise ValueError("Externally loaded app \"path\" needs to be a path to a .py file!")
+                    alt_name = os.path.split( os.path.split(app_path)[0] )[1] # separating out the folder name specifically
+                    app_name = app_ep.get("name", alt_name)
+                    spec = importlib.util.spec_from_file_location(app_name, app_path)
+                    app = importlib.util.module_from_spec(spec)
+                    sys.modules[app_name] = app
+                    spec.loader.exec_module(app)
+                else:
+                    app = app_ep.load()
             except:
-                logger.exception("Failing to load entrypoint for external app {}".format(app_ep))
+                logger.exception("Failing to load entrypoint/path for external app {}".format(app_ep))
                 self.failed_apps[str(app_ep)] = traceback.format_exc()
                 continue
-            app_name = app_ep.name
+            if app_name == None:
+                app_name = app_ep.name
             try:
                 module_path = getattr(app, "module_path", app_name)
                 if not module_path.startswith("apps"):
