@@ -1,7 +1,7 @@
 import smbus
 from time import sleep
 
-from input.drivers.skeleton import InputSkeleton
+from input.drivers.skeleton import InputSkeleton, KEY_PRESSED, KEY_RELEASED
 
 from zpui_lib.helpers import setup_logger
 logger = setup_logger(__name__, "warning")
@@ -104,8 +104,8 @@ class InputDevice(InputSkeleton):
             if data_difference & 1<<i:
                 changed_buttons.append(i)
         for button_number in changed_buttons:
-            if not data & 1<<button_number:
-                self.send_key(self.mapping[button_number])
+            state = KEY_RELEASED if (not data & 1<<button_number) else KEY_PRESSED
+            self.send_key(self.mapping[button_number], state=state)
 
 
 if __name__ == "__main__":
