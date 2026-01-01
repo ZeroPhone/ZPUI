@@ -3,6 +3,9 @@ from time import sleep
 
 from input.drivers.skeleton import InputSkeleton
 
+from zpui_lib.helpers import setup_logger
+logger = setup_logger(__name__, "warning")
+
 class InputDevice(InputSkeleton):
     """
     An input driver that picks up three side switches from the MCP23008
@@ -10,9 +13,9 @@ class InputDevice(InputSkeleton):
     """
 
     default_mapping = [
-      "KEY_F2",
-      "KEY_F3",
-      "KEY_F4",
+      "KEY_F5",
+      "KEY_F6",
+      "KEY_F7",
     ]
 
     previous_data = 0x00
@@ -56,6 +59,7 @@ class InputDevice(InputSkeleton):
             pin_state = self.bus.read_byte_data(self.addr, 0x02) # GPINTEN
             new_pin_state = pin_state | 0b111 # first three pins have to be 0b111
             self.bus.write_byte_data(self.addr, 0x02, 0b111)
+        self.previous_data = (~self.bus.read_byte_data(self.addr, 0x09)&0b111)
         return True
 
     def runner(self):
@@ -70,7 +74,7 @@ class InputDevice(InputSkeleton):
         """Interrupt-driven loop. Currently can only use ``RPi.GPIO`` library. Stops when ``stop_flag`` is set to True."""
         import RPi.GPIO as GPIO
         GPIO.setmode(GPIO.BCM) # Broadcom pin-numbering scheme
-        GPIO.setup(self.int_pin, GPIO.IN)
+        GPIO.setup(self.int_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
         button_states = []
         while not self.stop_flag:
             while GPIO.input(self.int_pin) == False and self.enabled:
@@ -78,7 +82,8 @@ class InputDevice(InputSkeleton):
                 data = (~self.bus.read_byte_data(self.addr, 0x09)&0b111)
                 self.process_data(data)
                 self.previous_data = data
-            sleep(0.01)
+            #logger.debug("eeping")
+            sleep(0.1)
 
     def loop_polling(self):
         """Polling loop. Stops when ``stop_flag`` is set to True."""
@@ -89,7 +94,7 @@ class InputDevice(InputSkeleton):
                 if data != self.previous_data:
                     self.process_data(data)
                     self.previous_data = data
-            sleep(0.01)
+            sleep(0.1)
 
     def process_data(self, data):
         """Checks data received from IO expander and classifies changes as either "button up" or "button down" events. On "button up", calls send_key with the corresponding button name from ``self.mapping``. """
