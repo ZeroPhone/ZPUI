@@ -24,7 +24,7 @@ Installation
     # Run this script to help you configure the IO for ZPUI to use
     sudo ./config.py
     # Start the system to test your configuration - do screen and buttons work OK?
-    sudo python main.py 
+    sudo python3 main.py 
     # Once tested:
     sudo ./sync.sh # Transfer the working system to your system-wide ZPUI copy
 

@@ -34,7 +34,7 @@ preassembled_modules ={
 'zpui_bc_v1_qwiic':{'apt-get':['python3-smbus', 'i2c-tools']},
 'emulator':{'apt-get':["python-pip", "python-dev", "build-essential", "python-pygame"], 'pip':["luma.emulator"]},
 'waveshare_oled_hat':{'apt-get':['python3-smbus', 'i2c-tools', 'python-rpi.gpio']},
-'beepy':{'apt-get':['python3-smbus', 'i2c-tools', 'python-rpi.gpio']},
+'beepy':{'apt-get':['python3-smbus', 'i2c-tools', 'python3-rpi.gpio', 'python3-evdev']},
 }
 
 """
@@ -60,7 +60,7 @@ preassembled_module_names ={
 "ZPUI businesscard v1 (QWIIC-only)":'zpui_bc_v1_qwiic',
 "ZPUI businesscard v1 (Pi GPIO header)":'zpui_bc_v1',
 "Waveshare OLED HAT (untested)":'waveshare_oled_hat',
-"Beepy":'beepy',
+"Beepy/Colorberry":'beepy',
 }
 
 """
