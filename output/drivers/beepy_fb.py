@@ -59,8 +59,11 @@ class Screen(FBScreen):
         FBScreen.__init__(self, color=color, **kwargs)
         self.mono_cutoff = mono_cutoff
         self.color_cutoff = color_cutoff
-        self.try_find_store_and_replace_mc()
-        self.try_find_store_and_replace_cc()
+        try:
+            self.try_find_store_and_replace_mc()
+            self.try_find_store_and_replace_cc()
+        except:
+            logger.exception("Error while setting new mono/color thresholds!")
 
     def is_sharp_memory(self, fb_path):
         # fb_path unused for now - right now, we only check that sharp_drm driver is loaded
