@@ -79,7 +79,7 @@ class Screen(FBScreen):
         else: # look for jdi
             for name in os.listdir(self.module_path):
                 if name.startswith("jdi_"):
-                    dir = os.path.join()
+                    dir = os.path.join(self.module_path, name)
                     break
         if dir == None:
             return
