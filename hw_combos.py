@@ -151,13 +151,43 @@ def config_waveshare_oled_hat(config):
     return io
 
 def config_beepy(config):
-    io = [{"driver":"pcf8574", "addr":0x3f}, {"driver":"beepy_fb", "fb_num":1}] # by default, the pcf driver is used as a backup, same config as the ZPUI businesscard
+    # by default, the pcf driver is used as a backup, same config as the ZPUI businesscard
+    # this allows using the ZPUI businesscard as a backup for the Blepis touchpad
+    io = [{"driver":"pcf8574", "addr":0x3f}, {"driver":"beepy_fb", "fb_num":1}]
     if "fb_num" in config:
         io[1]["fb_num"] = config.get("fb_num", 1)
     if "i2c" in config:
         io[0]["bus"] = int(config.get("i2c", 1))
     io[0] = [io[0]]
     io[0].append({"driver":"beepy_hid"})
+    set_status_bar_height(config, 30)
+    return io
+    # once all known Blepises are migrated to use `device: blepis`, remove above block:
+    """
+    io = [{"driver":"beepy_hid"}, {"driver":"beepy_fb", "fb_num":1}]
+    if "fb_num" in config:
+        io[1]["fb_num"] = config.get("fb_num", 1)
+    set_status_bar_height(config, 30)
+    return io
+    """
+
+def config_blepis(config):
+    # by default, the pcf driver is used as a backup, same config as the ZPUI businesscard
+    # this allows using the ZPUI businesscard as a backup for the Blepis touchpad
+    io = [{"driver":"pcf8574", "addr":0x3f}, {"driver":"beepy_fb", "fb_num":1}]
+    if "fb_num" in config:
+        io[1]["fb_num"] = config.get("fb_num", 1)
+    if "i2c" in config:
+        io[0]["bus"] = int(config.get("i2c", 1))
+    io[0] = [io[0]]
+    io[0].append({"driver":"beepy_hid"})
+    set_status_bar_height(config, 30)
+    return io
+
+def config_colorberry(config):
+    io = [{"driver":"beepy_hid"}, {"driver":"beepy_fb", "fb_num":1, "force_color":True}]
+    if "fb_num" in config:
+        io[1]["fb_num"] = config.get("fb_num", 1)
     set_status_bar_height(config, 30)
     return io
 
@@ -209,6 +239,8 @@ devices = {
   "zpui_bc_v1":config_zpui_bc_v1,
   "waveshare_oled_hat":config_waveshare_oled_hat,
   "beepy":config_beepy,
+  "blepis":config_blepis,
+  "colorberry":config_colorberry,
 }
 
 
@@ -356,13 +388,28 @@ class TestCombination(unittest.TestCase):
         assert(o == {'driver': 'beepy_fb', 'fb_num': 1})
 
     def test_bc_plus_beepykbd(self):
-        """tests that beepy config works"""
+        """tests that ZPUI businesscard QWIIC plus Beepy HID config works"""
         config = {"device":"zpui_bc_v1_qwiic", "input":"beepy_hid"}
         i, o, _ = get_io_configs(config)
         #print(i, o)
         assert(i == [{'driver': 'pcf8574', 'addr': 63}, 'beepy_hid'])
         assert(o == {'driver': 'sh1106', 'hw': 'i2c'})
 
+    def test_blepis(self):
+        """tests that blepis config works"""
+        config = {"device":"blepis"}
+        i, o, _ = get_io_configs(config)
+        assert(i == [{'driver': 'pcf8574', 'addr': 63}, {'driver': 'beepy_hid'}])
+        assert(o == {'driver': 'beepy_fb', 'fb_num': 1})
+
+    def test_colorberry(self):
+        """tests that colorberry config works"""
+        config = {"device":"colorberry"}
+        i, o, _ = get_io_configs(config)
+        assert(i == {'driver': 'beepy_hid'})
+        assert(o == {'driver': 'beepy_fb', 'fb_num': 1, "force_color":True})
+
+    #io = [{"driver":"beepy_hid"}, {"driver":"beepy_fb", "fb_num":1}]
 
 if __name__ == '__main__':
     unittest.main()
