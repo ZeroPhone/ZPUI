@@ -55,7 +55,7 @@ class Screen(GraphicalOutputDevice, CharacterOutputDevice):
             # and now we create a framebuffer
             self.fb = Framebuffer(self.fb_num)
             self.width, self.height = self.fb.size
-            logger.info("Framebuffer device initialized, size: {}, bpp: {}, stride: {}".format(self.fb.size, self.fb.bits_per_pixel, self.fb.stride))
+            logger.info("Framebuffer device {} initialized, size: {}, bpp: {}, stride: {}".format(self.fb_path, self.fb.size, self.fb.bits_per_pixel, self.fb.stride))
         else:
             # some code taken from here: https://stackoverflow.com/questions/54778105/python-pygame-fails-to-output-to-dev-fb1-on-a-raspberry-pi-tft-screen
             import pygame

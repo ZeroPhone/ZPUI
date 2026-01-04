@@ -33,7 +33,8 @@ class Screen(FBScreen):
     name_path = "/sys/class/graphics/fb{}/name"
     orig_mc = None
 
-    def __init__(self, fb_num=1, mono_cutoff=128, **kwargs):
+    def __init__(self, fb_num=1, mono_cutoff=128, force_color=False, **kwargs):
+        self.force_color = force_color
         color = True # true for all devices but a few
         try:
             with open(self.name_path.format(fb_num)) as f:
@@ -42,7 +43,11 @@ class Screen(FBScreen):
             logger.exception("error when reading fb device driver name!")
         else:
             if name.startswith("sharp_drm"):
-                color = False
+                if force_color:
+                    logger.info("Sharp_drm driver detecting but color forced to True (Colorberry?)")
+                else:
+                    color = False
+                    logger.info("Sharp_drm driver detecting, changing driver to monochrome")
         kwargs["fb_num"] = fb_num # need to pass it to FBScreen constructor too
         FBScreen.__init__(self, color=color, **kwargs)
         self.mono_cutoff = mono_cutoff
