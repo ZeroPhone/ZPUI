@@ -84,7 +84,7 @@ class Screen(FBScreen):
         self.mc_path = os.path.join(dir, self.mc_add)
         logger.info("Found directory for setting parameters: {}, mono_cutoff path: {}".format(dir, self.mc_path))
         self.driver_path = dir
-        if os.path.exists(mc_path):
+        if os.path.exists(self.mc_path):
             with open(self.mc_path, 'rb') as f:
                self.orig_mc = f.read().strip()
             mc_bytes = bytes(str(self.mono_cutoff), "ascii")
