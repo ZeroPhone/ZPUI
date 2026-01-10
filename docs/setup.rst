@@ -115,13 +115,14 @@ Emulator settings
 -----------------
 
 By default, the emulator uses screen mode '1' (monochrome) and 128x64 resolution.
-You can pass resolution and mode settings to the emulator by editing ``config.yaml``:
+You can pass resolution, mode, and scale settings to the emulator by editing ``config.yaml``:
 
 .. code-block:: yaml
 
     device: emulator
     resolution: 400x240
     mode: RGB
+    scale: 3
 
 Ubuntu/Debian installation
 --------------------------
