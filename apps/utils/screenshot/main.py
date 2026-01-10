@@ -1,6 +1,7 @@
 menu_name = "Screenshots"
 
 import os
+from copy import copy
 from time import sleep
 from datetime import datetime
 
@@ -64,19 +65,27 @@ def log_recording(filename, imgpath):
 
 def record():
     recording_ongoing.set(True)
-    logger.info("Recording starting")
     log_filename = "recording-{}.log".format(datetime.now().strftime("%y%m%d-%H%M%S"))
+    logger.info(f"Recording starting into {log_filename}")
     prev_image = None
     while recording_ongoing:
         try:
             c = context.get_current_context()
-            image = context.get_context_image(c)
+            image = copy(context.get_context_image(c))
             if image: # not doing anything if the current image isn't at least truthy
-                if not prev_image or not imgs_are_equal(image, prev_image):
-                    path = save_image(image)
-                    logger.info("Image changed, saved to {}!".format(path))
-                    log_recording(log_filename, path)
+                if prev_image:
+                    if not imgs_are_equal(image, prev_image):
+                        path = save_image(image)
+                        logger.info("Image changed, saved to {}!".format(path))
+                        log_recording(log_filename, path)
+                        prev_image = image
+                    else:
+                        pass
+                else:
+                    #print("prev image not set!")
                     prev_image = image
+            else:
+                pass #print("not image")
             if not recording_ongoing:
                 logger.info("Recording stopped")
                 recording_ongoing.set(False)
