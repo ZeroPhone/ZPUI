@@ -31,10 +31,10 @@ logger = setup_logger(__name__, "warning")
 # both in the pygame output and pygame input drivers.
 __EMULATOR_PROXY = None
 
-def get_emulator(width=128, height=64, mode="1"):
+def get_emulator(width=128, height=64, mode="1", scale=2):
     global __EMULATOR_PROXY
     if __EMULATOR_PROXY is None:
-        __EMULATOR_PROXY = EmulatorProxy(width=width, height=height, mode=mode)
+        __EMULATOR_PROXY = EmulatorProxy(width=width, height=height, mode=mode, scale=scale)
     return __EMULATOR_PROXY
 
 
@@ -45,15 +45,16 @@ class EmulatorProxy(object):
     char_height = 8
     type = ["char", "b&w"]
 
-    def __init__(self, mode="1", width=128, height=64, default_color="white"):
+    def __init__(self, mode="1", width=128, height=64, default_color="white", scale=2):
         self.width = width
         self.height = height
         self.mode = mode
+        self.scale = scale
         self.default_color = default_color
         if self.mode.startswith("RGB"):
             self.type.append("color")
         self.device_mode = mode
-        self.device = type("MockDevice", (), {"mode":self.mode, "size":(self.width, self.height)})
+        self.device = type("MockDevice", (), {"mode":self.mode, "size":(self.width, self.height), "scale":self.scale})
         self.parent_conn, self.child_conn = Pipe()
         self.child_queue = MQueue()
         self.o_lock = MLock()
@@ -64,7 +65,7 @@ class EmulatorProxy(object):
         self.start_process()
 
     def start_process(self):
-        self.proc = Process(target=Emulator, args=(self.child_conn, self.child_queue, self.o_lock), kwargs={"mode":self.mode, "width":self.width, "height":self.height})
+        self.proc = Process(target=Emulator, args=(self.child_conn, self.child_queue, self.o_lock), kwargs={"mode":self.mode, "width":self.width, "height":self.height, "scale":self.scale})
         self.proc.start()
 
     def poll_input(self, timeout=1):
@@ -143,7 +144,7 @@ class Emulator(object):
     for any future visitors:
     this runs in a whole different process
     """
-    def __init__(self, child_conn, child_queue, o_lock, mode="1", width=128, height=64, default_color="white"):
+    def __init__(self, child_conn, child_queue, o_lock, mode="1", width=128, height=64, default_color="white", scale=2):
         self.child_conn = child_conn
         self.child_queue = child_queue
         self.o_lock = o_lock
@@ -151,6 +152,7 @@ class Emulator(object):
         self.width = width
         self.height = height
         self.default_color = default_color
+        self.scale = scale
 
         self.char_width = 6
         self.char_height = 8
@@ -169,6 +171,8 @@ class Emulator(object):
             'display': 'pygame',
             'width': self.width,
             'height': self.height,
+            'transform': "identity",
+            'scale': self.scale,
         }
 
         self.busy_flag = Lock()

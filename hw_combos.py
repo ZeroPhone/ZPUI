@@ -85,6 +85,10 @@ def config_emulator(config):
         if not isinstance(io[1], dict):
             io[1] = {"driver":io[1]}
         io[1]["mode"] = str(config["mode"]) # str is fix for mode "1"
+    if "scale" in config:
+        if not isinstance(io[1], dict):
+            io[1] = {"driver":io[1]}
+        io[1]["scale"] = int(config["scale"]) # making sure scale parameter is an int
     if "resolution" in config:
         if height >= 240:
             set_status_bar_height(config, 30)
