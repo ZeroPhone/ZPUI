@@ -393,6 +393,12 @@ class TestCombination(unittest.TestCase):
         i, o, _ = get_io_configs(config)
         assert(i == "pygame_input")
         assert(o == {'driver': 'pygame_emulator', "mode":"RGB"})
+        # tests that the scale parameter is passed
+        config = {"device":"emulator", "scale":3}
+        i, o, _ = get_io_configs(config)
+        assert(i == "pygame_input")
+        assert(o == {'driver': 'pygame_emulator', "scale":3})
+        # tests that ui_color results in "mode" set to "RGB" automatically
         config = {"device":"emulator", "ui_color":"green"}
         i, o, _ = get_io_configs(config)
         assert(i == "pygame_input")
