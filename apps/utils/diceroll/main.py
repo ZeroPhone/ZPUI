@@ -34,29 +34,36 @@ class App(ZeroApp):
 
     def on_start(self):
         """This function is called when you click on the app in the main menu"""
-        c = Canvas(self.o)
-        # let's calculate dice coordinates here
-        cx, cy = c.get_center() # cx is centerpoint x, which means it's == width of half of the screen
-        # picking the smallest fitting side for our screen, and shrinking it so that there's borders on the sides.
-        # For a 320x240 screen, that'll be int(160*0.7)=112, which fits well enough
-        dice_size = int(min(self.o.height, cx)*0.7)
-        y = (self.o.height-dice_size)//2
-        x1 = (cx-dice_size)//2; x2 = x1 + cx
-        # we have the coordinates!
-        for i in range(11):
-            d1 = choice(range(1, 7))
-            d2 = choice(range(1, 7))
-            self.draw_dice(c, size=dice_size, start_x=x1, start_y=y, value=d1)
-            self.draw_dice(c, size=dice_size, start_x=x2, start_y=y, value=d2)
-            c.display()
-            sleep(0.02)
-        self.wait_for_exit()
+        exit = False
+        while not exit:
+            c = Canvas(self.o)
+            # let's calculate dice coordinates here
+            cx, cy = c.get_center() # cx is centerpoint x, which means it's == width of half of the screen
+            # picking the smallest fitting side for our screen, and shrinking it so that there's borders on the sides.
+            # For a 320x240 screen, that'll be int(160*0.7)=112, which fits well enough
+            dice_size = int(min(self.o.height, cx)*0.7)
+            y = (self.o.height-dice_size)//2
+            x1 = (cx-dice_size)//2; x2 = x1 + cx
+            # we have the coordinates!
+            for i in range(11):
+                d1 = choice(range(1, 7))
+                d2 = choice(range(1, 7))
+                self.draw_dice(c, size=dice_size, start_x=x1, start_y=y, value=d1)
+                self.draw_dice(c, size=dice_size, start_x=x2, start_y=y, value=d2)
+                c.display()
+                sleep(0.02)
+            exit = self.wait_for_exit()
 
     def wait_for_exit(self):
         # separated out so that the app code can be tested
-        eh = ExitHelper(self.i).start()
+        eh = ExitHelper(self.i, keys=["KEY_LEFT", "KEY_ENTER"]).start()
         while eh.do_run():
             sleep(0.1)
+        if eh.last_key == "KEY_ENTER":
+            eh.reset()
+            return False
+        else:
+            return True
 
 ################################################
 #
