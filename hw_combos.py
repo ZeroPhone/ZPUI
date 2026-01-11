@@ -85,6 +85,11 @@ def config_emulator(config):
         if not isinstance(io[1], dict):
             io[1] = {"driver":io[1]}
         io[1]["mode"] = str(config["mode"]) # str is fix for mode "1"
+    elif "ui_color" in config or "ui-color" in config:
+        # enabling RGB if UI color is requested
+        if not isinstance(io[1], dict):
+            io[1] = {"driver":io[1]}
+        io[1]["mode"] = "RGB"
     if "scale" in config:
         if not isinstance(io[1], dict):
             io[1] = {"driver":io[1]}
@@ -383,6 +388,15 @@ class TestCombination(unittest.TestCase):
         i, o, _ = get_io_configs(config)
         assert(i == "pygame_input")
         assert(o == {'driver': 'pygame_emulator', "mode":"1", 'width': 400, 'height': 240})
+        # tests for a bug where mode "1" is YAML parsed as integer
+        config = {"device":"emulator", "ui-color":"green"}
+        i, o, _ = get_io_configs(config)
+        assert(i == "pygame_input")
+        assert(o == {'driver': 'pygame_emulator', "mode":"RGB"})
+        config = {"device":"emulator", "ui_color":"green"}
+        i, o, _ = get_io_configs(config)
+        assert(i == "pygame_input")
+        assert(o == {'driver': 'pygame_emulator', "mode":"RGB"})
 
     def test_beepy(self):
         """tests that beepy config works"""
