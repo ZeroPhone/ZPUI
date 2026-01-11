@@ -226,6 +226,8 @@ class AppManager(object):
 
     def load_all_apps(self, interactive=True):
         apps_blocked_in_config = self.config.get("do_not_load", [])
+        if not isinstance(apps_blocked_in_config, list):
+            apps_blocked_in_config = [apps_blocked_in_config]
         self.subdir_paths.append(self.app_directory.rstrip("/"))
         # apps having an "execute_after_contexts" hook
         after_contexts_apps = {}
