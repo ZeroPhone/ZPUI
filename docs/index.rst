@@ -58,6 +58,8 @@ References:
 - :doc:`Output system <output>`
 
 
+:doc:`Usability guidelines <ux>`
+
 :doc:`Development plans <plans>`
 
 :doc:`Contact us <contact>`
@@ -79,6 +81,7 @@ References:
    keymap.rst
    hacking_ui.rst
    logging.rst
+   ux.rst
    app_mgmt.rst
    docs_development.rst
    contact.rst
