@@ -3,104 +3,149 @@
 ZPUI configuration files
 ========================
 
-ZPUI ``config.json``
+ZPUI ``config.yaml``
 ++++++++++++++++++++++++
-
-.. warning::
-
-  TODO A migration to YAML has happened, and this entire section has to be overhauled
 
 .. important::
 
-  By default, ZeroPhone SD card images and ZPUI installs ship with config.json files
-  that are suitable for usage out-of-the-box. Unless you want to tweak your IO drivers'
-  initialization parameters or need to debug ZPUI in case of hardware trouble,
-  you won't need to edit ZPUI configuration files.
+  If you're on one of the default devices (Beepy/Blepis/Colorberry/ZPUI businesscard/etc.)
+  or you're using an SD card image that comes with ZPUI, you don't necessarily have to edit the config file.
+  The ``config.py`` script sets a default config file for your device already.
+  Feel free to skip to the "Useful examples" section!
 
-ZPUI depends on a ``config.json`` file to initialize the input and output devices. 
-To be exact, it expects a JSON-formatted file in one of the following paths (sorted by order
-in which ZPUI attempts to load them):
+ZPUI depends on a ``config.yaml`` file to initialize the input and output devices. 
+If you're using an emulator, it expects a ``config.yaml`` in the local folder.
+On non-emulator (real hardware) devices, it expects a YAML-formatted file, looking in one of the following paths
+(sorted by order in which ZPUI attempts to load them):
 
-* ``/boot/zpui_config.json``
-* ``/boot/pylci_config.json``
-* ``{ZPUI directory}/config.json``
-* ``{ZPUI directory}/config.example.json`` (a fallback file that you shouldn't edit manually)
+* ``/boot/zpui_config.yaml``
+* ``/boot/pylci_config.yaml``
+* ``{ZPUI directory}/config.yaml``
+* ``{ZPUI directory}/config.example.yaml`` (a fallback file that you shouldn't edit manually)
 
 .. note::
 
-  The ``config.json`` tells ZPUI which output and input hardware it needs to use, so
-  invalid configuration might lock you out of the system. Thus, it's better to make changes
-  in ``/boot/zpui_config.json`` - if you screw up and lock yourself out of ZPUI,
-  it's easier to revert the changes since you can do it by just plugging your microSD
+  The ``config.yaml`` tells ZPUI which output and input hardware it needs to use, so
+  invalid configuration might lock you out of the system. As such, if you're not using
+  the emulator, it might be better to copy the file into ``/boot/zpui_config.yaml``
+  and make your changes there - if you screw up and lock yourself out of ZPUI,
+  it's easier to revert the changes, since you can do it by just plugging your microSD
   card in another computer and editing the file. You can also delete (or rename) the
-  file to make ZPUI fallback on a default config file.
+  file to make ZPUI fallback to the config file in the ZPUI directory.
+
+.. note::
+
+  Also, scroll down to learn how to verify your config file after you've made changes!
 
 ZPUI config format
 -------------------
 
-Here's the default ZPUI config right now:
+Here's how an average ZPUI config file will look like:
 
-.. include:: ../default_config.yaml
-    :code: yaml
+.. code:: yaml
 
-Here's the config file format: 
+   device: DEVICE_NAME (for instance, emulator, beepy or blepis)
+   ui_color: "#00cafe" # can also use simple color names like "green"
 
-.. code:: json
+Here's a config file, with a few extra input devices added:
 
-   {
-     "input":
-     [{
-       "driver":"driver_filename",
-       "args":[ "value1", "value2", "value3"...]
-     }],
-   "output":
-     [{
-       "driver":"driver_filename",
-       "kwargs":{ "key":"value", "key2":"value2"}
-     }]
-   }
+.. code:: yaml
+
+   device: DEVICE_NAME (for instance, emulator, beepy or blepis)
+   input:
+     - blepis_lora_hat # extra input device, default settings
+     - driver: hid
+       name: HID 04d9:1603
+
+Here's a config where output and input drivers are defined manually:
+
+.. code:: yaml
+
+   output: sh1106
+   input:
+     - driver: hid
+       name: HID 04d9:1603
 
 Documentation for :doc:`input <input>` and :doc:`output <output>` drivers might have
-sample ``config.json`` sections for each driver. ``"args"`` and ``"kwargs"`` get passed
-directly to drivers' ``__init__`` method, so you can read the driver documentation
-or source to see if there are options you could tweak.
+sample ``config.yaml`` sections for each driver (WIP).
 
-
-.. _verify_json:
+.. _verify_yaml:
 
 Verifying your changes
 ----------------------
 
-You can use ``jq`` to verify that you didn't make any JSON formatting mistakes:
+You can use the ``verify_config.py`` to verify that you didn't make any YAML formatting mistakes:
 
-    ``jq '.' config.json``
+    ``./verify_config.py /boot/zpui_config.yaml``
 
-If the file is correct, it'll print it back. If there's anything wrong with the JSON
-formatting, it'll print an error message:
+If the file is correct, it'll print its contents and show how it got parsed.
+If there's anything wrong with the YAML formatting or ZPUI can't interpret the file,
+it will print an error message.
 
-    ``pi@zerophone:~/ZPUI#$ jq '.' config.json``
-    ``parse error: Expected separator between values at line 7, column 10``
+.. code:: bash
 
-You might need to install ``jq`` beforehand:
+    arya@lappy:~/ZPUI$ ./verify_config.py config.yaml
+    `config.yaml` contents:
+    device: emulator
+    input:
+      - blepis_lora_hat
+      - driver: hid
+        name: HID 04d9:1603
 
-    ``sudo apt-get install jq``
+    Parsed config for emulator:
+      {'device': 'emulator', 'input': ['blepis_lora_hat', {'driver': 'hid', 'name': 'HID 04d9:1603'}]}
+    Input device config:
+      ['pygame_input', 'blepis_lora_hat', {'driver': 'hid', 'name': 'HID 04d9:1603'}]
+    Output device config:
+      pygame_emulator
 
-If you're editing the ``config.json`` file externally, you might not have access to the
-command-line. In that case, you can use an online JSON validator, such as `jsonlint.com`_
-- copy-paste contents of ``config.json`` there to see if the syntax is correct.
-
-.. _jsonlint.com: https://jsonlint.com/
-
-App-specific configuration files
-++++++++++++++++++++++++++++++++
-
-.. admonition:: TODO
-   :class: warning
-
-   This section is not yet ready. Sorry for that!
+If you're editing the ``config.yaml`` file externally, you might not have access to the
+command-line. In that case, you can run the ``verify_config.py`` script on any computer,
+you don't need to install ZPUI - simply download its files, then run the Python script in a terminal.
 
 Useful examples
 +++++++++++++++
+
+Emulator settings
+-----------------
+
+By default, the emulator uses screen mode '1' (monochrome) and 128x64 resolution.
+You can pass resolution, mode, and scale settings to the emulator by editing ``config.yaml``:
+
+.. code-block:: yaml
+
+    device: emulator
+    resolution: 400x240
+    mode: RGB
+    scale: 3
+
+Coloring your ZPUI
+------------------
+
+You can set the default ZPUI color by adding a ``ui-color`` parameter:
+
+.. code:: yaml
+
+   device: DEVICE_NAME (for instance, emulator, beepy or blepis)
+   ui_color: "#00cafe" # can also use simple color names like "green"
+
+Loading apps by path
+--------------------
+
+Sometimes you want to add an external app, without using the default (entrypoints-based) external app
+loading mechanism. No worries - you can also load apps by giving paths to their app.py file:
+
+.. code:: yaml
+
+  device: beepy
+  ...
+  app_manager:
+    app_paths:
+      - path: /home/USERNAME/zpui-verycoolapp/src/zpui_verycoolapp/app.py
+      - path: /home/USERNAME/zpui-verycoolapp2/src/zpui_verycoolapp2/app.py
+        name: zpui_anotherverycoolapp
+
+
 
 Blacklisting the phone app to get access to UART console
 --------------------------------------------------------
@@ -117,24 +162,27 @@ app, and thus enabling the USB-UART debugging. To do that, you need to:
 1. Power down your ZeroPhone - since you can't access the UI, you have no other choice but
    to shutdown it unsafely by unplugging the battery.
 2. Unplug the MicroSD card and plug it into another computer - both Windows and Linux will work
-3. On the first partition (the boot partition), locate the ``zpui_config.json`` file
-4. In that file, add an ``"app_manager"`` dictionary (a "collection" in JSON terms)
-5. Add the path to the phone app to a ``"do_not_load"`` list inside of it
+3. On the first partition (the boot partition), locate the ``zpui_config.yaml`` file
+4. In that file, add an ``"app_manager"`` section, as shown below:
 
-The resulting file should look like this, as a result:
+.. code:: yaml
 
-.. code:: json
-
-  {
-   "input": ... ,
-   "output": ... ,
-   "app_manager": {
-      "do_not_load":
-         ["apps/phone"]
-    }
-  }
+  device: beepy
+  ...  
+  app_manager:
+    do_not_load:
+      apps/phone
 
 Now, boot your phone with this config and you should be able to log in over UART!
 
-.. note:: Since you're editing the ``config.json`` file externally, you should
-          make sure it's valid JSON - :ref:`here's a guide for that. <verify_json>`
+.. note:: Since you're editing the ``config.yaml`` file externally, you should
+          make sure it's valid YAML - :ref:`here's a guide for that. <verify_yaml>`
+
+App-specific configuration files
+++++++++++++++++++++++++++++++++
+
+.. admonition:: TODO
+   :class: warning
+
+   This section is not yet ready. Sorry for that!
+
