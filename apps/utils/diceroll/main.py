@@ -90,7 +90,7 @@ class TestedApp(App):
     # substitute other functions here as needed for testing
 
     def wait_for_exit(self):
-        pass # omitting the waiting-on-input part
+        return True # omitting the waiting-on-input part
 
 
 import unittest
