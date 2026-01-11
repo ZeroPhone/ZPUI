@@ -4,16 +4,35 @@ Welcome to ZPUI documentation!
 ZPUI (ZeroPhone UI, pronounced *zippy ui*) is a powerful user interface and app framework for small screens. It was designed for the ZeroPhone project,
 but it's usable on a wide variety of single-board computers.
 
+Currently stock-supported devices:
+
+* Beepy, Colorberry
+* Blepis
+* ZPUI businesscard (both Pi GPIO and QWIIC)
+* OG ZeroPhone
+
+Other device support is easy enough - most of the time, you'll only need to edit a config file.
+
 Minimum requirements:
-    - monochrome 128x64 or larger screen (OLED/LCD)
-    - 5 buttons
+
+    * monochrome/color screen larger than 128x64. For instance, one of:
+
+        * 128x64 OLED (common)
+        * 320x240 color LCD screen
+        * 400x240 Sharp monochrome or JDI color screen
+
+    * 5 buttons (up/down/left/right/enter), with support for QWERTY keyboards. For instance, one (or multiple) of:
+
+        * Pi GPIO buttons
+        * Pi GPIO matrix button
+        * I2C/SPI GPIO expander-connected buttons
+        * HID device (USB, I2C, emulated etc.)
 
 ZPUI is based on pyLCI, a general-purpose UI for embedded devices, an interface that supports 16x2 and larger character displays.
-Currently. ZPUI is tailored for the ZeroPhone hardware, namely, the 1.3" monochrome 128x64 OLED 
-and 30-key numpad (though it still retains input&output drivers from pyLCI), and it also ships with ZeroPhone-specific applications.
+Currently. ZPUI is tailored for Blepis and ZPUI businesscard hardware.
 
-At the moment, ZPUI is being made more generic and tested across many different single-board computers, and the documentation is being improved
-along with the effort.
+At the moment, ZPUI is being made more generic and tested across many different single-board computers,
+and the documentation is being improved along with the effort.
 
 Guides:
 =======
