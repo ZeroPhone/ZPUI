@@ -10,6 +10,13 @@ Using UI elements in your applications is as easy as doing:
 
 and initialising them, passing your UI element contents and parameters, as well as input and output device objects as initialisation arguments.
 
+.. warning::
+
+  There are more UI elements and helper functions than this, but they may don't appear here
+  because they haven't been documented yet.
+  You can find about them in the ``zpui_lib`` code, and find usage examples
+  within the ZPUI codebase.
+
 UI elements:
 
    * :ref:`ui_canvas`
