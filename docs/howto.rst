@@ -34,9 +34,7 @@ In ``app/main.py``:
         #Gets called when app is selected from menu
         pass
 
-``app/__init__.py`` has to exist, but can be an empty file:
-
-.. code-block:: python
+``app/__init__.py`` has to exist, but can be an empty file.
 
 .. _howto_zpui_helloworld:
 
@@ -634,7 +632,7 @@ at some point). To sum up, this is a great trick for foolproofing your app.
 Config (and other) files
 ========================
 
-Read JSON from a config file located in the app directory
+Read YAML from a config file located in the app directory
 ---------------------------------------------------------
 
 You'll want to configure your application from time to time - typically,
@@ -642,34 +640,40 @@ to allow users to change your app's configuration, but it's also useful for stor
 user-specific data, allow other software to change your app's configuration, or
 simply a way to hide all those magic numbers in your code out of plain sight.
 
-JSON dictionaries are a good fit in that they convert to Python objects pretty easily
-- you can store strings, numbers, dictionaries and lists. A suggested config file for
-an app would be a dictionary (an "object" in JSON terms), here's an example of how
+YAML files are a good fit - they are human-readable and human-editable,
+they convert to Python objects pretty easily, and,
+you can easily store strings, numbers, dictionaries and lists.
+You should use a dictionary (key:value mappings) at the top level of your YAML for future upgradability.
+Here's an example of how
 that could look like for a music player app, one to needs to store a few settings that
 were set by the user:
 
-.. code-block:: json
+.. code-block:: yaml
 
-    {
-     "shuffle":true,
-     "repeat":true,
-     "last_directory":"/home/pi/music",
-     "disabled_plugins":["lyrics", "thumbnails"]
-    }
+   shuffle: true
+   repeat: true
+   last_directory: /home/pi/music
+   disabled_plugins: [lyrics, thumbnails]
 
 Here's the simplest way to read data from a config file located in an app's directory:
 
 .. code-block:: python
 
     from zpui_lib.helpers import read_config, local_path_gen
-    config_filename = "config.json"
+    config_filename = "config.yaml"
     
     local_path = local_path_gen(__name__)
     config = read_config(local_path(config_filename))
 
+For reference, this file will load into Python as a dictionary like this:
+
+.. code-block:: python
+
+    {'shuffle': True, 'repeat': True, 'last_directory': '/home/pi/music', 'disabled_plugins': ['lyrics', 'thumbnails']}
+
 Do you have more requirements for your config file = like, easily saving it, restoring
 it on failure, as well as some primitive migrations as you update your app? The next
-example will probably work for your needs.
+example will likely work great for your needs.
 
 ------------
 
@@ -685,8 +689,9 @@ fails for some reason and get a convenient ``save_config()`` method to save it.
 .. code-block:: python
 
     from zpui_lib.helpers import read_or_create_config, local_path_gen, save_config_gen
-    default_config = '{"your":"default", "config":"to_use"}' #has to be a string
-    config_filename = "config.json"
+    default_config = """your: default
+    config: to_use""" # has to be a string
+    config_filename = "config.yaml"
     
     local_path = local_path_gen(__name__)
     config = read_or_create_config(local_path(config_filename), default_config, menu_name+" app")
@@ -694,44 +699,35 @@ fails for some reason and get a convenient ``save_config()`` method to save it.
 
 To save the config, use ``save_config(config)`` from anywhere in your app.
 
-.. note:: The faulty ``config.json`` file will be copied into a ``config.json.faulty`` 
+.. note:: The faulty ``config.yaml`` file will be copied into a ``config.yaml.faulty`` 
           file before being overwritten
 
-.. warning:: If you're reassigning contents of the ``config`` variable from inside a
-             function, you will likely want to use Python ``global`` keyword in order
-             to make sure your reassignment will actually work.
+In addition to that, if the highest level of your config is a dictionary, it allows you to perform small
+migrations - specifically, auto-adding new top-level keys with default values to the config as your
+app is updated to rely on those. This is why it's best that the top level of your YAML is a dictionary.
 
-In addition
-to that, if the highest level of your config is a dictionary, it allows you to perform small
-migrations - specifically, auto-adding new keys with default values to the config as your
-app is updated to rely on those. 
+Say, here's a config you have, created from the default config, and then maybe even changed by the user:
 
-Say, here's a config you have, created from the default config and then changed
-by the user:
+.. code-block:: yaml
 
-.. code-block:: json
+    your: non-default
+    config: to_use
 
-    {
-      "your":"non-default",
-      "config":"to_use"
-    }
-
-And here's a new default config, with additional ``"but_now"`` key that you roll out through
-an app upgrade:
+And here's a new default config, with additional ``but_now`` key that you add in an app update:
 
 .. code-block:: python
 
-    default_config = '{"your":"default", "config":"to_use", "but_now":"its_updated"}'
+    default_config = 'your: default \nconfig: to_use \nbut_now: its_updated}'
 
 The resulting config received from ``read_or_create_config`` will look like this:
 
-.. code-block:: json
+.. code-block:: yaml
 
-    {
-      "your":"non-default",
-      "config":"to_use",
-      "but_now":"its_updated"
-    }
+    your: non-default
+    config: to_use
+    but_now: its_updated
+
+The new key will be added into the config file on-disk as soon as ``save_config()`` is called.
 
 ------------
 
@@ -746,8 +742,8 @@ The resulting config received from ``read_or_create_config`` will look like this
     class YourApp(ZeroApp):
 
         menu_name = "My greatest app"
-        default_config = '{"your":"default", "config":"to_use"}' #has to be a string
-        config_filename = "config.json"
+        default_config = "your: default \nconfig: to_use"
+        config_filename = "config.yaml"
         
         def init_app(self):
             self.config = read_or_create_config(local_path(self.config_filename), self.default_config, self.menu_name+" app")
@@ -813,8 +809,8 @@ with other apps.
         i = input; o = output
         init_hardware() #Your task - short enough to run while app is being loaded
 
-.. warning:: If there's a chance that the task will take a long time, use one
-             of the following methods instead.
+.. warning:: If there's a chance that the task will take a long time, use
+             the ``BackgroundRunner`` method instead.
 
 ------------
 

@@ -13,13 +13,14 @@ Basics
 - What does a "do nothing" ZPUI app need? :ref:`One directory with two files and 5 lines of code <howto_minimal_zpui_app>`
 - What does a "Hello, world" app need? :ref:`One more line of code. <howto_zpui_helloworld>`
 - Can you do an app as an object? :ref:`Sure, here's how. <howto_minimal_zpui_class_app>`
+- Want a walkthrough for writing an app drawing things on the screen? :doc:`Sure, here's a guide. <tutorial_1>`
 - Want to experiment with the code using REPL? :ref:`Use the sandbox. <howto_zpui_app_sandbox>`
 
 ============================
 Showing things on the screen
 ============================
 
-- Want to display some text real quick? Use display_data.
+- Want to display some text real quick and dirty? Use ``o.display_data("first_line", "second_line", "third_line"...)``.
 - Want to display some text in a more user-friendly fashion, with UX bells&whistles? Use PrettyPrinter.
 - Want to display an image? :ref:`Use display_image. <howto_show_image>`
 - Want to display an image in a more user-friendly fashion, with UX bells&whistles? :ref:`Use GraphicsPrinter. <howto_show_image_better>`
