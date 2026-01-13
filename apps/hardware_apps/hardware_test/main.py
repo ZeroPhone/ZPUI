@@ -8,12 +8,15 @@ import os
 
 from zpui_lib.apps import ZeroApp
 from zpui_lib.ui import Menu, Printer, PrettyPrinter, Canvas
-from zpui_lib.helpers import ExitHelper, local_path_gen, setup_logger, remove_left_failsafe, BackgroundRunner
+from zpui_lib.helpers import ExitHelper, local_path_gen, setup_logger, remove_left_failsafe, BackgroundRunner, \
+                             get_platform
+from zpui_lib.libs import lsusb
 
-from smbus import SMBus
+#from smbus import SMBus
 
 logger = setup_logger(__name__, "warning")
 
+"""
 music_filename = "test.mp3"
 local_path = local_path_gen(__name__)
 music_path = local_path(music_filename)
@@ -29,7 +32,7 @@ def needs_i2c_gpio_expander(func):
         else: # Won't execute the function at all if expander is not found
             return False
     return wrapper
-
+"""
 
 class ZPTestApp(ZeroApp):
 
@@ -38,6 +41,9 @@ class ZPTestApp(ZeroApp):
     br = None
 
     expander_ok = False
+
+    def set_context(self, c):
+        self.context = c
 
     def init_app(self):
         pass
@@ -51,59 +57,19 @@ class ZPTestApp(ZeroApp):
 
     def on_start(self):
         mc = [
+              ["Screen", self.test_screen],
               #["Full test", self.full_test],
               #["Keypad presence", self.test_keypad_presence],
               #["I2C GPIO expander", self.test_i2c_gpio],
-              ["Screen", self.test_screen],
               #["Keypad", self.test_keypad],
               #["Charger", self.test_charger],
               #["RGB LED", self.test_rgb_led],
               #["USB port", self.test_usb_port],
               #["Headphone jack", self.test_headphone_jack]
         ]
+        if self.has_blepis_test_reqs():
+            mc.append(["Blepis test", self.blepis_test])
         Menu(mc, self.i, self.o, name="Hardware test app main menu").activate()
-
-    def full_test(self):
-        try:
-            self.test_keypad_presence()
-            self.test_i2c_gpio()
-            self.test_screen()
-            self.test_keypad()
-            self.test_charger()
-            self.test_rgb_led()
-            self.test_usb_port()
-            self.test_headphone_jack()
-        except:
-            logger.exception("Failed during full self-test")
-            exc = format_exc()
-            PrettyPrinter(exc, self.i, self.o, 10)
-        else:
-            PrettyPrinter("Self-test passed!", self.i, self.o, 3, skippable=False)
-
-    def test_keypad_presence(self):
-        #Checking keypad controller - 0x12 should answer
-        bus = SMBus(1)
-        try:
-            bus.read_byte(0x12)
-        except IOError:
-            PrettyPrinter("Keypad does not respond!", self.i, self.o)
-        else:
-            PrettyPrinter("Keypad found!", self.i, self.o)
-
-    def test_i2c_gpio(self):
-        #Checking IO expander - 0x20 should raise IOError with busy errno
-        self.expander_ok = False
-        bus = SMBus(1)
-        try:
-            bus.read_byte(0x20)
-        except IOError as e:
-            if e.errno == 16:
-                PrettyPrinter("IO expander OK!", self.i, self.o)
-                self.expander_ok = True
-            elif e.errno == 121:
-                PrettyPrinter("IO expander not found!", self.i, self.o)
-        else:
-            PrettyPrinter("IO expander driver not loaded!", self.i, self.o)
 
     def test_screen(self):
         # Testing the screen - drawing a "crosshair" to test screen edges and lines
@@ -148,6 +114,140 @@ class ZPTestApp(ZeroApp):
                     sleep(0.1)
                 else:
                     break
+
+    def has_blepis_test_reqs(self):
+        # are we even on Blepis (or save that, at least Beepy?)
+        if "blepis" not in get_platform() and "beepy" not in get_platform():
+            return False
+        i2c_prov = self.context.get_provider("i2c_devices_get")
+        if not i2c_prov: return False # need that provider to scan stuff
+        return True
+
+    def blepis_test(self):
+        self.o.clear()
+        display_lines = []
+        usb_devices = lsusb.lsusb()
+        names = [dev[4] for dev in usb_devices]
+        has_root_hub = False
+        if "Linux Foundation 2.0 root hub" in names:
+            display_lines.append("Root USB: OK ")
+            has_root_hub = True
+        else:
+            display_lines.append("Root USB: NO ")
+        # Python needs macros frfr
+        self.o.display_data(display_lines); self.o.sleep(0.1);
+        if eh.do_exit(): return
+        if has_root_hub:
+            if "QinHeng Electronics USB HUB" in names:
+                display_lines.append("Blepis USB hub: OK")
+            else:
+                display_lines.append("Blepis USB hub: NO")
+            self.o.display_data(display_lines); self.o.sleep(0.1);
+            if eh.do_exit(): return
+        # next lines: I2C devices
+        i2c_devices = self.context.get_provider("get_i2c_devices")()
+        if isinstance(i2c_devices, dict) and i2c_devices:
+            display_lines.append("I2C: OK ")
+        elif i2c_devices == {}:
+            display_lines.append("I2C: NO")
+        else:
+            display_lines.append(f"I2C: {i2c_devices} ")
+        self.o.display_data(display_lines); self.o.sleep(0.1);
+        if eh.do_exit(): return
+        # only scan I2C stuff if the I2C bus is valid
+        if isinstance(i2c_devices, dict) and i2c_devices:
+            states = i2c_devices.values()
+            # no address hardcoding, let's leave the heuristics to the I2C app
+            # so we search and parse the heuristic strings instead
+            # first check for the RP2040
+            has_rp2040 = any([state for state in states if "RP2040" in state])
+            if has_rp2040:
+                rp_state = [state for state in states if "RP2040" in state][0]
+                if rp_state.startswith("bysy"): # driver loaded
+                    display_lines[-1] += "RP2040: OK"
+                else:
+                    display_lines[-1] += "RP2040: NODRV"
+            else:
+                display_lines[-1] += "RP2040: NO"
+            self.o.display_data(display_lines); self.o.sleep(0.1);
+            if eh.do_exit(): return
+            # new empty line because all other I2C devices are optional for now
+            display_lines.append("")
+            # now look for the RTC
+            has_rtc = any([state for state in states if "RTC" in state])
+            if has_rtc:
+                display_lines[-1] += "RTC: OK "
+                self.o.display_data(display_lines); self.o.sleep(0.1);
+                if eh.do_exit(): return
+            # TPM, specifically, its I2C interface
+            has_tpm = any([state for state in states if "TPM" in state])
+            if has_tpm:
+                display_lines[-1] += "TPM: OK "
+                self.o.display_data(display_lines); self.o.sleep(0.1);
+                if eh.do_exit(): return
+            #has_eeprom = True # let's not check for any EEPROMs until there's any in the wild
+            # LoRa HAT v2 has an I2C expander
+            has_lora_v2 = any([state for state in states if "LoRa v2" in state])
+            if has_lora_v2:
+                display_lines[-1] += "LoRa: OK "
+                self.o.display_data(display_lines); self.o.sleep(0.1);
+                if eh.do_exit(): return
+            # the FUSB302 might be exposed during the app running, why not show it
+            has_fusb302 = any([state for state in states if "FUSB302" in state])
+            if has_fusb302:
+                display_lines[-1] += "FUSB302: OK "
+                self.o.display_data(display_lines); self.o.sleep(0.1);
+                if eh.do_exit(): return
+            # yeet last line if empty
+            if display_lines[-1] == "": display_lines = display_lines[:-1]
+        # future checks go here! <-----
+        # TODO GPIO scanning?
+        # stay on the screen for now
+        while eh.do_run():
+            sleep(0.2)
+
+"""
+    def full_test(self):
+        try:
+            self.test_keypad_presence()
+            self.test_i2c_gpio()
+            self.test_screen()
+            self.test_keypad()
+            self.test_charger()
+            self.test_rgb_led()
+            self.test_usb_port()
+            self.test_headphone_jack()
+        except:
+            logger.exception("Failed during full self-test")
+            exc = format_exc()
+            PrettyPrinter(exc, self.i, self.o, 10)
+        else:
+            PrettyPrinter("Self-test passed!", self.i, self.o, 3, skippable=False)
+
+    def test_keypad_presence(self):
+        #Checking keypad controller - 0x12 should answer
+        bus = SMBus(1)
+        try:
+            bus.read_byte(0x12)
+        except IOError:
+            PrettyPrinter("Keypad does not respond!", self.i, self.o)
+        else:
+            PrettyPrinter("Keypad found!", self.i, self.o)
+
+    def test_i2c_gpio(self):
+        #Checking IO expander - 0x20 should raise IOError with busy errno
+        self.expander_ok = False
+        bus = SMBus(1)
+        try:
+            bus.read_byte(0x20)
+        except IOError as e:
+            if e.errno == 16:
+                PrettyPrinter("IO expander OK!", self.i, self.o)
+                self.expander_ok = True
+            elif e.errno == 121:
+                PrettyPrinter("IO expander not found!", self.i, self.o)
+        else:
+            PrettyPrinter("IO expander driver not loaded!", self.i, self.o)
 
     def test_keypad(self):
         #Launching key_test app from app folder, that's symlinked from example app folder
@@ -252,3 +352,4 @@ class ZPTestApp(ZeroApp):
         self.i.set_callback("KEY_F2", stop)
         self.i.set_callback("KEY_ENTER", stop)
         continue_event.wait()
+"""
