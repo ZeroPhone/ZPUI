@@ -124,6 +124,7 @@ class ZPTestApp(ZeroApp):
         return True
 
     def blepis_test(self):
+        eh = ExitHelper(self.i).start()
         self.o.clear()
         display_lines = []
         usb_devices = lsusb.lsusb()
@@ -135,24 +136,24 @@ class ZPTestApp(ZeroApp):
         else:
             display_lines.append("Root USB: NO ")
         # Python needs macros frfr
-        self.o.display_data(display_lines); self.o.sleep(0.1);
+        self.o.display_data(*display_lines); sleep(0.1);
         if eh.do_exit(): return
         if has_root_hub:
             if "QinHeng Electronics USB HUB" in names:
                 display_lines.append("Blepis USB hub: OK")
             else:
                 display_lines.append("Blepis USB hub: NO")
-            self.o.display_data(display_lines); self.o.sleep(0.1);
+            self.o.display_data(*display_lines); sleep(0.1);
             if eh.do_exit(): return
         # next lines: I2C devices
-        i2c_devices = self.context.get_provider("get_i2c_devices")()
+        i2c_devices = self.context.get_provider("i2c_devices_get")()
         if isinstance(i2c_devices, dict) and i2c_devices:
             display_lines.append("I2C: OK ")
         elif i2c_devices == {}:
             display_lines.append("I2C: NO")
         else:
             display_lines.append(f"I2C: {i2c_devices} ")
-        self.o.display_data(display_lines); self.o.sleep(0.1);
+        self.o.display_data(*display_lines); sleep(0.1);
         if eh.do_exit(): return
         # only scan I2C stuff if the I2C bus is valid
         if isinstance(i2c_devices, dict) and i2c_devices:
@@ -163,13 +164,13 @@ class ZPTestApp(ZeroApp):
             has_rp2040 = any([state for state in states if "RP2040" in state])
             if has_rp2040:
                 rp_state = [state for state in states if "RP2040" in state][0]
-                if rp_state.startswith("bysy"): # driver loaded
+                if rp_state.startswith("busy"): # driver loaded
                     display_lines[-1] += "RP2040: OK"
                 else:
                     display_lines[-1] += "RP2040: NODRV"
             else:
                 display_lines[-1] += "RP2040: NO"
-            self.o.display_data(display_lines); self.o.sleep(0.1);
+            self.o.display_data(*display_lines); sleep(0.1);
             if eh.do_exit(): return
             # new empty line because all other I2C devices are optional for now
             display_lines.append("")
@@ -177,26 +178,26 @@ class ZPTestApp(ZeroApp):
             has_rtc = any([state for state in states if "RTC" in state])
             if has_rtc:
                 display_lines[-1] += "RTC: OK "
-                self.o.display_data(display_lines); self.o.sleep(0.1);
+                self.o.display_data(*display_lines); sleep(0.1);
                 if eh.do_exit(): return
             # TPM, specifically, its I2C interface
             has_tpm = any([state for state in states if "TPM" in state])
             if has_tpm:
                 display_lines[-1] += "TPM: OK "
-                self.o.display_data(display_lines); self.o.sleep(0.1);
+                self.o.display_data(*display_lines); sleep(0.1);
                 if eh.do_exit(): return
             #has_eeprom = True # let's not check for any EEPROMs until there's any in the wild
             # LoRa HAT v2 has an I2C expander
             has_lora_v2 = any([state for state in states if "LoRa v2" in state])
             if has_lora_v2:
                 display_lines[-1] += "LoRa: OK "
-                self.o.display_data(display_lines); self.o.sleep(0.1);
+                self.o.display_data(*display_lines); sleep(0.1);
                 if eh.do_exit(): return
             # the FUSB302 might be exposed during the app running, why not show it
             has_fusb302 = any([state for state in states if "FUSB302" in state])
             if has_fusb302:
                 display_lines[-1] += "FUSB302: OK "
-                self.o.display_data(display_lines); self.o.sleep(0.1);
+                self.o.display_data(*display_lines); sleep(0.1);
                 if eh.do_exit(): return
             # yeet last line if empty
             if display_lines[-1] == "": display_lines = display_lines[:-1]
