@@ -172,11 +172,13 @@ def init():
                 driver.reattach_cbs.append(zpui.screen.reattach_callback)
                 logging.info("attached screen reattach callback to driver {}".format(dname))
     zpui.cm.init_io(zpui.input_processor, zpui.screen)
+    # ZeroMenu hook
     c = zpui.cm.contexts["main"]
     c.register_action(ContextSwitchAction("switch_main_menu", None, menu_name="Main menu"))
+    # why is this in init()? but oh well ig
     zpui.cm.switch_to_context("main")
-    i, o = zpui.cm.get_io_for_context("main")
 
+    i, o = zpui.cm.get_io_for_context("main")
     return i, o
 
 
@@ -201,7 +203,11 @@ def launch(name=None, **kwargs):
         zpui.app_menu = zpui.app_man.load_all_apps()
         zpui.app_man.after_load()
         runner = zpui.app_menu.activate
-        zpui.cm.switch_to_start_context()
+        if "switch_to" in zpui.config:
+            start_context = zpui.config.get("switch_to", "main")
+            zpui.cm.unsafe_switch_to_context(start_context, do_raise = False)
+        else:
+            zpui.cm.switch_to_start_context()
     else:
         if is_emulator():
             c = canvas.Canvas(o)

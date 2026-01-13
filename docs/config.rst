@@ -129,6 +129,17 @@ You can set the default ZPUI color by adding a ``ui-color`` parameter:
    device: DEVICE_NAME (for instance, emulator, beepy or blepis)
    ui_color: "#00cafe" # can also use simple color names like "green"
 
+Switching to a certain app on boot
+----------------------------------
+
+By default, ZPUI boots into its main menu, as in, the ``"main"`` context.
+You can change the target context by adding a ``switch_to`` parameter:
+
+.. code:: yaml
+
+   device: DEVICE_NAME (for instance, emulator, beepy or blepis)
+   switch_to: apps.personal.clock # you can see the context in ZPUI logs as you switch to the app from main menu
+
 Loading apps by path
 --------------------
 
