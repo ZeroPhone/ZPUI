@@ -182,7 +182,7 @@ def init():
     return i, o
 
 
-def launch(name=None, **kwargs):
+def launch(name=None, all=False, **kwargs):
     """
     Launches ZPUI, either in full mode or in
     single-app mode (if ``name`` kwarg is passed).
@@ -216,8 +216,11 @@ def launch(name=None, **kwargs):
         # append a / at the name end, which isn't acceptable
         # for load_app
         name = name.rstrip('/')
-
-        # Load only single app
+        # did the user ask to load all apps?
+        if all:
+            zpui.app_menu = zpui.app_man.load_all_apps()
+            zpui.app_man.after_load()
+        # Now, load and switch to the single app that's been summoned
         try:
             context_name, app = zpui.app_man.load_single_app_by_path(name, threaded=False)
         except:
@@ -358,6 +361,11 @@ if __name__ == '__main__':
         help='Launch ZPUI with a single app loaded (useful for testing)',
         dest='name',
         default=None)
+    parser.add_argument(
+        '--all',
+        '-A',
+        help='Launch ZPUI with a single app loaded (useful for testing)',
+        action='store_true')
     parser.add_argument(
         '--log-level',
         '-l',
