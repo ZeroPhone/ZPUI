@@ -1,17 +1,18 @@
 menu_name = "I2C tools"
 
-from subprocess import call
 from zpui_lib.ui import Menu, Printer, PrettyPrinter, DialogBox, LoadingIndicator, UniversalInput, Refresher, IntegerAdjustInput, fvitg
 from zpui_lib.helpers import setup_logger, read_or_create_config, local_path_gen, write_config, get_platform
 
 from collections import OrderedDict
+from subprocess import call
 from time import sleep
+from copy import copy
 
 import smbus
 
 local_path = local_path_gen(__name__)
 logger = setup_logger(__name__, "warning")
-default_config = '{"recent_devices":[], "scan_range":"conservative"}'
+default_config = '{"recent_devices":[], "scan_range":"conservative", "default_bus":1}'
 config_path = local_path("config.json")
 config = read_or_create_config(config_path, default_config, menu_name+" app")
 
@@ -23,11 +24,15 @@ current_bus = None
 scan_ranges = {"conservative":(0x03, 0x77),
                        "full":(0x00, 0x7f)}
 
-def scan_i2c_bus():
+def set_current_bus():
     global current_bus
+    # TODO: grab I2C bus number from ZPUI config if it has an I2C port argument
+    current_bus = smbus.SMBus(config.get("default_bus", 1)) # 1 indicates /dev/i2c-1
+
+def scan_i2c_bus():
     Printer("Scanning:", i, o, 0)
     try:
-        current_bus = smbus.SMBus(1) # 1 indicates /dev/i2c-1
+        set_current_bus()
     except PermissionError as e:
          if e.errno == 13: # permission denied
              logger.exception("Error {}, permission denied, stopping scan! {}".format(e.errno, repr(e)))
@@ -67,11 +72,33 @@ def scan_i2c_bus():
     return found_devices
 
 device_notes = {
-    "beepy":{0x1f:"RP2040", 0x22:"FUSB302", 0x2e:"TPM?", 0x48:"touchscreen?", 0x51:"RTC?"}, # need to separate it from Beepy
+    "beepy":{0x1f:"RP2040", 0x20: "LoRa v2?", 0x22:"FUSB302", 0x2e:"TPM?", 0x48:"touchscreen?", 0x51:"RTC?"}, # need to separate Blepis from Beepy
     "zpui_bc_v1_qwiic":{0x3c:"OLED", 0x3f:"keypad"},
     "zpui_bc_v1":{0x3c:"OLED", 0x3f:"keypad"},
-    "zerophone_og":{0x12:"ATMega328P"},
+    "zerophone_og":{0x12:"ATMega328P", 0x20:"MCP23017"},
 }
+
+context = None
+
+def set_context(c):
+    global context
+    context = c
+    context.set_provider("i2c_devices_get", scan_i2c_device_api)
+
+def scan_i2c_device_api():
+    devices = scan_i2c_bus()
+    if isinstance(devices, str):
+        return devices
+    if not devices: return {}
+    notes = {}
+    for device in get_platform():
+        notes_entry = device_notes.get(device, {})
+        notes.update(notes_entry)
+    for dev, state in copy(devices).items():
+        if dev in notes:
+            description = notes[dev]
+            devices[dev] = f"{state}-{description}"
+    return devices
 
 def scan_i2c_devices():
     try:
@@ -168,7 +195,7 @@ def change_settings():
     Menu(settings, i, o, "I2C tools app settings menu").activate()
 
 main_menu_contents = [
-["Scan bus (bus 1)", scan_i2c_devices],
+["Scan bus (bus {})".format(config.get("default_bus", 1)), scan_i2c_devices],
 ["Settings", change_settings]
 ]
 
