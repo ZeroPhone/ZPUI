@@ -3,5 +3,5 @@ _ordering = [
 "beepy",
 "usb",
 "i2ctools",
-"hardware_setup",
+"hardware_test",
 ]
