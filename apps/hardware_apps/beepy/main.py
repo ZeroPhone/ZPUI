@@ -106,6 +106,12 @@ class BeepyApp(ZeroApp):
     def usb_keyboard_get(self):
         return self.try_read_file(self.usb_keyboard_path)
 
+    def usb_mouse_set(self, state):
+        return self.set_file_binary(self.usb_mouse_path, state)
+
+    def usb_keyboard_set(self, state):
+        return self.set_file_binary(self.usb_keyboard_path, state)
+
     def get_battery(self):
         # not all driver versions support reading the backlight level
         return self.try_read_file(self.batt_volt_path)
@@ -149,35 +155,33 @@ class BeepyApp(ZeroApp):
         c.centered_text("\"owo whats this\"", font=("Fixedsys62.ttf", 16))
         c.centered_text("(with or without spaces)", oy=24,  font=("Fixedsys62.ttf", 16))"""
         c.centered_text("To exit keyboard/mouse mode, press", oy=-24, font=("Fixedsys62.ttf", 16))
-        c.centered_text("ALT and SHIFT", font=("Fixedsys62.ttf", 16))
+        c.centered_text("SHIFT and SYM", font=("Fixedsys62.ttf", 16))
         c.centered_text("(both together)", oy=24,  font=("Fixedsys62.ttf", 16))
         c.display()
 
     def usb_input_mode(self):
         # we're fucking with input, let's be extra careful
         try:
-            from evdev import InputDevice as HID, list_devices, ecodes
+            from evdev import InputDevice as HID, list_devices
         except ImportError:
             logger.exception("Cannot import the necessary libraries - very weird, they should be available on a Beepy target!")
             return
         init_success = False
         try:
-            #self.usb_mouse_set(True)
-            #self.usb_keyboard_set(True)
+            self.usb_mouse_set(True)
+            self.usb_keyboard_set(True)
             init_success = True
         except:
             logger.exception("Failure during USB keyboard/mouse mode init!")
         else:
             logger.info("USB keyboard&mouse mode init successful")
-        if init_success                  or "emulator" in get_platform():
+        if init_success:
             # only execute All This Code if the init has been successful
             zpui = self.context.request_zpui()
             try:
                 # we need to:
                 # output a notification on the screen
                 self.usb_input_mode_graphic()
-                sleep(2)
-                pass #TODO NOTIFICATION
                 # suspend ZPUI
                 zpui.suspend()
                 # grab the keyboard&mouse here
@@ -225,23 +229,22 @@ class BeepyApp(ZeroApp):
         except:
             if not "emulator" in get_platform():
                 logger.exception("Failure setting USB keyboard!")
-        self.o.display_data("ololo")
-        #breakpoint()
-        #from time import sleep; sleep(5)
-        return # ig it tries its best
+        return # this code tries its best
         # todo: maybe start a background thread that tries restoring correct mouse/keyboard mode until it succeeds?
         # depends on whether it gives IOError when RP2040 is not responding, ig.
-        # write and read back to confirm?
+        # write and read back to confirm? idk it'll probably work it's fiiiiiine =D
 
     def wait_for_held_keys(self, device):
         # device is now a HID device - let's loop on its keycodes until a magic sequence of keystrokes appears!
         # sure hope this code works well lol
+        from evdev import ecodes
         pressed_keys = []
         self.do_scan = True # we might want to expose this externally later or add a failsafe hook??
+        # maybe in the future we can detect USB cable unplug or such! that'd be so cool
         try:
             device.grab()
             while self.do_scan:
-                event = self.device.read_one()
+                event = device.read_one()
                 if event is not None and event.type == ecodes.EV_KEY:
                     key = ecodes.keys[event.code]
                     if event.value == 1: # pressed
@@ -257,7 +260,8 @@ class BeepyApp(ZeroApp):
                             return (False, tb)
                         else:
                             return (True,) # ungrab successful, all is good
-                sleep(0.2)
+                if event == None:
+                    sleep(0.2)
         except:
             tb = format_exc()
             try:
@@ -305,32 +309,6 @@ class BeepyApp(ZeroApp):
 
     """
     @needs_i2c_gpio_expander
-    def test_charger(self):
-        #Testing charging detection
-        PrettyPrinter("Testing charger detection", self.i, self.o, 1)
-        from zerophone_hw import Charger
-        charger = Charger()
-        eh = ExitHelper(self.i, ["KEY_LEFT", "KEY_ENTER"]).start()
-        if charger.connected():
-            PrettyPrinter("Charging, unplug charger to continue \n Enter to bypass", None, self.o, 0)
-            while charger.connected() and eh.do_run():
-                sleep(1)
-        else:
-            PrettyPrinter("Not charging, plug charger to continue \n Enter to bypass", None, self.o, 0)
-            while not charger.connected() and eh.do_run():
-                sleep(1)
-
-    @needs_i2c_gpio_expander
-    def test_rgb_led(self):
-        PrettyPrinter("Testing RGB LED", self.i, self.o, 1)
-        from zerophone_hw import RGB_LED
-        led = RGB_LED()
-        for color in ["red", "green", "blue"]:
-            led.set_color(color)
-            Printer(color.center(self.o.cols), self.i, self.o, 3)
-        led.set_color("none")
-
-    @needs_i2c_gpio_expander
     def test_usb_port(self):
         from zerophone_hw import USB_DCDC
         eh = ExitHelper(self.i, ["KEY_LEFT", "KEY_ENTER"]).start()
@@ -364,39 +342,4 @@ class BeepyApp(ZeroApp):
             #elif len(new_usb_devs) == len(orig_usb_devs):
             #    logger.warning("USB device test weirdness: len({}) == len({})".format(orig_usb_devs, new_usb_devs))
             #    Printer("Different USB device plugged?", i, o, 3)
-
-    def test_headphone_jack(self):
-        #Testing audio jack sound
-        PrettyPrinter("Testing audio jack", self.i, self.o, 1)
-        if self.br:
-            if self.br.running:
-                PrettyPrinter("Audio jack test music not yet downloaded, waiting...", None, self.o, 0)
-                eh = ExitHelper(self.i, ["KEY_LEFT", "KEY_ENTER"]).start()
-                while self.br.running and eh.do_run():
-                    sleep(0.1)
-                if eh.do_exit():
-                    return
-            elif self.br.failed:
-                PrettyPrinter("Failed to download test music!", self.i, self.o, 1)
-        disclaimer = ["Track used:" "", "Otis McDonald", "-", "Otis McMusic", "YT AudioLibrary"]
-        Printer([s.center(self.o.cols) for s in disclaimer], self.i, self.o, 3)
-        PrettyPrinter("Press C1 to restart music, C2 to continue testing", self.i, self.o)
-        import pygame
-        pygame.mixer.init()
-        pygame.mixer.music.load(music_path)
-        pygame.mixer.music.play()
-        continue_event = Event()
-        def restart():
-            pygame.mixer.music.stop()
-            pygame.mixer.init()
-            pygame.mixer.music.load(music_path)
-            pygame.mixer.music.play()
-        def stop():
-            pygame.mixer.music.stop()
-            continue_event.set()
-        self.i.clear_keymap()
-        self.i.set_callback("KEY_F1", restart)
-        self.i.set_callback("KEY_F2", stop)
-        self.i.set_callback("KEY_ENTER", stop)
-        continue_event.wait()
     """
