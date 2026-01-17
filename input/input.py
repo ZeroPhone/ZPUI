@@ -39,9 +39,10 @@ class InputProcessor(object):
     proxy_attrs = ["available_keys"]
     proxies = []
 
-    def __init__(self, init_drivers, context_manager):
+    def __init__(self, init_drivers, context_manager, on_press=True):
         self.global_keymap = {}
         self.cm = context_manager
+        self.on_press = on_press
         self.queue = Queue()
         self.available_keys = {}
         self.drivers = {}
@@ -320,8 +321,9 @@ class InputProcessor(object):
                 else:
                     callback(state)
             else:
+                callback_trigger_state = KEY_PRESSED if self.on_press else KEY_RELEASED
                 # We might also get None for a state if an input driver doesn't support states
-                if state == KEY_PRESSED or state is None:
+                if state == callback_trigger_state or state is None:
                     if pass_key:
                         callback(key)
                     else:
@@ -542,7 +544,7 @@ class InputProxy(object):
         self.keymap = {}
 
 
-def init(driver_configs, context_manager):
+def init(driver_configs, context_manager, **ip_kwargs):
     """ This function is called by main.py to read the input configuration,
     pick the corresponding drivers and initialize InputProcessor. Returns
     the InputProcessor instance created.`"""
@@ -565,7 +567,7 @@ def init(driver_configs, context_manager):
             kwargs = driver_config["kwargs"]
         driver = driver_module.InputDevice(*args, **kwargs)
         drivers.append(driver)
-    i = InputProcessor(drivers, context_manager)
+    i = InputProcessor(drivers, context_manager, **ip_kwargs)
     dm = DeviceManager(i)
     return i, dm
 

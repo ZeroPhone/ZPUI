@@ -7,6 +7,9 @@ def update_driver(device_config, user_config, device):
     # looking for input/output driver entries that modify the base driver
     update = None
     drivers = user_config[device]
+    if not drivers: # empty list, i.e. when "input" or "output" only had kwargs in them
+        # as such, nothing to do
+        return device_config
     if isinstance(drivers, str):
         # one driver and it's just a string - can't impact anything
         drivers = [drivers]

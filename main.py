@@ -122,6 +122,13 @@ def init():
     if zpui.config is None:
         sys.exit('Failed to load any config files!')
 
+    # input subsystem can receive kwargs just like the app manager. their names are hardcoded ofc
+    # for now it's just one, but now it's easy to add more :3
+    input_kwargs = {}
+    for name in ["on_press"]:
+        if name in zpui.config.get("input", {}):
+            input_kwargs[name] = zpui.config["input"][name]
+            zpui.config["input"].pop(name)
     # Get hardware manager
     zpui.input_config, zpui.output_config, zpui.device = hw_combos.get_io_configs(zpui.config)
     if zpui.device != None:
@@ -155,7 +162,7 @@ def init():
     # Initialize input
     try:
         # Now we can show errors on the display
-        zpui.input_processor, zpui.input_device_manager = input.init(zpui.input_config, zpui.cm)
+        zpui.input_processor, zpui.input_device_manager = input.init(zpui.input_config, zpui.cm, **input_kwargs)
     except:
         logging.exception('Failed to initialize the input object')
         logging.exception(traceback.format_exc())
