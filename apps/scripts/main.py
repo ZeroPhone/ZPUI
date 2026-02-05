@@ -144,9 +144,7 @@ def call_by_path():
     if args is not None:
         path = path + " " + args
     try_call_external(path, shell=True)
-    if path not in config["history"]:
-        config["history"] = [path] + config["history"]
-        save_config(config)
+    add_or_top_history(command)
 
 def call_command(command=None):
     if not command:
@@ -154,16 +152,21 @@ def call_command(command=None):
         if not command:
             return
     try_call_external(command, shell=True)
-    if command not in config["history"]:
-        config["history"] = [command] + config["history"]
-        save_config(config)
+    add_or_top_history(command)
+
+def add_or_top_history(command):
+    # adds a just-ran command into history,
+    # or brings it to the top if it's already there
+    if command in config["history"]:
+        config["history"].remove(command)
+    config["history"] = [command] + config["history"]
+    save_config(config)
 
 def exec_history_entry(num):
     call_command(config["history"][num])
     # whether the call has been successful or not, remove and reinsert the entry into the latest position
     entry = config["history"].pop(num)
-    config["history"] = [entry] + config["history"]
-    save_config(config)
+    add_or_top_history(entry)
 
 def del_history_entry(num):
     answer = DialogBox("yn", i, o, message="Delete entry?").activate()
