@@ -1,4 +1,4 @@
-from zpui_lib.ui import NumpadCharInput as CharInput, NumpadNumberInput as NumberInput
+from zpui_lib.ui import NumpadCharInput as CharInput, NumpadNumberInput as NumberInput, NumpadKeyboardInput as KeyboardInput
 from zpui_lib.helpers import setup_logger
 
 menu_name = "Char input app"
@@ -14,3 +14,5 @@ def callback():
     logger.info(repr(char_input.activate()))
     number_input = NumberInput(i, o, message="Input numbers")
     logger.info(repr(number_input.activate()))
+    keeb_input = KeyboardInput(i, o, message="Input characters")
+    logger.info(repr(keeb_input.activate()))
