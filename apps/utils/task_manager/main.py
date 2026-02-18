@@ -33,7 +33,7 @@ class TaskManager(ZeroApp):
             for name, l in context_types:
                 if l:
                     mc.append([name])
-                    for c in list(sorted(l)):
+                    for c in list(sorted(l, key=lambda c:c["menu_name"] if c["menu_name"] else c["name"])):
                         name = c["menu_name"] if c["menu_name"] else c["name"]
                         mc.append([" "+name, lambda x=c: self.task_menu(x)])
             return mc
