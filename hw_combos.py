@@ -162,6 +162,17 @@ def config_waveshare_oled_hat(config):
             io = rotate_zpui_bc(io, config)
     return io
 
+def config_waveshare_lcd_hat(config):
+    io = (
+            {"driver":"pi_gpio", "button_pins":[6, 19, 5, 26, 13, 21, 16, 20]},
+            {"driver":"st7789", "hw":"spi", "dc":25, "rst":27, "backlight_pin": 24}
+    )
+    # button rotate can be implemented sometime later when relevant
+    """if isinstance(config["device"], dict):
+        if "rotate" in config["device"]:
+            io = rotate_zpui_bc(io, config)"""
+    return io
+
 def config_beepy(config):
     # by default, the pcf driver is used as a backup, same config as the ZPUI businesscard
     # this allows using the ZPUI businesscard as a backup for the Blepis touchpad
@@ -250,6 +261,7 @@ devices = {
   "zpui_bc_v1_qwiic":config_zpui_bc_v1_qwiic,
   "zpui_bc_v1":config_zpui_bc_v1,
   "waveshare_oled_hat":config_waveshare_oled_hat,
+  "waveshare_lcd_13_hat":config_waveshare_lcd_hat,
   "beepy":config_beepy,
   "blepis":config_blepis,
   "colorberry":config_colorberry,
@@ -344,6 +356,13 @@ class TestCombination(unittest.TestCase):
         i, o, _ = get_io_configs(config)
         assert(i == {'driver': 'pcf8574', 'addr': 63, 'bus': 2})
         assert(o == {'driver': 'sh1106', 'hw': 'i2c', 'port': 2})
+
+    def test_waveshare_lcd(self):
+        """tests that zp waveshare 1.3" 240x240 lcd hat config works"""
+        config = {"device":"waveshare_lcd_13_hat"}
+        i, o, _ = get_io_configs(config)
+        assert(i == {"driver":"pi_gpio", "button_pins":[6, 19, 5, 26, 13, 21, 16, 20]})
+        assert(o == {"driver":"st7789", "hw":"spi", "dc":25, "rst":27, "backlight_pin": 24})
 
     def test_waveshare_oled(self):
         """tests that zp waveshare oled hat config works"""
