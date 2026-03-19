@@ -171,6 +171,7 @@ def config_waveshare_lcd_hat(config):
     """if isinstance(config["device"], dict):
         if "rotate" in config["device"]:
             io = rotate_zpui_bc(io, config)"""
+    set_status_bar_height(config, 30)
     return io
 
 def config_beepy(config):
