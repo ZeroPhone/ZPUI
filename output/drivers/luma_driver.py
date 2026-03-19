@@ -104,6 +104,9 @@ class LumaScreen(GraphicalOutputDevice, CharacterOutputDevice, BacklightManager)
         self.default_color = default_color
         self.init_display(**kwargs)
         self.device_mode = getattr(self.device, "mode", self.device_mode)
+        if self.device_mode.lower().startswith("rgb"):
+            if "color" not in self.type:
+                self.type.append("color")
         BacklightManager.init_backlight(self, **kwargs)
 
     @enable_backlight_wrapper
