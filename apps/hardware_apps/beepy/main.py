@@ -78,7 +78,10 @@ class BeepyApp(ZeroApp):
         if "emulator" in get_platform():
             return True # for debug purposes
         else:
-            return self.driver_found
+            if self.driver_found:
+                return True
+            else:
+                return (self.driver_found, "Beepy driver not found?")
 
     def set_file_binary(self, path, state):
         if state not in ["0", "1"]:
