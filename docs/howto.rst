@@ -368,6 +368,29 @@ won't be responsive.
           add a ``["Refresh"]`` entry, which won't have a callback but will trigger
           a refresh nevertheless.
 
+Take user input
+===============
+
+.. _howto_input_text:
+
+Text input
+----------
+
+.. code-block:: python
+
+    from zpui_lib.ui import UniversalInput
+
+    name = UniversalInput(i, o, message="Input a name:", name="Name input").activate()
+    if name is not None: # user didn't cancel the input
+        # do whatever
+
+To set an initial value for the input, do this:
+
+.. code-block:: python
+
+    initial_name = "Alex"
+    name = UniversalInput(i, o, value=initial_name, message="Input a name:", name="Name input").activate()
+
 Draw on the screen
 ==================
 
@@ -717,7 +740,7 @@ And here's a new default config, with additional ``but_now`` key that you add in
 
 .. code-block:: python
 
-    default_config = 'your: default \nconfig: to_use \nbut_now: its_updated}'
+    default_config = 'your: default \nconfig: to_use \nbut_now: its_updated'
 
 The resulting config received from ``read_or_create_config`` will look like this:
 
@@ -733,6 +756,8 @@ The new key will be added into the config file on-disk as soon as ``save_config(
 
 "Read", "save" and "restore" - in a class-based app
 ---------------------------------------------------
+
+.. _howto_config_file_class:
 
 .. code-block:: python
 
@@ -1011,6 +1036,8 @@ minor) flaw.
 
 Dynamically building lists/dictionaries with lambdas
 ----------------------------------------------------
+
+.. _howto_gotcha_lambda:
 
 If you're dynamically building contents of a menu/listbox/whatever (for example, using
 a ``for`` loop or a list/dictionary comprehension), you will likely need to use lambdas,

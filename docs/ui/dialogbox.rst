@@ -12,7 +12,7 @@ some kind of action/decision.
     from zpui_lib.ui import DialogBox
     ... 
     choice = DialogBox("ync", i, o, name="My dialogbox of my app").activate()
-    if choice: "Yes" was selected
+    if choice: # "Yes" was selected
         # do things
 
 By default, you can pass string values like "ync" (or "yn", or "yc", or "cy"), where
@@ -28,6 +28,16 @@ You can also pass custom labels/return values like this:
 
 .. currentmodule:: zpui_lib.ui
 
+Instantiating the ``DialogBox``:
+
+.. autoclass:: DialogBox
+    :members: __init__,activate,deactivate,set_start_option
+
+More info:
+
 .. autoclass:: DialogBox
     :show-inheritance:
-    :members: __init__,activate,deactivate,set_start_option
+    :inherited-members:
+    :members:
+    :member-order: groupwise
+    :noindex:

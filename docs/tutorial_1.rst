@@ -1,10 +1,11 @@
-.. _tutorial_1:
+.. _tutorial_2:
 
-App writing tutorial 1: Dice Roll
+App writing tutorial 2: Dice Roll
 #################################
 
-Do you want to improve your ZPUI app or solve your problem by copy-pasting
-a snippet in your app code? This page is for you =)
+Do you want to see a walkthrough on how to draw arbitrary things on the screen,
+not limited to elements like ``Menu`` and ``DialogBox`` and such?
+This page is for you =)
 
 .. contents::
     :local:
@@ -28,7 +29,7 @@ In the console, do this:
 
 .. code-block:: bash
 
-    git clone https://github.com/ZeroPhone/zpui-example-app/
+    git clone https://github.com/ZeroPhone/zpui-example-app/ zpui-diceroll
     cd zpui-example-app
     python3 rename.py zpui_diceroll
 
@@ -37,10 +38,7 @@ This downloads a ZPUI app template and renames it. From here, you can edit the a
 .. code-block:: bash
 
     nano pyproject.toml
-    python -m pip install --break-system-packages --editable .
-
-.. note:: Remove the ``--break-system-packages`` part if it fails - this way of install makes development significantly easier, and works around a safeguard that 
-          doesn't apply because ZPUI apps don't ship dependencies, but it might not be present in your OS
+    python install.py
 
 Now, you can launch (or restart) ZPUI to have your newly installed app load. You won't need to re-run the setup command,
 as code changes will be picked up on each ZPUI startup.
@@ -146,7 +144,7 @@ These yield us a pretty picture:
 .. image:: _static/tut1_4.png
 
 Input processing
-==============
+================
 
 So far, we've only done output, but you'd highly benefit from knowing a simple way to handle input, too. Get ``ExitHelper`` from ``zpui_lib.helpers``:
 
@@ -244,9 +242,9 @@ which we can easily achieve by rewriting our code like this:
         [... code continues with ExitHelper ...]
 
 .. note:: This animation's framerate (and the resulting delay) will depend on CPU performance, since on lower-power devices, canvas operations can be surprisingly 
-          heavy (especially once text rendering is involved). This will likely mean it will be fast on emulator, but it could get slow on Pi Zero-powered devices.
+          heavy (especially once text rendering is involved). This will likely mean it will be fast on emulator, but it could get slow on Pi Zero 1-powered devices.
           If you run into this issue and want to negate it, instead of drawing rectangles and circles anew every time, you can pre-generate & cache dice roll
-          images and then paste them onto the canvas, like the ZPUI main menu does for Beepy/Blepis resolutions.
+          images and then paste them onto the canvas, like the ``BebbleGridView`` ZPUI main menu does for Beepy/Blepis resolutions.
 
 As an aside - with very few changes (dynamically calculating instead of hardcoding circle radius), the app works on 128x64 screens, too!
 

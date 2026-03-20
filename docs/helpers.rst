@@ -134,3 +134,8 @@ Combining BackgroundRunner and Oneshot
             PrettyPrinter("Hardware initialization failed!", i, o)
             return
         ... #everything initialized, can proceed safely
+
+.. toctree::
+   :maxdepth: 2
+
+   helpers/prohelper.rst

@@ -2,10 +2,13 @@
 Applications
 ==================
 
-Applications are layer between user's goals and same goals accomplished. ZPUI applications are similar to desktop applications, each of them is mean to perform one function/set of similar functions, and perform it well.
-There can be an application for any task you want to use ZPUI for - in the worst case, you can write one ;-)
+Applications are layer between user's goals and same goals accomplished. ZPUI 
+applications are similar to desktop applications, each of them is mean to perform 
+one function/set of similar functions, and perform it well. There can be an 
+application for any task you want to use ZPUI for - in the worst case, you can 
+write one ;-)
 
-Applications bundled with the default install are:
+Some of the applications bundled with the default install are:
 
    * :ref:`apps_clock`
    * :ref:`apps_i2ctools`

@@ -9,15 +9,21 @@ Canvas
     from zpui_lib.ui import Canvas
     ...
     c = Canvas(o)
-    c.text("Hello world", (10, 20))
+    c.centered_text("Hello world", font=("Fixedsys62.ttf", 16))
     c.display()
 
 .. currentmodule:: zpui_lib.ui
 
 .. autoclass:: Canvas
-    :show-inheritance:
-    :members: point,line,text,centered_text,vertical_text,custom_shape_text,rectangle,circle,ellipse,polygon,display,clear,get_image,get_center,invert,invert_rect,width,height,size,image,background_color,default_color,get_text_bounds,get_centered_text_bounds,check_coordinates,check_coordinate_pairs,load_font
+    :members:
+    :exclude-members: default_font
 
 .. autoclass:: MockOutput
+    :members:
 
-.. autofunction:: open_image, invert_image, crop, expand_coords, replace_color, swap_colors
+.. autofunction:: open_image
+.. autofunction:: invert_image
+.. autofunction:: crop
+.. autofunction:: expand_coords
+.. autofunction:: replace_color
+.. autofunction:: swap_colors

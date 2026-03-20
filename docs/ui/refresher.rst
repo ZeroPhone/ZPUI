@@ -15,5 +15,16 @@ Refresher UI element
 
 .. currentmodule:: zpui_lib.ui
 
+Instantiating the ``Refresher``:
+
 .. autoclass:: Refresher
     :members: __init__,activate,deactivate,print_name
+
+More info:
+
+.. autoclass:: Refresher
+    :show-inheritance:
+    :inherited-members:
+    :members:
+    :member-order: groupwise
+    :noindex:

@@ -31,6 +31,17 @@ Picking a directory, i.e. to read files from or to store files in:
 
 .. currentmodule:: zpui_lib.ui
 
+Instantiating the ``PathPicker``:
+
+.. autoclass:: PathPicker
+    :members: __init__,activate,deactivate,set_path,move_to_file
+
+More info:
+
 .. autoclass:: PathPicker
     :show-inheritance:
-    :members: __init__,activate,deactivate,set_path,move_to_file
+    :inherited-members:
+    :members:
+    :member-order: groupwise
+    :noindex:
+

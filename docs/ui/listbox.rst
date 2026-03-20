@@ -21,7 +21,17 @@ Listbox UI element
 by pressing LEFT, returns ``None``.
 
 .. currentmodule:: zpui_lib.ui
- 
+
+Instantiating the ``Listbox``:
+
+.. autoclass:: Listbox
+    :members: __init__,activate,deactivate,set_contents
+
+More info:
+
 .. autoclass:: Listbox
     :show-inheritance:
-    :members: __init__,activate,deactivate,set_contents
+    :inherited-members:
+    :members:
+    :member-order: groupwise
+    :noindex:

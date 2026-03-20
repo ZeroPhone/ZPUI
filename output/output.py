@@ -111,7 +111,7 @@ class CharacterOutputDevice(OutputDevice):
     def display_data(self, *data):
         """
         A function that is called to show text on the display.
-        Each positional argument is one like of text.
+        Each positional argument is one line of text.
         """
         raise NotImplementedError
 

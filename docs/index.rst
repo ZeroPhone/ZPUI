@@ -9,13 +9,15 @@ Currently stock-supported devices:
 * Beepy, Colorberry
 * Blepis
 * ZPUI businesscard (both Pi GPIO and QWIIC)
+* WaveShare 1.3" 240x240 LCD HAT
+* WaveShare 1.3" 128x64 OLED HAT (untested but should work)
 * OG ZeroPhone
 
 Other device support is easy enough - most of the time, you'll only need to edit a config file.
 
 Minimum requirements:
 
-    * monochrome/color screen larger than 128x64. For instance, one of:
+    * monochrome/color screen, 128x64 or larger. For instance, one of:
 
         * 128x64 OLED (common)
         * 320x240 color LCD screen
@@ -39,7 +41,8 @@ Guides:
 
 * :doc:`Installing and updating ZPUI <setup>`
 * :ref:`Installing ZPUI emulator <emulator>`
-* :doc:`Developing your first app <tutorial_1>`
+* :doc:`Developing a simple app <tutorial_1>`
+* :doc:`Developing a Canvas-using app <tutorial_2>`
 * :doc:`App development how-tos <howto>`
 * :doc:`ZPUI configuration files <config>`
 * :doc:`Hacking on UI <hacking_ui>`
@@ -60,8 +63,6 @@ References:
 
 :doc:`Usability guidelines <ux>`
 
-:doc:`Development plans <plans>`
-
 :doc:`Contact us <contact>`
 
 :doc:`Working on documentation <docs_development>`
@@ -73,15 +74,19 @@ References:
 
    setup.rst
    config.rst
+   tutorial_2.rst
    tutorial_1.rst
    crash_course.rst
    howto.rst
    ui.rst
    helpers.rst
+   input.rst
+   output.rst
    keymap.rst
    hacking_ui.rst
    logging.rst
    ux.rst
+   apps.rst
    app_mgmt.rst
    docs_development.rst
    contact.rst

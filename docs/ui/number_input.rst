@@ -15,5 +15,16 @@ Numeric input UI elements
 
 .. currentmodule:: zpui_lib.ui
 
+Instantiating the ``IntegerAdjustInput``:
+
 .. autoclass:: IntegerAdjustInput
     :members: __init__,activate,deactivate,print_number,print_name
+
+More info:
+
+.. autoclass:: IntegerAdjustInput
+    :show-inheritance:
+    :inherited-members:
+    :members:
+    :member-order: groupwise
+    :noindex:
