@@ -42,10 +42,10 @@ Making and modifying UI elements
 ================================
 
 If :doc:`existing UI elements <ui>` do not cover your usecase, you can also 
-make your own UI elements! :doc:`Contact us <contact>` to find out how, 
-or just use the `code for existing UI elements`_ as guidelines if you feel confident.
+make your own UI elements! Use the `code for existing UI elements`_ as guidelines if you feel confident enough
+or :doc:`contact us <contact>` if you need help.
 
-Also, check if the UI element you want is mentioned :doc:`in ZPUI TODO <plans>` and `ZPUI GH issues`_- 
+Also, check if the UI element you want is mentioned in `ZPUI GH issues`_- 
 there might already be progress on that front, or you might find some 
 useful guidelines.
 
