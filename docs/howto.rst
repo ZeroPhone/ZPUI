@@ -87,7 +87,7 @@ Experiment with ZPUI code
 =========================
 
 You can use the sandbox app to try out ZPUI code. First, stop the system-wide ZPUI
-process if it's running (use ``sudo systemctl stop zpui``). Then, run this in the
+process if it's running (use ``sudo zpuic stop``). Then, run this in the
 install folder:
 
 .. code-block:: bash

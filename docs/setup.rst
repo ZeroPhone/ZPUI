@@ -42,7 +42,7 @@ Installation
    If you plan on modifying your ZPUI install, it's suggested you stick to a workflow like this:
 
    * Make your changes in the local copy
-   * Stop the ZPUI service (to prevent it from grabbing the input&output devices), using ``sudo systemctl stop zpui.service``.
+   * Stop the ZPUI service (to prevent it from grabbing the input&output devices), using ``sudo zpuic stop``.
    * Test your changes in the local directory, using ``sudo python main.py``
    * If your changes work, transfer them to the system-wide directory using ``sudo ./sync.sh``
 
@@ -71,17 +71,20 @@ Controlling the system-wide ZPUI copy
 
 To control the system-wide ZPUI copy, you can use the following commands:
 
-* ``sudo systemctl start zpui.service``
-* ``sudo systemctl stop zpui.service``
-* ``sudo systemctl status zpui.service``
+* ``sudo zpuic start``
+* ``sudo zpuic stop``
+* ``sudo zpuic restart``
+* ``sudo zpuic status``
+
+These commands call ``systemctl ACTION zpui`` for now, but they're shorter to type.
 
 Launching the system manually
 -----------------------------
 
 For testing configuration or development, you will want to launch the local copy of ZPUI directly 
 so that you can see the ZPUI logs in real time, and be able to stop it with a simple Ctrl^C. 
-In that case, just run ZPUI with ``sudo python main.py`` from your local (or system-wide) directory. 
-If ZPUI is already running system-wide, run ``sudo systemctl stop zpui`` to stop it.
+In that case, just run ZPUI with ``sudo python main.py`` from your local (or system-wide) directory.
+If ZPUI is already running system-wide, run ``sudo zpuic stop`` to stop it.
 
 -----------
 
