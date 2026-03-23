@@ -72,8 +72,7 @@ class Screen(GraphicalOutputDevice, CharacterOutputDevice):
         self.char_height, self.char_width = font_size
         self.disable_cursor = disable_cursor
         if self.disable_cursor:
-            with open('/sys/class/graphics/fbcon/cursor_blink', 'wb') as f:
-                f.write(b'0')
+            self.set_fbcon_cursor(True)
             atexit.register(self.atexit)
         self.multiply_x = mul_x
         self.multiply_y = mul_y
@@ -87,20 +86,31 @@ class Screen(GraphicalOutputDevice, CharacterOutputDevice):
         #getattr(self.device, "mode", self.device_mode)
         #BacklightManager.init_backlight(self, **kwargs)
 
+    def set_fbcon_cursor(self, state):
+        try:
+            with open('/sys/class/graphics/fbcon/cursor_blink', 'wb') as f:
+                f.write(b'1' if state else b'0')
+        except:
+            logger.exception(f"Failed to set fbcon cursor to {state}!")
+
     def suspend(self):
         logger.info("Suspended display {}".format(self))
         self.suspended = True
+        if self.disable_cursor:
+            self.set_fbcon_cursor(True)
 
     def unsuspend(self):
         logger.info("Unsuspended display {}; refreshing image".format(self))
         self.suspended = False
+        if self.disable_cursor:
+            self.set_fbcon_cursor(False)
         if self.current_image:
             self._display_image(self.current_image)
 
     def atexit(self):
         try:
-            with open('/sys/class/graphics/fbcon/cursor_blink', 'wb') as f:
-                f.write(b'1')
+            if self.disable_cursor:
+                self.set_fbcon_cursor(True)
         except:
             logger.exception("Failed to make the cursor blinky again!")
 
