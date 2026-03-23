@@ -20,6 +20,10 @@ def get_default_font(width=None, height=None):
     if width <= 128:
         font = gdf()
         font_size = (8, 6)
+    elif width <=240:
+        font_size = (16, 8)
+        path = os.path.join(fonts_dir, "Fixedsys62.ttf")
+        font = ImageFont.truetype(path, 24)
     else:
         font_size = (24, 12)
         path = os.path.join(fonts_dir, "Fixedsys62.ttf")
@@ -29,7 +33,7 @@ def get_default_font(width=None, height=None):
 
 def lines_to_image(d, args, font, cheight, cwidth, color, cpos, cposition):
     # unified interface teehee
-    print("lti", repr(args), font, cheight, cwidth, color, cpos, cposition)
+    #print("lti", repr(args), font, cheight, cwidth, color, cpos, cposition)
     if cposition:
         dims = (cpos[0] - 1 + 2,
                 cpos[1] - 1,
