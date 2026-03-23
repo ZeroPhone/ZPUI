@@ -17,8 +17,12 @@ class TaskManager(ZeroApp):
               [["Context name:", name]],
               [["State:", context_desc["state"]]],
               [["Previous context:", str(context_desc["previous_context"])]],
-              [["Switch to", "context"], lambda: self.context.request_switch(name)]]
+              [["Switch to", "context"], lambda: self.request_switch(name)]]
         Menu(mc, self.i, self.o, entry_height=2, name="Task manager {} context menu".format(name)).activate()
+
+    def request_switch(self, name):
+        self.context.request_switch(name)
+        #self.context.reset_previous_context()
 
     def on_start(self):
         def get_task_menu_c():

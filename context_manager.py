@@ -199,6 +199,13 @@ class Context(object):
         """
         return self.event_cb(self.name, "request_context_start", context_alias)
 
+    def reset_previous_context(self):
+        """
+        Asks ContextManager to set the previous context to a background context.
+        Useful for an app that wants to ensure its previous context will be 'main'.
+        """
+        return self.event_cb(self.name, "reset_previous_context")
+
     def is_active(self):
         """
         Tells whether this context is the one active.
@@ -630,6 +637,8 @@ class ContextManager(object):
             new_context = args[0]
             logger.info("Context switch to {} requested by {} app".format(new_context, context_alias))
             return self.switch_to_context(new_context, start_thread=kwargs.get("start_thread", True))
+        elif event == "reset_previous_context":
+            self.previous_contexts[context_alias] = self.start_context
         elif event == "request_context_start":
             context_alias = args[0]
             return self.contexts[context_alias].activate()
