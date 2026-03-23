@@ -275,25 +275,33 @@ def dump_threads(*args):
     for i, th in enumerate(threading.enumerate()):
         logging.critical("{} - {}".format(i, th))
     for th in threading.enumerate():
-        logging.critical(th)
-        log = traceback.format_stack(sys._current_frames()[th.ident])
-        for frame in log:
-            logging.critical(frame)
+        try:
+            logging.critical(th)
+            log = traceback.format_stack(sys._current_frames()[th.ident])
+            for frame in log:
+                logging.critical(frame)
+        except:
+            logging.critical("Exception while dumping threads!")
+            logging.critical(traceback.format_exc())
 
+zpui.rconsole_running = False
 
 def spawn_rconsole(*args):
     """
     USR2-activated debug console
     """
+    global rconsole_running
     try:
         from rfoo.utils import rconsole
     except ImportError:
         logging.exception("can't import rconsole - python-rfoo not installed? Install and try again?")
         return False
+    zpui.rconsole_running = True
     try:
         rconsole.spawn_server(port=rconsole_port)
     except:
         logging.exception("Can't spawn rconsole!")
+    zpui.rconsole_running = False
 
 
 # log coloring code from https://stackoverflow.com/questions/384076/how-can-i-color-python-logging-output
