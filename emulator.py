@@ -23,7 +23,7 @@ import pygame
 from luma.core.render import canvas
 
 from zpui_lib.helpers import setup_logger, KEY_PRESSED, KEY_RELEASED, KEY_HELD
-from output.output import GraphicalOutputDevice, CharacterOutputDevice
+from output.output import GraphicalOutputDevice, CharacterOutputDevice, get_default_font, lines_to_image
 
 logger = setup_logger(__name__, "warning")
 
@@ -32,29 +32,32 @@ logger = setup_logger(__name__, "warning")
 __EMULATOR_PROXY = None
 
 def get_emulator(width=128, height=64, mode="1", scale=2):
+    font, font_size = get_default_font(width, height)
     global __EMULATOR_PROXY
     if __EMULATOR_PROXY is None:
-        __EMULATOR_PROXY = EmulatorProxy(width=width, height=height, mode=mode, scale=scale)
+        __EMULATOR_PROXY = EmulatorProxy(width=width, height=height, mode=mode, scale=scale, font_size=font_size)
     return __EMULATOR_PROXY
 
 
 class EmulatorProxy(object):
 
     device_mode = "1"
-    char_width = 6
-    char_height = 8
+    #char_width = 6
+    #char_height = 8
     type = ["char", "b&w"]
 
-    def __init__(self, mode="1", width=128, height=64, default_color="white", scale=2):
+    def __init__(self, mode="1", width=128, height=64, default_color="white", scale=2, font_size=(8, 6)):
         self.width = width
         self.height = height
         self.mode = mode
         self.scale = scale
+        self.char_height, self.char_width = font_size
         self.default_color = default_color
+        self.default_font = get_default_font()[0]
         if self.mode.startswith("RGB"):
             self.type.append("color")
         self.device_mode = mode
-        self.device = type("MockDevice", (), {"mode":self.mode, "size":(self.width, self.height), "scale":self.scale})
+        self.device = type("MockDevice", (), {"mode":self.mode, "size":(self.width, self.height), "scale":self.scale, "font_size":font_size})
         self.parent_conn, self.child_conn = Pipe()
         self.child_queue = MQueue()
         self.o_lock = MLock()
@@ -65,7 +68,7 @@ class EmulatorProxy(object):
         self.start_process()
 
     def start_process(self):
-        self.proc = Process(target=Emulator, args=(self.child_conn, self.child_queue, self.o_lock), kwargs={"mode":self.mode, "width":self.width, "height":self.height, "scale":self.scale})
+        self.proc = Process(target=Emulator, args=(self.child_conn, self.child_queue, self.o_lock), kwargs={"mode":self.mode, "width":self.width, "height":self.height, "scale":self.scale, "default_font":self.default_font, "font_size":(self.char_height, self.char_width)})
         self.proc.start()
 
     def poll_input(self, timeout=1):
@@ -84,19 +87,13 @@ class EmulatorProxy(object):
         if not cursor_position:
             cursor_position = None
         args = args[:self.rows]
+        color = self.default_color
+
+        font, font_size = get_default_font() if not self.default_font else self.default_font, (self.char_height, self.char_width)
         draw = canvas(self.device)
         d = draw.__enter__()
-        if cursor_position:
-            dims = (
-                    cursor_position[1]*self.char_width - 1 + 2,
-                    cursor_position[0]*self.char_height - 1,
-                    cursor_position[1]*self.char_width + self.char_width + 2,
-                    cursor_position[0]*self.char_height + self.char_height + 1
-                    )
-            d.rectangle(dims, outline=self.default_color)
-        for line, arg in enumerate(args):
-            y = (line * self.char_height - 1) if line != 0 else 0
-            d.text((2, y), arg, fill=self.default_color)
+        lines_to_image(d, args, font, self.char_height, self.char_width, self.default_color, \
+                       cursor_position, cursor_position)
         return draw.image
 
     def quit(self):
@@ -144,7 +141,7 @@ class Emulator(object):
     for any future visitors:
     this runs in a whole different process
     """
-    def __init__(self, child_conn, child_queue, o_lock, mode="1", width=128, height=64, default_color="white", scale=2):
+    def __init__(self, child_conn, child_queue, o_lock, mode="1", width=128, height=64, default_color="white", default_font=None, scale=2, font_size=None):
         self.child_conn = child_conn
         self.child_queue = child_queue
         self.o_lock = o_lock
@@ -152,10 +149,14 @@ class Emulator(object):
         self.width = width
         self.height = height
         self.default_color = default_color
+        self.default_font = default_font # if default_font else get_default_font()
         self.scale = scale
 
-        self.char_width = 6
-        self.char_height = 8
+        if font_size:
+            self.char_height, self.char_width = font_size
+        else:
+            self.char_width = 6
+            self.char_height = 8
 
         self.cols = self.width // self.char_width
         self.rows = self.height // self.char_height
@@ -265,6 +266,11 @@ class Emulator(object):
     def _display_image(self, image):
         self.device.display(image)
 
+    def set_font(self, font, charwidth, charheight):
+        font = self.default_font
+        self.char_height = charheight
+        self.char_width = charwidth
+
     def display_data_onto_image(self, *args, **kwargs):
         """
         This method takes lines of text and draws them onto an image,
@@ -274,17 +280,16 @@ class Emulator(object):
         if not cursor_position:
             cursor_position = self.cursor_pos if self.cursor_enabled else None
         args = args[:self.rows]
+        char_height = self.char_height
+        char_width = self.char_width
+        cursor_pos = self.cursor_pos
+        font, font_size = get_default_font() if not self.default_font else self.default_font, (char_height, char_width)
+        #font = get_default_font() if not self.default_font else self.default_font
+        color = self.default_color
         draw = canvas(self.device)
         d = draw.__enter__()
-        if cursor_position:
-            dims = (self.cursor_pos[0] - 1 + 2,
-                    self.cursor_pos[1] - 1,
-                    self.cursor_pos[0] + self.char_width + 2,
-                    self.cursor_pos[1] + self.char_height + 1)
-            d.rectangle(dims, outline=self.default_color)
-        for line, arg in enumerate(args):
-            y = (line * self.char_height - 1) if line != 0 else 0
-            d.text((2, y), arg, fill=self.default_color)
+        lines_to_image(d, args, font, char_height, char_width, color, \
+                       cursor_pos, cursor_position)
         return draw.image
 
     def set_color(self, color):

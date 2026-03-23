@@ -1,9 +1,44 @@
 from functools import wraps
 from copy import deepcopy
 import importlib
+import os
 
+from PIL import ImageFont
+
+from zpui_lib.ui.canvas import get_default_font as gdf, fonts_dir
 from zpui_lib.helpers import setup_logger
+
 logger = setup_logger(__name__)
+
+current_font = None
+current_font_size = None
+
+def get_default_font(width=None, height=None):
+    global current_font, current_font_size
+    if current_font:
+        return current_font, current_font_size
+    if width <= 128:
+        font = gdf()
+        font_size = (8, 6)
+    else:
+        font_size = (24, 12)
+        path = os.path.join(fonts_dir, "Fixedsys62.ttf")
+        font = ImageFont.truetype(path, 24)
+    current_font = font; current_font_size = font_size
+    return font, font_size
+
+def lines_to_image(d, args, font, cheight, cwidth, color, cpos, cposition):
+    # unified interface teehee
+    print("lti", repr(args), font, cheight, cwidth, color, cpos, cposition)
+    if cposition:
+        dims = (cpos[0] - 1 + 2,
+                cpos[1] - 1,
+                cpos[0] + cwidth + 2,
+                cpos[1] + cheight + 1)
+        d.rectangle(dims, outline=color)
+    for i, line in enumerate(args):
+        y = (i * cheight - 1) if i != 0 else 0
+        d.text((2, y), line, fill=color, font=font)
 
 # These base classes document functions that
 # different output devices are expected to have.

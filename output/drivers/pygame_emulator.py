@@ -26,12 +26,12 @@ class Screen(OutputDevice):
 
     def __init__(self, **kwargs):
         """ Sets variables for high-level functions."""
-        self.char_width = 6
-        self.char_height = 8
 
         self.init_display(**kwargs)
-        self.cols = kwargs.get("width", 128) // self.char_width
-        self.rows = kwargs.get("height", 64) // self.char_height
+        self.char_width = self.emulator.char_width
+        self.char_height = self.emulator.char_height
+        self.cols = self.emulator.width // self.char_width
+        self.rows = self.emulator.height // self.char_height
 
     def init_display(self, **kwargs):
         """

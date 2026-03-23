@@ -15,9 +15,9 @@ from zpui_lib.helpers import setup_logger
 logger = setup_logger(__name__, "info")
 
 try:
-    from ..output import GraphicalOutputDevice, CharacterOutputDevice
+    from ..output import GraphicalOutputDevice, CharacterOutputDevice, get_default_font, lines_to_image
 except ModuleNotFoundError:
-    from output import GraphicalOutputDevice, CharacterOutputDevice
+    from output import GraphicalOutputDevice, CharacterOutputDevice, get_default_font, lines_to_image
 
 from output.drivers.framebuffer_lib import Framebuffer
 
@@ -37,8 +37,6 @@ class Screen(GraphicalOutputDevice, CharacterOutputDevice):
     cursor_enabled = False
     cursor_pos = (0, 0) #x, y
     device_mode = None
-    char_width = 6
-    char_height = 8
 
     real = True
     suspended = False
@@ -70,6 +68,8 @@ class Screen(GraphicalOutputDevice, CharacterOutputDevice):
         else:
             self.device_mode = '1'
         self.default_color = default_color
+        self.default_font, font_size = get_default_font(self.width, self.height)
+        self.char_height, self.char_width = font_size
         self.disable_cursor = disable_cursor
         if self.disable_cursor:
             with open('/sys/class/graphics/fbcon/cursor_blink', 'wb') as f:
@@ -157,13 +157,10 @@ class Screen(GraphicalOutputDevice, CharacterOutputDevice):
         args = args[:self.rows]
         draw = canvas(self.device)
         d = draw.__enter__()
-        if cursor_position:
-            dims = (self.cursor_pos[0] - 1 + 2, self.cursor_pos[1] - 1, self.cursor_pos[0] + self.char_width + 2,
-                    self.cursor_pos[1] + self.char_height + 1)
-            d.rectangle(dims, outline=self.default_color)
-        for line, arg in enumerate(args):
-            y = (line * self.char_height - 1) if line != 0 else 0
-            d.text((2, y), arg, font=self.default_font, fill=self.default_color)
+        font, font_size = get_default_font() if getattr(self, "default_font", None) else (self.default_font, (self.char_height, self.char_width))
+        char_height, char_width = font_size
+        lines_to_image(d, args, font, char_height, char_width, self.default_color, \
+                       self.cursor_pos, cursor_position)
         return draw.image
 
     #@activate_backlight_wrapper

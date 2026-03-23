@@ -17,7 +17,6 @@ def get_pygame_emulator_device(width=128, height=64):
     Width and height must match the size of the splash screen
     or an execption will be thrown during initializion.
     """
-
     #these are the bare minimum attributes needed to construct the emulator
     emulator_attributes = {}
     emulator_attributes['display'] = 'pygame'
