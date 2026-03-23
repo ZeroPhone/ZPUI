@@ -7,6 +7,8 @@ from copy import deepcopy
 from threading import Event
 from mock import patch, Mock
 
+from PIL.Image import Image as PIL_Image
+
 try:
     import main as main_py
     from input.drivers import test_input, pi_gpio, pi_gpio_matrix
@@ -60,6 +62,10 @@ class TestDrivers(unittest.TestCase):
     """Tests various drivers. Mostly tests various config permutations, as well as
     base drivers like ``luma_driver.py``, `input.init()` and `output.init()`."""
 
+    ################
+    # Output drivers
+    ################
+
     def test_sh1106(self):
         output_config = {"driver":"sh1106", "kwargs":{"hw":"dummy"}}
         config = deepcopy(base_config)
@@ -75,6 +81,18 @@ class TestDrivers(unittest.TestCase):
 
     def test_ssd1306(self):
         output_config = {"driver":"ssd1306", "kwargs":{"hw":"dummy"}}
+        config = deepcopy(base_config)
+        config["output"][0] = output_config
+        assert(config["input"][0]["driver"] == "test_input")
+        main_py.zpui = main_py.ZPUI()
+        main_py.zpui.config = config
+        i, o = main_py.init()
+        assert(isinstance(i, main_py.input.InputProxy))
+        assert(isinstance(o, main_py.output.OutputProxy))
+        assert output_config["driver"] in main_py.zpui.screen.__module__
+
+    def test_st7789(self):
+        output_config = {"driver":"st7789", "kwargs":{"hw":"dummy"}}
         config = deepcopy(base_config)
         config["output"][0] = output_config
         assert(config["input"][0]["driver"] == "test_input")
@@ -135,6 +153,34 @@ class TestDrivers(unittest.TestCase):
         assert(isinstance(o, main_py.output.OutputProxy))
         assert output_config["driver"] in main_py.zpui.screen.__module__
 
+    def test_sh1106_can_display_data(self):
+        output_config = {"driver":"sh1106", "kwargs":{"hw":"dummy"}}
+        config = deepcopy(base_config)
+        config["output"][0] = output_config
+        assert(config["input"][0]["driver"] == "test_input")
+        # resetting main_py and mocking the config
+        main_py.zpui = main_py.ZPUI()
+        main_py.zpui.config = config
+        i, o = main_py.init()
+        image = main_py.zpui.screen.display_data_onto_image("Test1", "Test2")
+        assert(isinstance(image, PIL_Image))
+
+    def test_ili9341_can_display_data(self):
+        output_config = {"driver":"ili9341", "kwargs":{"hw":"dummy"}}
+        config = deepcopy(base_config)
+        config["output"][0] = output_config
+        assert(config["input"][0]["driver"] == "test_input")
+        # resetting main_py and mocking the config
+        main_py.zpui = main_py.ZPUI()
+        main_py.zpui.config = config
+        i, o = main_py.init()
+        image = main_py.zpui.screen.display_data_onto_image("Test1", "Test2")
+        assert(isinstance(image, PIL_Image))
+
+    #####################
+    # Codependent drivers
+    #####################
+
     #@unittest.skip("broken test, can't properly patch the imports =(")
     def test_pygame_driver(self):
         input_config = {"driver":"pygame_input"}
@@ -162,6 +208,10 @@ class TestDrivers(unittest.TestCase):
         #print([(key, sys.modules[key]) for key in sys.modules.keys() if key.startswith('luma.emulator')])
         # so that no ugly exception is raised when the test finishes
         main_py.zpui.input_processor.atexit()
+
+    ###############
+    # Input drivers
+    ###############
 
     def test_hid_driver(self):
         input_config = {"driver":"hid", "kwargs":{"name":"test"}}
