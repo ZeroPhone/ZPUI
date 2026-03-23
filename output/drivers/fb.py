@@ -72,7 +72,7 @@ class Screen(GraphicalOutputDevice, CharacterOutputDevice):
         self.char_height, self.char_width = font_size
         self.disable_cursor = disable_cursor
         if self.disable_cursor:
-            self.set_fbcon_cursor(True)
+            self.set_fbcon_cursor(False)
             atexit.register(self.atexit)
         self.multiply_x = mul_x
         self.multiply_y = mul_y
