@@ -20,3 +20,4 @@ wpasupplicantconf==0.1.0
 zpui_lib>=1.4.3
 pyyaml
 qrcode[pil]
+zpui_cli>=0.1.1
