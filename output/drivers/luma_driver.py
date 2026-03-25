@@ -30,6 +30,7 @@ class LumaScreen(GraphicalOutputDevice, CharacterOutputDevice, BacklightManager)
     #buffer = " "
     #redraw_coefficient = 0.5
     current_image = None
+    clear_image = None
 
     default_font = None
 
@@ -107,6 +108,11 @@ class LumaScreen(GraphicalOutputDevice, CharacterOutputDevice, BacklightManager)
         if self.device_mode.lower().startswith("rgb"):
             if "color" not in self.type:
                 self.type.append("color")
+        self.clear_on_bl_off = kwargs.get("clear_on_bl_off", True) # anti-ghosting feature
+        if self.clear_on_bl_off:
+            draw = canvas(self.device)
+            self.clear_image = draw.image # empty=black by default
+            del draw
         BacklightManager.init_backlight(self, **kwargs)
 
     @enable_backlight_wrapper

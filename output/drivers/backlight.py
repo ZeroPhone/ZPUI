@@ -77,6 +77,8 @@ class BacklightManager(object):
     def disable_backlight(self):
         if self._backlight_pin:
             self._bl_gpio.output(self._backlight_pin, not self._backlight_active_level)
+        if getattr(self, "clear_image", None):
+            self._display_image(self.clear_image)
 
     def start_backlight_thread(self):
         self._bl_thread = Thread(target=self.backlight_manager, name="Screen backlight manager thread")
