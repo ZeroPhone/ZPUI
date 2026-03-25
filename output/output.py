@@ -23,11 +23,11 @@ def get_default_font(width=None, height=None):
     elif width <=240:
         font_size = (16, 8)
         path = os.path.join(fonts_dir, "Fixedsys62.ttf")
-        font = ImageFont.truetype(path, 24)
+        font = ImageFont.truetype(path, font_size[0])
     else:
         font_size = (24, 12)
         path = os.path.join(fonts_dir, "Fixedsys62.ttf")
-        font = ImageFont.truetype(path, 24)
+        font = ImageFont.truetype(path, font_size[0])
     current_font = font; current_font_size = font_size
     return font, font_size
 
