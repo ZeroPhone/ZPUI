@@ -29,6 +29,11 @@ def enable_backlight_wrapper(func):
     def wrapper(display, *args, **kwargs):
         if display._backlight_enabled == False:
             display._backlight_enabled = True
+            try:
+                if getattr(display, "clear_image", None) and getattr(display, "current_image", None):
+                    display._display_image(display.current_image)
+            except:
+                logger.exception("Couldn't bring the current image back after backlight enable!")
             return func(display, *args, **kwargs)
         return None
     return wrapper
@@ -37,6 +42,11 @@ def disable_backlight_wrapper(func):
     def wrapper(display, *args, **kwargs):
         if display._backlight_enabled == True:
             display._backlight_enabled = False
+            try:
+                if getattr(display, "clear_image", None):
+                    display._display_image(display.clear_image)
+            except:
+                logger.exception("Couldn't clear the image before backlight disable!")
             return func(display, *args, **kwargs)
         return None
     return wrapper
@@ -77,8 +87,6 @@ class BacklightManager(object):
     def disable_backlight(self):
         if self._backlight_pin:
             self._bl_gpio.output(self._backlight_pin, not self._backlight_active_level)
-        if getattr(self, "clear_image", None):
-            self._display_image(self.clear_image)
 
     def start_backlight_thread(self):
         self._bl_thread = Thread(target=self.backlight_manager, name="Screen backlight manager thread")
