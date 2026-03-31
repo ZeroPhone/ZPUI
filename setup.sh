@@ -11,7 +11,7 @@ then
 fi
 
 [ -f config.yaml ] || cp default_config.yaml config.yaml
-apt-get install python3 python3-pip python3-smbus python3-dev python3-pygame libjpeg-dev python3-serial nmap python3-gi
+apt-get install python3 python3-pip python3-smbus python3-dev python3-pygame libjpeg-dev python3-serial nmap python3-gi rsync
 pip3 install --break-system-packages -r requirements.txt
 mkdir -p ${INSTALL_DIR}
 cp ./. ${INSTALL_DIR} -R
