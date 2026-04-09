@@ -2,3 +2,4 @@ numpy
 smbus
 pygame
 pytest-cov
+psutil
