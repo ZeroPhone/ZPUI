@@ -17,6 +17,8 @@ fi
 mkdir -p "${INSTALL_DIR}"
 
 # syncing config files before sync, so that they don't get overwritten!
+# except the main file:
+cp config.yaml "${INSTALL_DIR}"/
 rsync -av --include="*/" --include="*.yaml" --include "*.json" --exclude="*" "${INSTALL_DIR}"/ .
 
 rsync -av --delete ./ --exclude='*.pyc' "${INSTALL_DIR}"
@@ -26,5 +28,5 @@ systemctl restart zpui.service
 echo "WARNING"
 echo "If you have updated the system-wide ZPUI copy using Settings=>Update ZPUI,"
 echo "it will no longer have those changes. No worries, though,"
-echo "run `git pull` now and then run `./sync.sh` again."
+echo "run \"git pull\" now and then run \"./sync.sh\" again."
 exit 0
