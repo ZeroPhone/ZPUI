@@ -81,7 +81,7 @@ class LumaScreen(GraphicalOutputDevice, CharacterOutputDevice, BacklightManager)
                 #Compatibility with older luma.oled versions
                 self.serial = spi(port=self.port, device=self.address, bcm_DC=self.gpio_dc, bcm_RST=self.gpio_rst)
         elif hw == "i2c":
-            self.port = port if port else self.default_i2c_port
+            self.port = port if port != None else self.default_i2c_port
             if isinstance(address, basestring): address = int(address, 16)
             self.address = address if address else self.default_i2c_address
             kw = {}
