@@ -17,6 +17,8 @@ Installation
 
 .. code-block:: bash
 
+    # git might already be installed! if so, skip this line
+    sudo apt update && sudo apt install git
     git clone https://github.com/ZeroPhone/ZPUI
     cd ZPUI/
     # Install main dependencies (apt and pip packages), configure systemd, and create a system-wide ZPUI copy
