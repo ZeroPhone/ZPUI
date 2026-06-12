@@ -31,8 +31,11 @@ class BeepyApp(ZeroApp):
     usb_mouse_path = "usb_mouse"
     usb_keyboard_path = "usb_keyboard"
     mux_fusb_path = "mux_fusb"
+    mux_usb_path = "mux_usb"
     charger_enable_path = "charger_enabled"
+    charger_power_path = "charger_power"
     backlight_path = "keyboard_backlight"
+    vibromotor_path = "vibromotor"
 
     """
     root@bepis:~# ls /sys/firmware/beepy/
@@ -44,6 +47,11 @@ class BeepyApp(ZeroApp):
 
     def init_app(self):
         self.driver_found = self.try_detect_driver()
+        # dynamic menu name
+        if "snowdive" in get_platform():
+            self.menu_name = "Snowdive control"
+        elif "blepis" in get_platform():
+            self.menu_name = "Blepis control"
 
     def set_context(self, c):
         self.context = c
@@ -53,24 +61,27 @@ class BeepyApp(ZeroApp):
             c = f.read()
         return c.rstrip()
 
-    def try_read_file(self, file):
+    def try_read_file(self, file, quiet=False):
         try:
             return self.read_file(file)
         except:
             if "emulator" in get_platform():
                 logger.debug("Error when reading file {}".format(file))
                 return None # no error message needed
-            logger.exception("Error when reading file {}".format(file))
+            if not quiet:
+                logger.exception("Error when reading file {}".format(file))
+            else:
+                logger.debug("Error when reading file {}".format(file))
             return None
 
     def try_detect_driver(self):
         try:
-            self.read_file(self.batt_volt_path)
+            self.try_read_file(self.batt_volt_path, quiet=False)
         except:
             if "emulator" in get_platform():
                 logger.info("Beepy driver not found but emulator detected, loading the app anyway")
             else:
-                logger.exception("Beepy driver is not loaded?")
+                logger.info("Beepy driver is not loaded?")
             return False
         return True
 
@@ -96,12 +107,37 @@ class BeepyApp(ZeroApp):
         backlight_level =  number_input.activate()
         if backlight_level != None:
             logger.info("Setting backlight level to {}".format(backlight_level))
-            with open(os.path.join(self.fw_dir, "keyboard_backlight"), "w") as f:
+            with open(os.path.join(self.fw_dir, self.backlight_path), "w") as f:
                 f.write(str(backlight_level))
 
     def backlight_get(self):
         # not all driver versions support reading the backlight level
         return self.try_read_file(self.backlight_path)
+
+    def vibromotor_set(self):
+        class VibromotorControl(IntegerAdjustInput):
+            # dynamically writing the vibromotor value as it's adjusted. hooking refresh() because idk what else to hook lol
+            def refresh(self, *args, **kwargs):
+                vibromotor_level = self.number
+                try:
+                    with open(os.path.join(self.fw_dir, self.vibromotor_path), "w") as f:
+                        f.write(str(vibromotor_level))
+                except:
+                    logger.exception("Failed to dynamically adjust vibromotor to {} from within UI element!".format(vibromotor_level))
+                IntegerAdjustInput.refresh(self, *args, **kwargs)
+
+        current_vibromotor_level = int(self.vibromotor_get())
+        number_input = IntegerAdjustInput(current_vibromotor_level, self.i, self.o, interval=10, max=255, min=0)
+        vibromotor_level =  number_input.activate()
+        if vibromotor_level == None:
+            # exited UI element, let's reset vibromotor level to what it was before
+            vibromotor_level = current_vibromotor_level
+        logger.info("Setting vibromotor level to {}".format(vibromotor_level))
+        with open(os.path.join(self.fw_dir, self.vibromotor_path), "w") as f:
+            f.write(str(vibromotor_level))
+
+    def vibromotor_get(self):
+        return self.try_read_file(self.vibromotor_path)
 
     def usb_mouse_get(self):
         return self.try_read_file(self.usb_mouse_path)
@@ -134,6 +170,21 @@ class BeepyApp(ZeroApp):
         logger.info("Setting FUSB mux state to {}".format(str(int(state))))
         self.set_file_binary(self.mux_fusb_path, state)
 
+    def mux_usb_get(self):
+        state = self.try_read_file(self.mux_usb_path)
+        if state == None: return None
+        return bool(int(state)) # convert "1"/"0" to True/False
+
+    def mux_usb_toggle(self):
+        state = self.mux_usb_get()
+        new_state = not state
+        logger.info("Setting USB mux state from {} to {}".format(str(int(state)), str(int(new_state))))
+        self.set_file_binary(self.mux_usb_path, new_state)
+
+    def mux_usb_set(self, state):
+        logger.info("Setting USB mux state to {}".format(str(int(state))))
+        self.set_file_binary(self.mux_usb_path, state)
+
     def charger_enable_get(self):
         state = self.try_read_file(self.charger_enable_path)
         if state == None: return None
@@ -142,12 +193,27 @@ class BeepyApp(ZeroApp):
     def charger_enable_toggle(self):
         state = self.charger_enable_get()
         new_state = not state
-        logger.info("Setting FUSB mux state from {} to {}".format(str(int(state)), str(int(new_state))))
+        logger.info("Setting charger enable state from {} to {}".format(str(int(state)), str(int(new_state))))
         self.set_file_binary(self.charger_enable_path, new_state)
 
     def charger_enable_set(self, state):
-        logger.info("Setting FUSB mux state to {}".format(str(int(state))))
+        logger.info("Setting charger enable state to {}".format(str(int(state))))
         self.set_file_binary(self.charger_enable_path, state)
+
+    def charger_power_get(self):
+        state = self.try_read_file(self.charger_power_path)
+        if state == None: return None
+        return bool(int(state)) # convert "1"/"0" to True/False
+
+    def charger_power_toggle(self):
+        state = self.charger_power_get()
+        new_state = not state
+        logger.info("Setting charger power state from {} to {}".format(str(int(state)), str(int(new_state))))
+        self.set_file_binary(self.charger_power_path, new_state)
+
+    def charger_power_set(self, state):
+        logger.info("Setting charger power state to {}".format(str(int(state))))
+        self.set_file_binary(self.charger_power_path, state)
 
     def usb_input_mode_graphic(self):
         c = Canvas(self.o)
@@ -163,7 +229,8 @@ class BeepyApp(ZeroApp):
         c.display()
 
     def usb_input_mode(self):
-        # we're fucking with input, let's be extra careful
+        # we're fucking with the only input device, let's be extra careful
+        # TODO: switch USB mux to match!
         try:
             from evdev import InputDevice as HID, list_devices
         except ImportError:
@@ -293,6 +360,8 @@ class BeepyApp(ZeroApp):
             usb_keyboard = self.usb_keyboard_get() != None # (True if not None, since None means an exception has occured)
             mux_fusb = self.mux_fusb_get()
             charger_enabled = self.charger_enable_get()
+            charger_power = self.charger_power_get()
+            vibromotor_value = self.vibromotor_get()
             mc = [
                   [backlight_str, self.backlight_set],
                   [battery_str],
@@ -301,10 +370,21 @@ class BeepyApp(ZeroApp):
                 mc.append(["USB input mode", self.usb_input_mode])
             if charger_enabled != None:
                 state = "on" if charger_enabled == True else "off"
-                mc.append(["Charging: {}".format(state), self.charger_enable_toggle])
+                mc.append(["Charging: {}".format(state, power_str), self.charger_enable_toggle])
+            if charger_power != None:
+                state = "high" if charger_power == True else "low"
+                mc.append(["Charger power: {}".format(state), self.charger_power_toggle])
             if mux_fusb != None:
                 state = "Pi Zero" if mux_fusb == True else "RP2040"
                 mc.append(["FUSB302 mux: {}".format(state), self.mux_fusb_toggle])
+            if mux_usb != None: # snowdive: choice between passthru and hub
+                if "snowdive" in get_platform():
+                    state = "passthru" if mux_usb == True else "hub"
+                else: # other option is blepis, choice between RP2040 interface and USB host mode
+                    state = "RP2040" if mux_usb == True else "host"
+                mc.append(["USB mux: {}".format(state), self.mux_usb_toggle])
+            if vibromotor_value != None:
+                mc.append(["Vibromotor: {}".format(vibromotor_value), self.vibromotor_set])
             return mc
         if not hasattr(self, "m"):
             self.m = Menu([], self.i, self.o, contents_hook=ch, name="Beepy control app main menu")
