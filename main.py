@@ -122,8 +122,11 @@ def init():
 
     # references for later inspection during runtime
     zpui.loaded_config = deepcopy(zpui.config)
-    with open(zpui.config_path) as f:
-        zpui.raw_config = f.read()
+    if zpui.config_path != "pre-supplied":
+        with open(zpui.config_path) as f:
+            zpui.raw_config = f.read()
+    else:
+        zpui.raw_config = str(zpui.loaded_config)
 
     if zpui.config is None:
         sys.exit('Failed to load any config files!')
