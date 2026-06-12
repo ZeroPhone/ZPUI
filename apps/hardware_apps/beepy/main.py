@@ -117,17 +117,17 @@ class BeepyApp(ZeroApp):
     def vibromotor_set(self):
         class VibromotorControl(IntegerAdjustInput):
             # dynamically writing the vibromotor value as it's adjusted. hooking refresh() because idk what else to hook lol
-            def refresh(self, *args, **kwargs):
-                vibromotor_level = self.number
+            def refresh(vcself, *args, **kwargs):
+                vibromotor_level = vcself.number
                 try:
                     with open(os.path.join(self.fw_dir, self.vibromotor_path), "w") as f:
                         f.write(str(vibromotor_level))
                 except:
                     logger.exception("Failed to dynamically adjust vibromotor to {} from within UI element!".format(vibromotor_level))
-                IntegerAdjustInput.refresh(self, *args, **kwargs)
+                IntegerAdjustInput.refresh(vcself, *args, **kwargs)
 
         current_vibromotor_level = int(self.vibromotor_get())
-        number_input = IntegerAdjustInput(current_vibromotor_level, self.i, self.o, interval=10, max=255, min=0)
+        number_input = VibromotorControl(current_vibromotor_level, self.i, self.o, interval=10, max=255, min=0)
         vibromotor_level =  number_input.activate()
         if vibromotor_level == None:
             # exited UI element, let's reset vibromotor level to what it was before
@@ -359,6 +359,7 @@ class BeepyApp(ZeroApp):
             battery_str = "Battery: {}V".format(battery) if battery != None else "Battery V: Unknown"
             usb_keyboard = self.usb_keyboard_get() != None # (True if not None, since None means an exception has occured)
             mux_fusb = self.mux_fusb_get()
+            mux_usb = self.mux_usb_get()
             charger_enabled = self.charger_enable_get()
             charger_power = self.charger_power_get()
             vibromotor_value = self.vibromotor_get()
@@ -370,7 +371,7 @@ class BeepyApp(ZeroApp):
                 mc.append(["USB input mode", self.usb_input_mode])
             if charger_enabled != None:
                 state = "on" if charger_enabled == True else "off"
-                mc.append(["Charging: {}".format(state, power_str), self.charger_enable_toggle])
+                mc.append(["Charging: {}".format(state), self.charger_enable_toggle])
             if charger_power != None:
                 state = "high" if charger_power == True else "low"
                 mc.append(["Charger power: {}".format(state), self.charger_power_toggle])
