@@ -1,7 +1,7 @@
 from threading import Thread, Event
 from traceback import format_exc
 from time import sleep
-from copy import copy
+from copy import deepcopy
 import importlib
 import inspect
 import atexit
@@ -386,7 +386,7 @@ class InputProcessor(object):
 
     def set_proxy_attrs(self, proxy):
         for attr_name in self.proxy_attrs:
-            setattr(proxy, attr_name, copy(getattr(self, attr_name)))
+            setattr(proxy, attr_name, deepcopy(getattr(self, attr_name)))
 
     def update_all_proxy_attrs(self):
         """
@@ -549,6 +549,7 @@ def init(driver_configs, context_manager, **ip_kwargs):
     pick the corresponding drivers and initialize InputProcessor. Returns
     the InputProcessor instance created.`"""
     # allow providing a dict instead of a list if there's only one driver
+    driver_configs = deepcopy(driver_configs)
     if not isinstance(driver_configs, list):
         driver_configs = [driver_configs]
     drivers = []

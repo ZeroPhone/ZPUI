@@ -228,6 +228,7 @@ class OutputProxy(CharacterOutputDevice, GraphicalOutputDevice):
 def init(driver_configs):
     # type: (list) -> None
     """ This function is called by main.py to read the output configuration, pick the corresponding drivers and initialize a Screen object. Returns the screen object created. """
+    driver_configs = deepcopy(driver_configs)
     if isinstance(driver_configs, str):
         # just a driver name provided, good, we can do that
         driver_configs = [{"driver":driver_configs}]

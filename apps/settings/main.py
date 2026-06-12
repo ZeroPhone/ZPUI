@@ -574,6 +574,7 @@ class SettingsApp(ZeroApp):
         bugreport_ui.git_if = GitInterface
         about.i = self.i
         about.o = self.o
+        about.zpui = zpui
         about.git_if = GitInterface
         self.git_updater = GitUpdater()
         self.update_zpui_fba = FirstBootAction("update_zpui", self.git_updater.update_on_firstboot, depends=["check_connectivity"])

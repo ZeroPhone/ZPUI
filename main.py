@@ -8,6 +8,7 @@ import signal
 import sys
 import threading
 import traceback
+from copy import deepcopy
 from logging.handlers import RotatingFileHandler
 
 from zpui_lib.helpers import read_config, local_path_gen, logger, env, read_or_create_config, \
@@ -118,6 +119,11 @@ def init():
     else:
         zpui.config_path = "pre-supplied"
     logging.info("Loaded config: {}".format(zpui.config))
+
+    # references for later inspection during runtime
+    zpui.loaded_config = deepcopy(zpui.config)
+    with open(zpui.config_path) as f:
+        zpui.raw_config = f.read()
 
     if zpui.config is None:
         sys.exit('Failed to load any config files!')
