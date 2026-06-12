@@ -38,6 +38,7 @@ preassembled_modules ={
 'beepy':{'apt-get':['python3-smbus', 'i2c-tools', 'python3-rpi.gpio', 'python3-evdev']},
 'blepis':{'apt-get':['python3-smbus', 'i2c-tools', 'python3-rpi.gpio', 'python3-evdev']},
 'colorberry':{'apt-get':['python3-smbus', 'i2c-tools', 'python3-rpi.gpio', 'python3-evdev']},
+'snowdive':{'apt-get':['python3-smbus', 'i2c-tools', 'python3-rpi.gpio', 'python3-evdev']},
 }
 
 """
@@ -67,6 +68,7 @@ preassembled_module_names ={
 "Beepy":'beepy',
 "Blepis":'blepis',
 "Colorberry":'colorberry',
+"Snowdive palmtop":'snowdive',
 }
 
 """
@@ -89,6 +91,7 @@ preassembled_module_confs = {
 'beepy':"device: beepy\n",
 'blepis':"device: blepis\n",
 'colorberry':"device: colorberry\n",
+'snowdive':"device: snowdive\n",
 }
 
 

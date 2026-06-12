@@ -215,6 +215,13 @@ def config_colorberry(config):
     set_status_bar_height(config, 30)
     return io
 
+def config_snowdive(config):
+    """
+    For now, the config is indistinguishable from blepis.
+    This will change, however.
+    """
+    return config_blepis(config)
+
 n_mapping = [
         "KEY_UP",
         "KEY_PROG2",
@@ -266,6 +273,7 @@ devices = {
   "beepy":config_beepy,
   "blepis":config_blepis,
   "colorberry":config_colorberry,
+  "snowdive":config_snowdive,
 }
 
 
@@ -445,6 +453,13 @@ class TestCombination(unittest.TestCase):
     def test_blepis(self):
         """tests that blepis config works"""
         config = {"device":"blepis"}
+        i, o, _ = get_io_configs(config)
+        assert(i == [{'driver': 'pcf8574', 'addr': 63}, {'driver': 'beepy_hid'}])
+        assert(o == {'driver': 'beepy_fb', 'fb_num': 1})
+
+    def test_snowdive(self):
+        """tests that snowdive config works"""
+        config = {"device":"snowdive"}
         i, o, _ = get_io_configs(config)
         assert(i == [{'driver': 'pcf8574', 'addr': 63}, {'driver': 'beepy_hid'}])
         assert(o == {'driver': 'beepy_fb', 'fb_num': 1})
