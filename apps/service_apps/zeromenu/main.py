@@ -4,7 +4,7 @@ import os
 
 from zpui_lib.ui import Menu, PrettyPrinter, Checkbox, Listbox
 from zpui_lib.actions import Action, ContextSwitchAction, FirstBootAction
-from zpui_lib.helpers import read_or_create_config, local_path_gen, save_config_gen, setup_logger, is_emulator
+from zpui_lib.helpers import read_or_create_config, local_path_gen, save_config_gen, setup_logger, get_platform, is_emulator
 
 i = None
 o = None
@@ -25,6 +25,8 @@ def set_context(received_context):
     context = received_context
     if is_emulator():
         context.request_global_keymap({"KEY_F1":context.request_switch})
+    elif "snowdive" in get_platform(): # red square button on snowdive is zeromenu
+        context.request_global_keymap({"KEY_F7":context.request_switch})
     else:
         context.request_global_keymap({"KEY_PROG2":context.request_switch})
     context.threaded = True
