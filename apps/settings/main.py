@@ -11,7 +11,7 @@ try:
 except:
     import http.client as httplib
 
-from zpui_lib.ui import Menu, PrettyPrinter, DialogBox, ProgressBar, Listbox, UniversalInput, HelpOverlay, TextReader, Zone, crop, replace_color, open_image
+from zpui_lib.ui import Menu, PrettyPrinter, DialogBox, ProgressBar, Listbox, UniversalInput, HelpOverlay, TextReader, Zone, crop, replace_color, open_image, LoadingBar
 from zpui_lib.helpers import setup_logger, read_or_create_config, save_config_method_gen, local_path_gen, get_safe_file_backup_path, BackgroundRunner, BooleanEvent
 from zpui_lib.actions import FirstBootAction
 from zpui_lib.apps import ZeroApp
@@ -241,6 +241,7 @@ class GitUpdater(GenericUpdater):
     json_config = json.loads(default_config)
     json_config["branches"] = safe_branches
     default_config = json.dumps(json_config)
+    update_rejected = BooleanEvent()
 
     def __init__(self):
         GenericUpdater.__init__(self)
@@ -408,7 +409,8 @@ class GitUpdater(GenericUpdater):
         return True
 
     def show_updates(self):
-        text = self.list_updates()
+        with LoadingBar(i, o, message="Fetching update log"):
+            text = self.list_updates()
         if not text:
             return
         if not self.update_is_interesting():
@@ -416,14 +418,16 @@ class GitUpdater(GenericUpdater):
         text += "\n"
         text += "\nPress Left to exit"
         TextReader(text, i, o, name="Settings app updates list TextReader").activate()
-        self.update_on_firstboot(name="Settings app updates list update dialog", suggest_restart=True)
-        choice = DialogBox("yn", i, o, message="Update ZPUI?", name="Settings app updates list update dialog").activate()
-        if not choice:
-            # mark update target as ignored for now
-            PrettyPrinter("Marking update as uninteresting, then", i, o, 1)
-            _, remote_revision = self.get_current_remote_revisions()
-            self.config["ignored_updates"].append(remote_revision)
-            self.save_config()
+        #self.update_on_firstboot(name="Settings app updates list update dialog", suggest_restart=True) # why did I even have this here
+        choice = DialogBox(["y", "n", ["Don't care", "nooooo"]], i, o, message="Update ZPUI?", name="Settings app updates list update dialog").activate()
+        if choice in [None, False, "nooooo"]:
+            if choice == "nooooo":
+                # mark update target as ignored for now
+                PrettyPrinter("Marking update as uninteresting, then", i, o, 1)
+                _, remote_revision = self.get_current_remote_revisions()
+                self.config["ignored_updates"].append(remote_revision)
+                self.save_config()
+                self.update_rejected.set()
             return None
         return self.update(suggest_restart=True)
 
@@ -525,6 +529,7 @@ class SettingsApp(ZeroApp):
                     if self.git_updater.update_is_interesting():
                         logger.info("ZPUI updates available! {}".format(update_result))
                         self.updates_available.set(True)
+                        self.git_updater.update_rejected.clear()
                         self.status_updates_zone.request_refresh()
                         pass # uhhhh emit a notification? lol
                     else:
@@ -564,18 +569,19 @@ class SettingsApp(ZeroApp):
         logging_ui.o = self.o
         appsettings_ui.i = self.i
         appsettings_ui.o = self.o
-        try:
-            from __main__ import zpui
-            appsettings_ui.cm = zpui.cm
-        except:
-            logger.exception("Failure binding cm to the appsettings module")
         bugreport_ui.i = self.i
         bugreport_ui.o = self.o
         bugreport_ui.git_if = GitInterface
         about.i = self.i
         about.o = self.o
-        about.zpui = zpui
         about.git_if = GitInterface
+        try:
+            from __main__ import zpui
+        except:
+            logger.exception("Failure getting zpui object!")
+        else:
+            appsettings_ui.cm = zpui.cm
+            about.zpui = zpui
         self.git_updater = GitUpdater()
         self.update_zpui_fba = FirstBootAction("update_zpui", self.git_updater.update_on_firstboot, depends=["check_connectivity"])
         self.update_thread = BackgroundRunner(self.updater)
@@ -593,7 +599,7 @@ class SettingsApp(ZeroApp):
                  ["Logging settings", logging_ui.config_logging],
                  ["App settings", appsettings_ui.config_apps],
                  ["About", about.about]]
-            if self.updates_available:
+            if self.updates_available and not self.git_updater.update_rejected:
                 l = ["Updates available!", self.git_updater.show_updates]
                 c = [l] + c
             return c
