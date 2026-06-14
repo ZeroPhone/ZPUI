@@ -1,9 +1,9 @@
 Welcome to ZPUI documentation!
 =================================
 
-ZPUI (ZeroPhone UI, pronounced *zippy ui*) is a powerful user interface and app framework for small screens.
-It's usable on a wide variety of single-board computers, and originally designed for the ZeroPhone project.
-ZPUI only requires a small screen, monochrome or color, starting from 128x64 OLED screens, and some buttons - starting from 5 buttons and up to an entire QWERTY keyboard.
+ZPUI (ZeroPhone UI, pronounced *zippy ui*) is a powerful user interface and app framework you can use for Linux gadets with small screens.
+It's usable on a wide variety of single-board computers, servers, and PCs, originally designed for the ZeroPhone project.
+ZPUI only requires a small screen, monochrome or color, starting from 128x64 OLED screens, as well as some buttons - starting from 5 buttons and up to an entire QWERTY keyboard.
 
 .. image:: _static/zpui_wslcd_crop.jpg
 
@@ -39,6 +39,7 @@ Hardware
 Currently stock-supported devices and screen&button shields:
 
 * Beepy, Colorberry, Blepis handhelds
+* Snowdive, in both standalone and palmtop configurations
 * ZPUI businesscard (both Pi GPIO and QWIIC)
 * WaveShare 1.3" 240x240 LCD HAT
 * WaveShare 1.3" 128x64 OLED HAT (untested but should work)
