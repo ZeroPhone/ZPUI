@@ -21,7 +21,7 @@ def set_context(c):
 def shutdown():
     li = LoadingIndicator(i, o, message="Shutting down")
     li.run_in_background()
-    #call(['shutdown', '-h', 'now'])
+    call(['shutdown', '-h', 'now'])
     eh = ExitHelper(i, cb=li.stop).start()
     while eh.do_run():
         sleep(1)
@@ -29,7 +29,7 @@ def shutdown():
 def reboot():
     li = LoadingIndicator(i, o, message="Rebooting")
     li.run_in_background()
-    #call(['reboot'])
+    call(['reboot'])
     eh = ExitHelper(i, cb=li.stop).start()
     while eh.do_run():
         sleep(1)
