@@ -12,7 +12,10 @@ True
 menu_name = "System info"
 
 from subprocess import call
-from zpui_lib.ui import Menu, Printer, Refresher
+from zpui_lib.ui import Menu, Printer, Refresher, TextReader
+from zpui_lib.helpers import setup_logger
+
+logger = setup_logger(__name__)
 
 import sys_info
 
@@ -46,12 +49,20 @@ def show_memory():
 def show_linux_info():
     linux_info = sys_info.linux_info()
     menu_contents = [
-    [["Hostname:", linux_info["hostname"]]],
-    [["Kernel version:", linux_info["k_release"]]],
-    [["Architecture:", linux_info["machine"]]],
+        [["Hostname:", linux_info.get("hostname", "Unknown")]],
+        [["Kernel version:", linux_info.get("k_release", "Unknown")]],
+        [["Architecture:", linux_info.get("machine", "Unknown")]],
     ]
     if "distribution" in linux_info:
         menu_contents.append([["Distribution:", " ".join(linux_info["distribution"])]])
+    try:
+        release_info = sys_info.os_release()
+    except:
+        logger.exception("os release data fetch fail!")
+    else:
+        for key, value in release_info.items():
+            name = key.lower().capitalize().replace("_", " ")
+            menu_contents.append([ [name, value], lambda x=name, y=value: TextReader(f"{x}: {y}", i, o, name="system info app os-release value reader").activate()])
     Menu(menu_contents, i, o, entry_height=2).activate()
 
 callback = None

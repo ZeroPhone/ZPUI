@@ -25,6 +25,19 @@ def linux_info():
         pass
     return info
 
+def os_release():
+    info = {}
+    with open("/etc/os-release") as f:
+        c = f.read()
+    lines = list(filter(None, c.split("\n")))
+    lines = [l.strip() for l in lines]
+    for line in lines:
+        if "=" in line:
+            key, value = line.split("=", 1)
+            if value.startswith('"'):
+                value = value.rstrip('"').lstrip('"') # we're using a proper language, no need for any of this bash pre-quoted variable snowflakery
+            info[key] = value
+    return info
 
 """
 >>>cat /proc/cpuinfo
@@ -129,14 +142,13 @@ def uptime_timedelta():
 
 
 """
->>>uptime 
+>>>uptime
  04:38:56 up  1:38,  2 users,  load average: 0.03, 0.08, 0.08
 """
 
 def uptime():
     """Returns str(uptime_timedelta)"""
     return str(uptime_timedelta())
-    
 
 """
 >>>cat /proc/loadavg
@@ -148,7 +160,6 @@ def loadavg():
         load1, load5, load15, ksch, last_pid = f.readline().strip('\n').split(" ")
     load1, load5, load15 = (float(var) for var in [load1, load5, load15])
     return (load1, load5, load15)
-           
 
 """
 processor	: 0
@@ -186,9 +197,7 @@ def cpu_info():
 def is_raspberry_pi(cpuinfo = None):
     if not cpuinfo:
         cpuinfo = cpu_info()
-        if "BCM270" in cpuinfo["Hardware"]:
-            return True
-    return False
+    return "BCM270" in cpuinfo.get("Hardware", "") # if Hardware is absent in /proc/cpuinfo, it's likely not a Pi at all
 
 
 
@@ -199,11 +208,4 @@ if __name__ == "__main__":
     print(free())
     print(uptime())
     print(loadavg())
-
-
-
-
-
-
-
 
