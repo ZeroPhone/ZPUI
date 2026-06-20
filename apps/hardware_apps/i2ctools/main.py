@@ -96,7 +96,8 @@ device_notes = { # order defines first bus picked
         0x2e: "TPM?",
         0x48: "touchscreen?",
         0x51: "RTC",
-        0x56: "top PCB EEPROM",
+        0x54: "bottom PCB EEPROM",
+        0x55: "top PCB EEPROM",
     }},
     "blepis":{"default":{
         0x1f: "RP2040",
