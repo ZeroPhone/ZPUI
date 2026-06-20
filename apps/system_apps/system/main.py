@@ -44,7 +44,7 @@ def memory_menu_data():
     return menu_contents
 
 def show_memory():
-    Menu([], i, o, contents_hook=memory_menu_data).activate()
+    Menu([], i, o, contents_hook=memory_menu_data, name="system app memory view menu").activate()
 
 def show_linux_info():
     linux_info = sys_info.linux_info()
@@ -63,17 +63,12 @@ def show_linux_info():
         for key, value in release_info.items():
             name = key.lower().capitalize().replace("_", " ")
             menu_contents.append([ [name, value], lambda x=name, y=value: TextReader(f"{x}: {y}", i, o, name="system info app os-release value reader").activate()])
-    Menu(menu_contents, i, o, entry_height=2).activate()
+    Menu(menu_contents, i, o, entry_height=2, name="system app linux info menu").activate()
 
-callback = None
 i = None
 o = None
 
-
-def init_app(input, output):
-    global callback, i, o
-    i = input; o = output
-
+def callback():
     menu_contents = [
     ["Uptime&load", uptime_load_monitor],
     #["CPU", show_cpu],
@@ -84,6 +79,4 @@ def init_app(input, output):
 
     #if detect_raspberry:
     #    menu.contents.append("Raspberry Pi", rpi_menu)
-    main_menu = Menu(menu_contents, i, o, "System menu")
-    callback = main_menu.activate
-
+    Menu(menu_contents, i, o, name="System menu").activate()
