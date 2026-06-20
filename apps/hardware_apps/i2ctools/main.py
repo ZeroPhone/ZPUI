@@ -56,7 +56,7 @@ def scan_i2c_bus():
     start_time = time()
     for device in range(*scan_range_args):
       try: #If you try to read and it answers, it's there
-         current_bus.read_byte(device)
+         bus.read_byte(device)
       except PermissionError as e:
          if e.errno == 13: # permission denied
              logger.exception("Error {}, permission denied, stopping scan! {}".format(e.errno, repr(e)))
@@ -123,7 +123,7 @@ def set_context(c):
 def get_notes(zconfig=None, platform=None):
     if zconfig == None:
         from __main__ import zpui # hack for now
-        zconfig = zpui.loaded_config()
+        zconfig = zpui.loaded_config
     conf_default_bus = config.get("default_bus", 1) # app config default bus
     default_bus = zconfig.get("i2c", conf_default_bus) # global ZPUI config default bus
     if platform == None:
@@ -207,13 +207,23 @@ def i2c_read_ui(address, reg=None):
 
     last_values = []
 
+    try:
+        bus = get_current_bus()
+    except PermissionError as e:
+         if e.errno == 13: # permission denied
+             logger.exception("Error {}, permission denied, stopping scan! {}".format(e.errno, repr(e)))
+             Printer("permission denied!", i, o, 1)
+             return
+         else:
+             raise e
+
     def read_value(): # A helper function to read a value and format it into a list
         global last_values
         try:
             if reg:
-                answer = "{} {}".format( hex(reg), hex(current_bus.read_byte_data(address, reg)) )
+                answer = "{} {}".format( hex(reg), hex(bus.read_byte_data(address, reg)) )
             else:
-                answer = hex(current_bus.read_byte(address))
+                answer = hex(bus.read_byte(address))
         except IOError:
             answer = "{} err".format(reg) if reg else "err"
         last_values.append(answer)
