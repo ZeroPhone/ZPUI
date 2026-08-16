@@ -87,10 +87,12 @@ class OutputDevice(object):
         for method_name in method_names:
             #print("method: {}".format(method_name))
             # Setting functions to proxy the current object's
-            self.proxify_method(proxy, method_name)
+            if hasattr(self, method_name):
+                self.proxify_method(proxy, method_name)
         for method_name in direct_methods:
             # Methods that are proxied directly
-            setattr(proxy, method_name, getattr(self, method_name))
+            if hasattr(self, method_name):
+                setattr(proxy, method_name, getattr(self, method_name))
         # Proxies have no use for hidden methods
         # Unless
         #for attribute_name in hidden_attributes+hidden_methods:
@@ -207,7 +209,8 @@ class OutputProxy(CharacterOutputDevice, GraphicalOutputDevice):
 
     def _display_data(self, *data):
         cursor_position = self.__cursor_position if self.__cursor_enabled else None
-        self.current_image = self.display_data_onto_image(*data, cursor_position=cursor_position)
+        if "b&w" in self.type:
+            self.current_image = self.display_data_onto_image(*data, cursor_position=cursor_position)
 
     def _cursor(self):
         self.__cursor_enabled = True

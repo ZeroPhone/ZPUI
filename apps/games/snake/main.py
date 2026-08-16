@@ -36,8 +36,14 @@ def restart_game():
 
 def init_app(input, output):
     #Gets called when app is loaded
-     global i, o, c
-     i = input; o = output; c = Canvas(o)
+    global i, o, c
+    i = input; o = output
+    if can_load() == True: c = Canvas(o)
+
+def can_load():
+    if "b&w" not in o.type:
+        return False, "Snake doesn't work on a character-only screen!"
+    return True
 
 def set_field_size():
     global width, height

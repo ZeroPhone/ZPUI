@@ -18,26 +18,31 @@ class InputDevice(InputSkeleton):
     previous_data = 0
 
     def __init__(self, addr = 0x20, bus = 1, **kwargs):
-        """Initialises the ``InputDevice`` object.  
-                                                                               
-        Kwargs:                                                                  
-                                                                                 
+        """Initialises the ``InputDevice`` object.
+
+        Kwargs:
+
             * ``bus``: I2C bus number.
             * ``addr``: I2C address of the expander.
 
         """
         self.bus_num = bus
         self.bus = smbus.SMBus(self.bus_num)
-        if type(addr) in [str, unicode]:
+        if isinstance(addr, basestring):
             addr = int(addr, 16)
         self.addr = addr
-        self.init_expander()
+        #self.init_expander()
         InputSkeleton.__init__(self, **kwargs)
 
-    def init_expander(self):
+    def init_hw(self):
         """Initialises the IO expander."""
-        self.setMCPreg(0x00, 0x1F)
-        self.setMCPreg(0x0C, 0x1F)
+        try:
+            self.setMCPreg(0x00, 0x1F)
+            self.setMCPreg(0x0C, 0x1F)
+        except:
+            #logger.
+            return False
+        return True
 
     def runner(self):
         """Polling loop (only one there can be on this shield, since interrupt pin is not connected)."""

@@ -117,7 +117,10 @@ class AppManager(object):
             exit_entry = Entry("Exit", "exit", icon=open_image(icon_paths["exit"]))
         #print([x for x, y, in icon_paths if x not in used_icons])
         font = ("Fixedsys62.ttf", 16)
-        menu = GridMenu(contents, self.i, self.o, font=font, name="Main menu", exitable=False, navigation_wrap=False)
+        if "b&w" in self.o.type:
+            menu = GridMenu(contents, self.i, self.o, font=font, name="Main menu", exitable=False, navigation_wrap=False)
+        else: # character screen
+            menu = Menu(contents, self.i, self.o, name="Main menu", exitable=False, navigation_wrap=False)
         menu.exit_entry = exit_entry
         menu.process_contents()
         return menu
@@ -129,12 +132,13 @@ class AppManager(object):
 
     def overlay_main_menu(self, menu):
         #main_menu_help = "ZPUI main menu. Navigate the folders to get to different apps, or press KEY_PROG2 (anywhere in ZPUI) to get to the context menu."
-        GridMenuNavOverlay().apply_to(menu)
-        if menu.view.sidebar_fits:
-            GridMenuSidebarOverlay(self.sidebar_cb).apply_to(menu)
-        if not getattr(menu.view, "shows_label", False):
-            GridMenuLabelOverlay().apply_to(menu)
-        #HelpOverlay(main_menu_help).apply_to(menu)
+        if "b&w" in self.o.type:
+            GridMenuNavOverlay().apply_to(menu)
+            if menu.view.sidebar_fits:
+                GridMenuSidebarOverlay(self.sidebar_cb).apply_to(menu)
+            if not getattr(menu.view, "shows_label", False):
+                GridMenuLabelOverlay().apply_to(menu)
+            #HelpOverlay(main_menu_help).apply_to(menu)
 
     def register_default_plugins(self):
         self.subdir_menu_creators["apps"] = self.create_main_menu

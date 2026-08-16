@@ -15,23 +15,23 @@ def delay(time):
 def delayMicroseconds(time):
     sleep(time/1000000.0)
 
-from hd44780 import HD44780
-from backlight import *
+from output.drivers.hd44780 import HD44780
+from output.drivers.backlight import *
 
 class Screen(HD44780, BacklightManager, OutputDevice):
     """A driver for Adafruit-developed Raspberry Pi character LCD&button shields based on MCP23017, either Adafruit-made or Chinese-made.
        Has workarounds for Chinese plates with LED instead of RGB backlight and LCD backlight on a separate I2C GPIO expander pin.
-       
+
        Tested on hardware compatible with Adafruit schematic and working with Adafruit libraries, but not on genuine Adafruit hardware. Thus, you may have issues with backlight, as that's the 'gray area'.
     """
 
     type = ["char", "rgb_led"]
 
     def __init__(self, bus=1, addr=0x20, debug=False, chinese=True, **kwargs):
-        """Initialises the ``Screen`` object.  
-                                                                               
-        Kwargs:                                                                  
-                                                                                 
+        """Initialises the ``Screen`` object.
+
+        Kwargs:
+
             * ``bus``: I2C bus number.
             * ``addr``: I2C address of the board.
             * ``debug``: enalbes printing out LCD commands.
@@ -40,7 +40,7 @@ class Screen(HD44780, BacklightManager, OutputDevice):
         """
         self.bus_num = bus
         self.bus = smbus.SMBus(self.bus_num)
-        if type(addr) in [str, unicode]:
+        if isinstance(addr, basestring):
             addr = int(addr, 16)
         self.addr = addr
         self.debug = debug
@@ -48,7 +48,7 @@ class Screen(HD44780, BacklightManager, OutputDevice):
         self.i2c_init()
         BacklightManager.init_backlight(self, **kwargs)
         HD44780.__init__(self, debug=self.debug, **kwargs)
-        
+
     def i2c_init(self):
         """Inits the MCP23017 expander."""
         self.setMCPreg(0x00, 0x00)
@@ -57,24 +57,24 @@ class Screen(HD44780, BacklightManager, OutputDevice):
     @activate_backlight_wrapper
     def write_byte(self, byte, char_mode=False):
         """Takes a byte and sends the high nibble, then the low nibble (as per HD44780 doc). Passes ``char_mode`` to ``self.write4bits``."""
-        if self.debug and not char_mode:        
+        if self.debug and not char_mode:
             logger.debug(hex(byte))
-        self.write4bits(byte >> 4, char_mode)   
-        self.write4bits(byte & 0x0F, char_mode) 
+        self.write4bits(byte >> 4, char_mode)
+        self.write4bits(byte & 0x0F, char_mode)
 
     @enable_backlight_wrapper
     def enable_backlight(self):
         """Enables backlight. Doesn't do it instantly on genuine boards, you'll have to wait until data is sent to the display."""
-        if self.chinese: 
-            self.setMCPreg(0x14, 0xc0) 
+        if self.chinese:
+            self.setMCPreg(0x14, 0xc0)
         else:
             self.setMCPreg(0x14, 0xe0)
 
     @disable_backlight_wrapper
     def disable_backlight(self):
         """Disables backlight. Doesn't do it instantly on genuine boards, you'll have to wait until data is sent to the display."""
-        if self.chinese: 
-            self.setMCPreg(0x14, 0xe0) 
+        if self.chinese:
+            self.setMCPreg(0x14, 0xe0)
         else:
             self.setMCPreg(0x15, 0x01)
 
@@ -92,7 +92,7 @@ class Screen(HD44780, BacklightManager, OutputDevice):
         self.setMCPreg(0x15, data)
         data ^= 0x20
         self.setMCPreg(0x15, data)
-        
+
     def setMCPreg(self, reg, val):
         """Sets the MCP23017 register."""
         self.bus.write_byte_data(self.addr, reg, val)
@@ -100,9 +100,9 @@ class Screen(HD44780, BacklightManager, OutputDevice):
     def set_rgb(self, red, green, blue):
         port_a = 0 | ((not green) << 7)
         port_a |= ((not red) << 6)
-        if self.chinese: 
+        if self.chinese:
             port_a |= ((not self._backlight_enabled) << 5)
-            self.setMCPreg(0x14, port_a) 
+            self.setMCPreg(0x14, port_a)
             self.setMCPreg(0x15, ((not blue) << 0))
         else:
             port_a |= ((not blue) << 5)
@@ -128,4 +128,4 @@ if __name__ == "__main__":
     sleep(1)
     screen.set_rgb(0, 0, 1)
     sleep(1)
-    screen.set_rgb(0, 0, 0) 
+    screen.set_rgb(0, 0, 0)

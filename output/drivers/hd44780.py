@@ -17,6 +17,10 @@ def delay(milliseconds):
     seconds = milliseconds / float(1000)  # divide microseconds by 1 million for seconds
     sleep(seconds)
 
+try:
+    from ..output import CharacterOutputDevice
+except ModuleNotFoundError:
+    from output import CharacterOutputDevice
 
 class HD44780(object):
     """An object that provides high-level functions for interaction with display. It contains all the high-level logic and exposes an interface for system and applications to use."""
@@ -74,6 +78,8 @@ class HD44780(object):
 
     redraw_coefficient = 0.5
     type = ["char"] #Variable for future compatibility with graphical displays
+
+    __base_classes__ = (CharacterOutputDevice, )
 
     def __init__(self, cols = 16, rows=2, do_init = True, debug = False, buffering = True, **kwargs):
         """ Sets variables for high-level functions.

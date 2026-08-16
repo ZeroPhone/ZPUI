@@ -27,6 +27,7 @@ class KeyboardFallbackApp(ZeroApp):
         return False, "app mothballed until it's updated and ready to be used"
 
     def init_app(self):
+        if self.can_load() != True: return
         self.active = Event()
         self.pop_on_event = Event()
         self.pop_on_event.set()

@@ -17,10 +17,10 @@ def replace_color(icon, fromc, toc):
 def splash(i, o, color="white"):
     if color is None:
         color = "white"
-    if (o.width, o.height) == (128, 64):
+    if "b&w" in o.type and (o.width, o.height) == (128, 64):
         image = Image.open("resources/splash.png").convert('1')
         image = ImageOps.invert(image)
-    elif o.width >= 128 and o.height >= 64:
+    elif "b&w" in o.type and (o.width >= 128 and o.height >= 64):
         image = Image.open("resources/splash_big.png").convert('1')
         image = ImageOps.invert(image)
         size = o.width, o.height
