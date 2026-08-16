@@ -111,6 +111,15 @@ def config_zpog(config):
         io[1]["port"] = int(config.get("i2c", 1))
     return io
 
+def config_adafruit_plate(config):
+    io = ["adafruit_plate", "adafruit_plate"]
+    if "i2c" in config:
+        io[0] = {"driver":io[0]}
+        io[0]["bus"] = int(config.get("i2c", 1))
+        io[1] = {"driver":io[1]}
+        io[1]["bus"] = int(config.get("i2c", 1))
+    return io
+
 def rotate_zpui_bc(io, config):
     i, o = io
     rotate = config["device"]["rotate"].upper()[0]
@@ -266,6 +275,7 @@ w_mapping = [
 devices = {
   "emulator":config_emulator,
   "zerophone_og":config_zpog,
+  "adafruit_plate":config_adafruit_plate,
   "zpui_bc_v1_qwiic":config_zpui_bc_v1_qwiic,
   "zpui_bc_v1":config_zpui_bc_v1,
   "waveshare_oled_hat":config_waveshare_oled_hat,
@@ -308,6 +318,13 @@ class TestCombination(unittest.TestCase):
         i, o, _ = get_io_configs(config)
         assert(o == "sh1106")
         assert(i == "custom_i2c")
+
+    def test_adafruit_plate(self):
+        """tests that adafruit plate config parses"""
+        config = {"device":"adafruit_plate"}
+        i, o, _ = get_io_configs(config)
+        assert(o == "adafruit_plate")
+        assert(i == "adafruit_plate")
 
     def test_zpbc1q(self):
         """tests that it zp businesscard v1 qwiic config parses"""
@@ -393,6 +410,13 @@ class TestCombination(unittest.TestCase):
         i, o, _ = get_io_configs(config)
         assert(o == {"driver": "sh1106", "port": 2})
         assert(i == {"driver":"custom_i2c", "bus": 2})
+
+    def test_adafruit_plate_i2cbus(self):
+        """tests that adafruit_palte config parses with an i2c bus"""
+        config = {"device":"adafruit_plate", "i2c": "3"}
+        i, o, _ = get_io_configs(config)
+        assert(o == {"driver": "adafruit_plate", "bus": 3})
+        assert(i == {"driver": "adafruit_plate", "bus": 3})
 
     def test_emulator_resolution(self):
         """tests that it runs with emulator driver and resolution provided"""
