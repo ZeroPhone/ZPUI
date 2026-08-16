@@ -30,6 +30,7 @@ preassembled_modules ={
 
 preassembled_modules ={
 'zerophone_og':{'apt-get':['python3-smbus', 'i2c-tools']},
+'adafruit_plate':{'apt-get':['python3-smbus', 'i2c-tools']},
 'zpui_bc_v1':{'apt-get':['python3-smbus', 'i2c-tools', 'python-rpi.gpio']},
 'zpui_bc_v1_qwiic':{'apt-get':['python3-smbus', 'i2c-tools']},
 'emulator':{'apt-get':["python-pip", "python-dev", "build-essential", "python-pygame"], 'pip':["luma.emulator"]},
@@ -61,6 +62,7 @@ preassembled_module_names ={
 preassembled_module_names ={
 "Emulator (pygame)":'emulator',
 "OG ZeroPhone hardware":'zerophone_og',
+"Adafruit Pi HD44780 shield (and clones)":'adafruit_plate',
 "ZPUI businesscard v1 (QWIIC-only)":'zpui_bc_v1_qwiic',
 "ZPUI businesscard v1 (Pi GPIO header)":'zpui_bc_v1',
 "Waveshare 1.3\" OLED HAT (untested)":'waveshare_oled_hat',
@@ -83,6 +85,7 @@ preassembled_module_confs = {
 
 preassembled_module_confs = {
 "zerophone_og":'device: zerophone_og\n',
+"adafruit_plate":'device: adafruit_plate\n',
 "emulator":'device: emulator\n',
 'zpui_bc_v1_qwiic':"device: zpui_bc_v1_qwiic\n",
 'zpui_bc_v1':"device: zpui_bc_v1\n",
