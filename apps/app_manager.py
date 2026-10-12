@@ -3,6 +3,7 @@ import os
 import sys
 import traceback
 from copy import copy
+from threading import Lock
 
 from zpui_lib.apps import ZeroApp
 from zpui_lib.helpers import setup_logger, zpui_running_as_service
@@ -56,6 +57,7 @@ class AppManager(object):
         self.orig_o = self.o
         self.config = config if config else {}
         self.has_status_bar = False
+        self.app_load_lock = Lock()
         if "status_bar_height" in self.config:
             # status bar provider
             self.has_status_bar = True
@@ -248,123 +250,157 @@ class AppManager(object):
             contents = sorted(contents, key=lambda x: ordering.index(x.basename) if x.basename in ordering else 9999)
         return contents
 
+    def process_internal_app(self, module_path):
+        """
+        Process a ZPUI-directory-stored app given just its path, variables and all. Calls load_app_by_path and does a bunch of processing
+        like can_load and execute_after_contexts hook
+        """
+        try:
+            if module_path in self.apps_blocked_in_config:
+                err = "App {} blocked from config; not loading".format(module_path)
+                logger.warning(err)
+                self.failed_apps[module_path] = err
+                return False
+            app = self.load_app_by_path(module_path)
+            has_loaded = True; s = ""
+            if hasattr(app, "can_load"):
+                result = app.can_load()
+                if result != True: # likely, a list of things has been returned
+                    if result == None:
+                        logger.warning("App {} returned None from can_load! Assuming True".format(module_path))
+                    else:
+                        has_loaded, s = result
+            if has_loaded:
+                logger.info("Loaded app {}".format(module_path))
+                self.app_list[module_path] = app
+                menu_name = self.get_app_name(app, module_path)
+                self.bind_context(app, module_path, menu_name)
+                if self.app_has_after_contexts_hook(app):
+                    self.after_contexts_apps[module_path] = app
+                return True
+            else:
+                self.mark_app_as_nonloaded(app, module_path, s)
+        except:
+            logger.exception("Failed to load app {}".format(module_path))
+            self.failed_apps[module_path] = traceback.format_exc()
+            return False
+
+    def process_external_app(self, app_ep):
+        """
+        Processes an external app either by path or by endpoint
+        """
+        app_name = None
+        try:
+            if isinstance(app_ep, dict): # config entry
+                app_path = app_ep["path"]
+                # example path: "/home/arya/ZPUI/zpui-example-app/src/ > zpui_hackmesh < /app.py"
+                if not app_path.endswith(".py"):
+                    raise ValueError("Externally loaded app \"path\" needs to be a path to a .py file!")
+                alt_name = os.path.split( os.path.split(app_path)[0] )[1] # separating out the folder name specifically
+                app_name = app_ep.get("name", alt_name)
+                spec = importlib.util.spec_from_file_location(app_name, app_path)
+                app = importlib.util.module_from_spec(spec)
+                sys.modules[app_name] = app
+                spec.loader.exec_module(app)
+            else: # just endpoint
+                app = app_ep.load()
+        except:
+            err = "Failing to load entrypoint/path for external app {}".format(app_ep)
+            logger.exception(err)
+            self.failed_apps[str(app_ep)] = err + '\n' + traceback.format_exc()
+            return False
+        if app_name == None: # name fallback
+            app_name = app_ep.name
+        try:
+            module_path = getattr(app, "module_path", app_name)
+            if not module_path.startswith("apps"):
+                if not module_path.startswith('/'): module_path = '/'+module_path
+                module_path = "apps"+module_path
+            # here we add the subdir path(s) if path(s) not yet known
+            subdir_path = module_path
+            if subdir_path.endswith(app_name):
+                subdir_path = subdir_path[:-(len(app_name))]
+            # adding recursively
+            subdir_path_els = subdir_path.split("/")
+            for element_len in range(len(subdir_path_els)-1):
+                this_subdir_path = "/".join(subdir_path_els[:element_len+1])
+                if this_subdir_path not in self.subdir_paths:
+                    self.subdir_paths.append(this_subdir_path)
+            # now, we make sure that module path ends with app name
+            if not module_path.endswith(app_name):
+                if not module_path.endswith('/'): module_path += '/'
+                module_path += app_name
+        except:
+            err = "Can't get module_path or add subdir for external app {}".format(app_ep)
+            logger.exception(err)
+            self.failed_apps[str(app_ep)] = err + '\n' + traceback.format_exc()
+            return False
+        # we got an endpoint, let's can-load check it and otherwise process it with self.load_app
+        try:
+            has_loaded = True; s = ""
+            if hasattr(app, "can_load"):
+                result = app.can_load()
+                if result != True: # likely, a list of things has been returned
+                    if result == None:
+                        logger.warning("App {} returned None from can_load! Assuming True".format(module_path))
+                        has_loaded = True # explicit
+                    else:
+                        has_loaded, s = result
+            # no has_load means we just load
+            if has_loaded:
+                loaded_app = self.load_app(app, app_path=module_path)
+                logger.info("Loaded external app {}".format(module_path))
+                self.app_list[module_path] = loaded_app
+                menu_name = self.get_app_name(app, module_path)
+                self.bind_context(loaded_app, module_path, menu_name)
+                if self.app_has_after_contexts_hook(app):
+                    self.after_contexts_apps[module_path] = loaded_app
+                return True
+            else:
+                self.mark_app_as_nonloaded(app, module_path, s)
+                return False
+        except:
+            logger.exception("Failed to load external app {}".format(module_path))
+            self.failed_apps[module_path] = traceback.format_exc()
+            return False
+
     def load_all_apps(self, interactive=True):
-        apps_blocked_in_config = self.config.get("do_not_load", [])
-        if not isinstance(apps_blocked_in_config, list):
-            apps_blocked_in_config = [apps_blocked_in_config]
+        self.apps_blocked_in_config = self.config.get("do_not_load", [])
+        if not isinstance(self.apps_blocked_in_config, list):
+            self.apps_blocked_in_config = [self.apps_blocked_in_config]
         self.subdir_paths.append(self.app_directory.rstrip("/"))
         # apps having an "execute_after_contexts" hook
-        after_contexts_apps = {}
-        # first: directory-based discovery
+        self.after_contexts_apps = {}
+        # FIRST: directory-based discovery
         for path, subdirs, modules in app_walk(self.app_directory):
             for subdir in subdirs:
                 subdir_path = os.path.join(path, subdir)
                 self.subdir_paths.append(subdir_path)
             for _module in modules:
                 module_path = os.path.join(path, _module)
-                try:
-                    if module_path in apps_blocked_in_config:
-                        logger.warning("App {} blocked from config; not loading".format(module_path))
-                        continue
-                    app = self.load_app_by_path(module_path)
-                    has_loaded = True; s = ""
-                    if hasattr(app, "can_load"):
-                        result = app.can_load()
-                        if result != True: # likely, a list of things has been returned
-                            if result == None:
-                                logger.warning("App {} returned None from can_load! Assuming True".format(module_path))
-                            else:
-                                has_loaded, s = result
-                    if has_loaded:
-                        logger.info("Loaded app {}".format(module_path))
-                        self.app_list[module_path] = app
-                        menu_name = self.get_app_name(app, module_path)
-                        self.bind_context(app, module_path, menu_name)
-                        if self.app_has_after_contexts_hook(app):
-                            after_contexts_apps[module_path] = app
-                    else:
-                        self.mark_app_as_nonloaded(app, module_path, s)
-                except:
-                    logger.exception("Failed to load app {}".format(module_path))
-                    self.failed_apps[module_path] = traceback.format_exc()
-            if interactive:
-                if self.failed_apps:
+                with self.app_load_lock:
+                    result = self.process_internal_app(module_path)
+                # HMMM process result? result will mostly be useful during dynamic loading
+                # "Failed to load" screen
+                if interactive and self.failed_apps:
                     failed_app_names = [os.path.split(p)[1] for p in self.failed_apps.keys()]
                     Printer(["Failed to load:"]+failed_app_names, self.i, self.orig_o, 0.5)
-        # second: entrypoint-based and config-file-based app loading
+        # SECOND: entrypoint-based and config-file-based app loading
         discovered_apps = list(entry_points(group='zpui_app.3rdparty'))
-        # workaround for systems where entrypoints don't work for one reason or another
+        # workaround for systems where entrypoints don't work for one reason or another, i.e. dev on NixOS
+        # giving you an ability to describe app paths in the main config file
         manual_apps = self.config.get("app_paths", [])
-        for app_ep in discovered_apps + manual_apps:
-            logger.debug("Loading endpoint app: "+str(app_ep))
-            app_name = None
-            try:
-                if isinstance(app_ep, dict):
-                    app_path = app_ep["path"]
-                    # example path: "/home/arya/ZPUI/zpui-example-app/src/ > zpui_hackmesh < /app.py"
-                    if not app_path.endswith(".py"):
-                        raise ValueError("Externally loaded app \"path\" needs to be a path to a .py file!")
-                    alt_name = os.path.split( os.path.split(app_path)[0] )[1] # separating out the folder name specifically
-                    app_name = app_ep.get("name", alt_name)
-                    spec = importlib.util.spec_from_file_location(app_name, app_path)
-                    app = importlib.util.module_from_spec(spec)
-                    sys.modules[app_name] = app
-                    spec.loader.exec_module(app)
-                else:
-                    app = app_ep.load()
-            except:
-                logger.exception("Failing to load entrypoint/path for external app {}".format(app_ep))
-                self.failed_apps[str(app_ep)] = traceback.format_exc()
-                continue
-            if app_name == None:
-                app_name = app_ep.name
-            try:
-                module_path = getattr(app, "module_path", app_name)
-                if not module_path.startswith("apps"):
-                    if not module_path.startswith('/'): module_path = '/'+module_path
-                    module_path = "apps"+module_path
-                # here we add the subdir path(s) if path(s) not yet known
-                subdir_path = module_path
-                if subdir_path.endswith(app_name):
-                    subdir_path = subdir_path[:-(len(app_name))]
-                # adding recursively
-                subdir_path_els = subdir_path.split("/")
-                for element_len in range(len(subdir_path_els)-1):
-                    this_subdir_path = "/".join(subdir_path_els[:element_len+1])
-                    if this_subdir_path not in self.subdir_paths:
-                        self.subdir_paths.append(this_subdir_path)
-                # now, we make sure that module path ends with app name
-                if not module_path.endswith(app_name):
-                    if not module_path.endswith('/'): module_path += '/'
-                    module_path += app_name
-            except:
-                logger.exception("Can't get module_path or add subdir for external app {}".format(app_ep))
-                self.failed_apps[str(app_ep)] = traceback.format_exc()
-                continue
-            try:
-                has_loaded = True; s = ""
-                if hasattr(app, "can_load"):
-                    result = app.can_load()
-                    if result != True: # likely, a list of things has been returned
-                        if result == None:
-                            logger.warning("App {} returned None from can_load! Assuming True".format(module_path))
-                        else:
-                            has_loaded, s = result
-                if has_loaded:
-                    loaded_app = self.load_app(app, app_path=module_path)
-                    logger.info("Loaded external app {}".format(module_path))
-                    self.app_list[module_path] = loaded_app
-                    menu_name = self.get_app_name(app, module_path)
-                    self.bind_context(loaded_app, module_path, menu_name)
-                    if self.app_has_after_contexts_hook(app):
-                        after_contexts_apps[module_path] = loaded_app
-                else:
-                    self.mark_app_as_nonloaded(app, module_path, s)
-            except:
-                logger.exception("Failed to load external app {}".format(module_path))
-                self.failed_apps[module_path] = traceback.format_exc()
+        for app in discovered_apps + manual_apps:
+            logger.debug("Loading endpoint/config app: "+str(app))
+            with self.app_load_lock:
+                result = self.process_external_app(app)
+                # HMMM process result? result will mostly be useful during dynamic loading
+            # "Failed to load" screen
+            if interactive and self.failed_apps:
+                failed_app_names = [os.path.split(p)[1] for p in self.failed_apps.keys()]
+                Printer(["Failed to load:"]+failed_app_names, self.i, self.orig_o, 0.5)
         # execute after_context functions
-        for app_path, app in after_contexts_apps.items():
+        for app_path, app in self.after_contexts_apps.items():
             try:
                 self.execute_after_contexts(app)
             except:
@@ -452,7 +488,7 @@ class AppManager(object):
         else:
             if hasattr(app, 'init_app'):
                 app.init_app(i, o)
-            else: #init_app-less function-based app
+            else: # init_app-less function-based app
                 app.i = i
                 app.o = o
         self.pass_context_to_app(app, app_path, context)
