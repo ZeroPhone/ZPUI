@@ -342,13 +342,24 @@ class AppManager(object):
                 self.failed_apps[str(app_ep)] = traceback.format_exc()
                 continue
             try:
-                loaded_app = self.load_app(app, app_path=module_path)
-                logger.info("Loaded external app {}".format(module_path))
-                self.app_list[module_path] = loaded_app
-                menu_name = self.get_app_name(app, module_path)
-                self.bind_context(loaded_app, module_path, menu_name)
-                if self.app_has_after_contexts_hook(app):
-                    after_contexts_apps[module_path] = loaded_app
+                has_loaded = True; s = ""
+                if hasattr(app, "can_load"):
+                    result = app.can_load()
+                    if result != True: # likely, a list of things has been returned
+                        if result == None:
+                            logger.warning("App {} returned None from can_load! Assuming True".format(module_path))
+                        else:
+                            has_loaded, s = result
+                if has_loaded:
+                    loaded_app = self.load_app(app, app_path=module_path)
+                    logger.info("Loaded external app {}".format(module_path))
+                    self.app_list[module_path] = loaded_app
+                    menu_name = self.get_app_name(app, module_path)
+                    self.bind_context(loaded_app, module_path, menu_name)
+                    if self.app_has_after_contexts_hook(app):
+                        after_contexts_apps[module_path] = loaded_app
+                else:
+                    self.mark_app_as_nonloaded(app, module_path, s)
             except:
                 logger.exception("Failed to load external app {}".format(module_path))
                 self.failed_apps[module_path] = traceback.format_exc()
