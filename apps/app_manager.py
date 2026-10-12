@@ -27,8 +27,8 @@ class AppManager(object):
     """
     app_list = {}
     """Example of app_list:
-    {'apps/network_apps/wpa_cli': <module 'apps.network_apps.wpa_cli.main' from '/root/WCS/apps/network_apps/wpa_cli/main.py'>, 
-    'apps/system_apps/system': <module 'apps.system_apps.system.main' from '/root/WCS/apps/system_apps/system/main.py'>, 
+    {'apps/network_apps/wpa_cli': <module 'apps.network_apps.wpa_cli.main' from '/root/WCS/apps/network_apps/wpa_cli/main.py'>,
+    'apps/system_apps/system': <module 'apps.system_apps.system.main' from '/root/WCS/apps/system_apps/system/main.py'>,
     ...
     'apps/network_apps/network': <module 'apps.network_apps.network.main' from '/root/WCS/apps/network_apps/network/main.py'>}
      """
@@ -38,6 +38,7 @@ class AppManager(object):
     }
     """
     ordering_cache = {}
+    paths_changed = []
 
     def __init__(self, app_directory, context_manager, zpui, config=None, default_plugins=True):
         self.subdir_menus = {}
@@ -131,7 +132,7 @@ class AppManager(object):
         c.image.paste(sidebar_image, (coords.left+3, coords.top-5))
 
     def overlay_main_menu(self, menu):
-        #main_menu_help = "ZPUI main menu. Navigate the folders to get to different apps, or press KEY_PROG2 (anywhere in ZPUI) to get to the context menu."
+        main_menu_help = "ZPUI main menu. Navigate the folders to get to different apps, or press KEY_PROG2 (anywhere in ZPUI) to get to the context menu."
         if "b&w" in self.o.type:
             GridMenuNavOverlay().apply_to(menu)
             if menu.view.sidebar_fits:
@@ -197,16 +198,21 @@ class AppManager(object):
             iters += 1
         if empty_dirs:
             logger.info("Removed empty directories: {}".format(", ".join(empty_dirs)))
-        for path, subdir_contents in self.subdir_menu_contents.items():
-            ordering = self.get_ordering(path)
-            unordered_contents = self.prepare_menu_contents_for_ordering(subdir_contents)
-            menu_contents = self.order_contents_by_ordering(unordered_contents, ordering)
-            creator = self.subdir_menu_creators.get(path, self.create_subdir_menu)
-            menu = creator(path, menu_contents)
-            for overlay_cb in self.subdir_menu_overlays.get(path, []):
-                overlay_cb(menu)
+        for path in self.subdir_menu_contents:
+            menu = self.generate_subdir_menu_contents(path)
             self.subdir_menus[path] = menu
         return self.subdir_menus[base_subdir]
+
+    def generate_subdir_menu_contents(self, path):
+        subdir_contents = self.subdir_menu_contents[path]
+        ordering = self.get_ordering(path)
+        unordered_contents = self.prepare_menu_contents_for_ordering(subdir_contents)
+        menu_contents = self.order_contents_by_ordering(unordered_contents, ordering)
+        creator = self.subdir_menu_creators.get(path, self.create_subdir_menu)
+        menu = creator(path, menu_contents)
+        for overlay_cb in self.subdir_menu_overlays.get(path, []):
+            overlay_cb(menu)
+        return menu
 
     def prepare_menu_contents_for_ordering(self, subdir_contents):
         for entry in subdir_contents:
@@ -218,10 +224,24 @@ class AppManager(object):
         return subdir_contents
 
     def switch_to_subdir(self, path):
+        if self.subdir_menu_has_changed(path):
+            # UX: preserve pointer
+            logger.warning(f"Regenerating menu {path}")
+            pointer = self.subdir_menus[path].pointer
+            self.subdir_menus[path] = self.generate_subdir_menu_contents(path)
+            self.subdir_menus[path].pointer = pointer
+            self.paths_changed.remove(path)
         self.subdir_menus[path].activate()
 
     def switch_to_app(self, path):
         self.cm.switch_to_context(path.replace("/", '.'))
+
+    def subdir_menu_has_changed(self, path):
+        return path in self.paths_changed
+
+    def subdir_menu_changed(self, path):
+        if path not in self.paths_changed:
+            self.paths_changed.append(path)
 
     def order_contents_by_ordering(self, contents, ordering, strip_first_element=True):
         if ordering:
