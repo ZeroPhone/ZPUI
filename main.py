@@ -12,7 +12,7 @@ from copy import deepcopy
 from logging.handlers import RotatingFileHandler
 
 from zpui_lib.helpers import read_config, local_path_gen, logger, env, read_or_create_config, \
-                    zpui_running_as_service, is_emulator, pidcheck
+                    zpui_running_as_service, is_emulator, pidcheck, rpc_api as api
 from zpui_lib.helpers.env import add_platform_device
 from zpui_lib.helpers.logger import LoggingConfig
 if __name__ == "__main__": LoggingConfig().autosave = True # "no log_conf.ini clutter by default" mechanism
@@ -208,6 +208,12 @@ def launch(name=None, all=False, **kwargs):
     zpui.appman_config = zpui.config.get("app_manager", {})
     zpui.app_man = AppManager('apps', zpui.cm, zpui, config=zpui.appman_config)
 
+    if api.rpc_available:
+        try:
+            api.start_api_thread(zpui.app_man, zpui.cm)
+        except:
+            logger.exception("Failed to start API thread!")
+
     if name is None:
         try:
             from splash import splash
@@ -388,7 +394,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--all',
         '-A',
-        help='Launch ZPUI with a single app loaded (useful for testing)',
+        help='Load all apps in single-app mode (useful for testing)',
         action='store_true')
     parser.add_argument(
         '--log-level',
