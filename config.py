@@ -36,10 +36,10 @@ preassembled_modules ={
 'emulator':{'apt-get':["python-pip", "python-dev", "build-essential", "python-pygame"], 'pip':["luma.emulator"]},
 'waveshare_oled_hat':{'apt-get':['python3-smbus', 'i2c-tools', 'python-rpi.gpio']},
 'waveshare_lcd_13_hat':{},
-'beepy':{'apt-get':['python3-smbus', 'i2c-tools', 'python3-rpi.gpio', 'python3-evdev']},
-'blepis':{'apt-get':['python3-smbus', 'i2c-tools', 'python3-rpi.gpio', 'python3-evdev']},
-'colorberry':{'apt-get':['python3-smbus', 'i2c-tools', 'python3-rpi.gpio', 'python3-evdev']},
-'snowdive':{'apt-get':['python3-smbus', 'i2c-tools', 'python3-rpi.gpio', 'python3-evdev']},
+'beepy':{'apt-get':['python3-smbus', 'i2c-tools', 'python3-evdev']},
+'blepis':{'apt-get':['python3-smbus', 'i2c-tools', 'python3-evdev']},
+'colorberry':{'apt-get':['python3-smbus', 'i2c-tools', 'python3-evdev']},
+'snowdive':{'apt-get':['python3-smbus', 'i2c-tools', 'python3-evdev']},
 }
 
 """
