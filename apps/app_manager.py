@@ -9,15 +9,14 @@ from zpui_lib.apps import ZeroApp
 from zpui_lib.helpers import setup_logger, zpui_running_as_service
 from zpui_lib.ui import Printer, Menu, HelpOverlay, GridMenu, Entry, Canvas, MockOutput, \
                GridMenuLabelOverlay, GridMenuSidebarOverlay, GridMenuNavOverlay, open_image, invert_image
-
 if sys.version_info < (3, 10):
     from importlib_metadata import entry_points
 else:
     from importlib.metadata import entry_points
 
-
 logger = setup_logger(__name__, "info")
 
+from zpui_lib.helpers import rpc_api as api
 
 class AppManager(object):
     subdir_menus = {}
@@ -39,7 +38,7 @@ class AppManager(object):
     }
     """
     ordering_cache = {}
-    paths_changed = []
+    subdirs_changed = []
 
     def __init__(self, app_directory, context_manager, zpui, config=None, default_plugins=True):
         self.subdir_menus = {}
@@ -115,9 +114,9 @@ class AppManager(object):
                 except:
                     logger.exception("Failed to load placeholder, continuing icon-less")
         if zpui_running_as_service():
-            exit_entry = Entry("Restart ZPUI", "exit", icon=open_image(icon_paths["exit"]))
+            exit_entry = Entry("Restart ZPUI", "exit", type="exit", path=None, icon=open_image(icon_paths["exit"]))
         else:
-            exit_entry = Entry("Exit", "exit", icon=open_image(icon_paths["exit"]))
+            exit_entry = Entry("Exit", "exit", type="exit", path=None, icon=open_image(icon_paths["exit"]))
         #print([x for x, y, in icon_paths if x not in used_icons])
         font = ("Fixedsys62.ttf", 16)
         if "b&w" in self.o.type:
@@ -174,17 +173,27 @@ class AppManager(object):
                     self.subdir_menu_contents[subdir_menu_name].append(app_entry)
                 except:
                     logger.exception("Couldn't place app {} into a menu!".format(app_path))
-        # now, filtering for empty directories, removing directories up until we're satisfied that none are empty
+            else:
+                logger.debug(f"App {app_path} has no callback, not placing into any menus")
+        self.filter_empty_dirs()
+        for path in self.subdir_menu_contents:
+            menu = self.generate_subdir_menu_contents(path)
+            self.subdir_menus[path] = menu
+        return self.subdir_menus[base_subdir]
+
+    def filter_empty_dirs(self):
+        # removing directories up until we're satisfied that none are empty
         success = False
         iters = 0
         empty_dirs = []
         while not success:
             sbmc_items = list(self.subdir_menu_contents.items())
-            # again, sorting by path length to process innermost directories first
+            # sorting by path length to process innermost directories first
             # example: subdir_entry = Entry(menu_name, type="dir", path=subdir_path)
             sbmc_items = sorted(sbmc_items, key=lambda x:-1*len(x[0]))
             success = True
             if iters > 10:
+                # should never happen unless the directories are nested too deep, but it's proper to have a break anyway
                 logger.error("Too many iterations taken to filter out the menu from empty items, breaking the loop")
                 break
             for path, subdir_contents in sbmc_items:
@@ -200,13 +209,25 @@ class AppManager(object):
             iters += 1
         if empty_dirs:
             logger.info("Removed empty directories: {}".format(", ".join(empty_dirs)))
-        for path in self.subdir_menu_contents:
-            menu = self.generate_subdir_menu_contents(path)
-            self.subdir_menus[path] = menu
-        return self.subdir_menus[base_subdir]
 
     def generate_subdir_menu_contents(self, path):
+        #print("gsmc", path)
         subdir_contents = self.subdir_menu_contents[path]
+        paths_to_remove = []
+        for entry in subdir_contents:
+            #print("akakakaka", entry.path)
+            if entry.type in ["dir", "app"]:
+                #if entry.path.startswith(path): print(entry.path)
+                if entry.type == "dir" and entry.path not in self.subdir_menu_contents:
+                    #print("Unloaded dir?", entry.path)
+                    paths_to_remove.append(entry.path)
+                elif entry.type == "app" and entry.path not in self.app_list:
+                    #print("Unloaded app?", entry.path)
+                    #print(self.app_list.keys())
+                    paths_to_remove.append(entry.path)
+        subdir_contents = [entry for entry in subdir_contents if entry.path not in paths_to_remove]
+        # reassigning after cleaning
+        self.subdir_menu_contents[path] = subdir_contents
         ordering = self.get_ordering(path)
         unordered_contents = self.prepare_menu_contents_for_ordering(subdir_contents)
         menu_contents = self.order_contents_by_ordering(unordered_contents, ordering)
@@ -226,24 +247,27 @@ class AppManager(object):
         return subdir_contents
 
     def switch_to_subdir(self, path):
+        self.filter_empty_dirs()
         if self.subdir_menu_has_changed(path):
             # UX: preserve pointer
             logger.warning(f"Regenerating menu {path}")
             pointer = self.subdir_menus[path].pointer
             self.subdir_menus[path] = self.generate_subdir_menu_contents(path)
             self.subdir_menus[path].pointer = pointer
-            self.paths_changed.remove(path)
+            self.subdirs_changed.remove(path)
         self.subdir_menus[path].activate()
 
     def switch_to_app(self, path):
         self.cm.switch_to_context(path.replace("/", '.'))
 
     def subdir_menu_has_changed(self, path):
-        return path in self.paths_changed
+        return path in self.subdirs_changed
 
-    def subdir_menu_changed(self, path):
-        if path not in self.paths_changed:
-            self.paths_changed.append(path)
+    def subdir_menu_changed_for_app(self, path):
+        subdir = os.path.dirname(path)
+        #print("asdfasdfas", subdir)
+        if subdir not in self.subdirs_changed:
+            self.subdirs_changed.append(subdir)
 
     def order_contents_by_ordering(self, contents, ordering, strip_first_element=True):
         if ordering:
@@ -252,7 +276,8 @@ class AppManager(object):
 
     def process_internal_app(self, module_path):
         """
-        Process a ZPUI-directory-stored app given just its path, variables and all. Calls load_app_by_path and does a bunch of processing
+        Process a ZPUI-directory-stored app given just its path, variables and all.
+        Calls load_app_by_path and does a bunch of processing,
         like can_load and execute_after_contexts hook
         """
         try:
@@ -287,7 +312,7 @@ class AppManager(object):
 
     def process_external_app(self, app_ep):
         """
-        Processes an external app either by path or by endpoint
+        Processes an external app either by path (from config file) or by Python endpoint
         """
         app_name = None
         try:
@@ -364,6 +389,12 @@ class AppManager(object):
             self.failed_apps[module_path] = traceback.format_exc()
             return False
 
+    def get_entrypoint_apps(self):
+        return list(entry_points(group='zpui_app.3rdparty'))
+
+    def get_config_apps(self):
+        return self.config.get("app_paths", [])
+
     def load_all_apps(self, interactive=True):
         self.apps_blocked_in_config = self.config.get("do_not_load", [])
         if not isinstance(self.apps_blocked_in_config, list):
@@ -386,10 +417,10 @@ class AppManager(object):
                     failed_app_names = [os.path.split(p)[1] for p in self.failed_apps.keys()]
                     Printer(["Failed to load:"]+failed_app_names, self.i, self.orig_o, 0.5)
         # SECOND: entrypoint-based and config-file-based app loading
-        discovered_apps = list(entry_points(group='zpui_app.3rdparty'))
+        discovered_apps = self.get_entrypoint_apps()
         # workaround for systems where entrypoints don't work for one reason or another, i.e. dev on NixOS
         # giving you an ability to describe app paths in the main config file
-        manual_apps = self.config.get("app_paths", [])
+        manual_apps = self.get_config_apps()
         for app in discovered_apps + manual_apps:
             logger.debug("Loading endpoint/config app: "+str(app))
             with self.app_load_lock:
@@ -411,6 +442,88 @@ class AppManager(object):
         self.register_hooks()
         return base_menu
 
+    def api_load_app(self, path, parameters):
+        # a little sanitization
+        if path.endswith("/"): path = path.rstrip("/")
+        if not path.strip():
+            return api.RETURN_LOAD_NOTFOUND, "Empty app name provided!"
+        # Same API call for load, unload, reload, and so on
+        info = ""
+        do_log = parameters & api.FLAG_APP_DEBUG
+        # is app present in the app list for unload/reload?
+        if parameters & api.FLAG_APP_UNLOAD and not parameters & api.FLAG_APP_LOAD:
+            # if trying to unload (not reload!) non-loaded app, fail
+            if path not in self.app_list:
+                return api.RETURN_LOAD_NOTFOUND, "App unload not possible because app not found in the loaded app list!\n"
+        # reload is permissive though, it will proceed to load the app if not loaded.
+        # just like systemctl restart doesn't fail when given a stopped service
+        if parameters & api.FLAG_APP_UNLOAD : # if trying to unload non-loaded app, fail
+            if path not in self.app_list:
+                if do_log: info += "App unload not possible because app not found in the loaded app list! Loading instead of reloading\n"
+                parameters = parameters ^ api.FLAG_APP_UNLOAD # not doing unload in the flow
+        # paraameter verification done, proceeding to load
+        try:
+            app_source = self.for_api_determine_app_source(path)
+        except:
+            logger.exception("Error while determining app source")
+            info += traceback.format.exc()
+            return api.RETURN_LOAD_EXCEPTION, info
+        if do_log: info += f"App path recognized as {app_source} app\n"
+        logger.info(f"App path recognized as '{app_source}' app")
+        if app_source == "unknown":
+            info += "App path/name not recognized!\n"
+            return api.RETURN_LOAD_NOTFOUND, info
+        if parameters & api.FLAG_APP_UNLOAD:
+            # told to unload by path
+            ret, s = self.for_api_unload_app(path)
+            if s: info += s + '\n'
+            if ret != 0:
+                ret |= api.RETURN_UNLOAD_FAILED
+                return ret, info
+            else:
+                self.subdir_menu_changed_for_app(path)
+        if parameters & api.FLAG_APP_LOAD:
+            # told to load by path, too
+            ret, s = self.for_api_load_app(path)
+            if s: info += s + '\n'
+            if ret != 0:
+                ret |= api.RETURN_LOAD_FAILED
+                return ret, info
+            else:
+                self.subdir_menu_changed_for_app(path)
+        return 0, info
+
+    def for_api_determine_app_source(self, path):
+        # this logic is going to exist either way so I might as well make it explicit
+        # does the path exist in the app directory?
+        ep_names = [ep.name for ep in self.get_entrypoint_apps()]
+        config_paths = self.get_config_apps()
+        if path.startswith(self.app_directory) and not os.path.isabs(path) and os.path.isdir(path):
+            # app is in apps/ directory
+            return "local"
+        elif path in ep_names:
+            # app path is entrypoint
+            return "entrypoint"
+        elif path in config_paths:
+            return "config"
+        elif os.path.isabs(path) and os.path.exists(path): # well, it, sure exists on the filesystem
+            return "direct"
+        else:
+            logger.error(f"App path {path} not recognized!")
+            return "unknown"
+
+    def for_api_load_app(self, path):
+        logger.debug(f"API: loading app {path}")
+        return 0, ""
+
+    def for_api_unload_app(self, path):
+        logger.debug(f"API: unloading app {path}")
+        if path in self.app_list:
+            self.app_list.pop(path)
+            return 0, ""
+        else: # shouldn't happen
+            return api.RETURN_LOAD_NOTFOUND, "ERR attempting to load app {path} not in app list"
+
     def nonloaded_apps_provider(self):
         return copy(self.nonloaded_apps)
 
@@ -418,6 +531,9 @@ class AppManager(object):
         return copy(self.failed_apps)
 
     def register_hooks(self):
+        """
+        Registers context hooks (in particular, providers) of app manager
+        """
         try:
             main_context = self.cm.contexts["main"]
             main_context.set_provider("appmanager_nonloaded", self.nonloaded_apps_provider)
