@@ -127,7 +127,9 @@ class Screen(GraphicalOutputDevice, CharacterOutputDevice):
         Displays a PIL Image object onto the display.
         Also saves it for the case where display needs to be refreshed
         """
-        if self.suspended: return
+        if self.suspended:
+            self.current_image = image
+            return
         with self.busy_flag:
             self.current_image = image
             self._display_image(image)
