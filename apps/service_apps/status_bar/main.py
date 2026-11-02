@@ -40,7 +40,7 @@ def settings_statusbar():
     for name, zone in providers.items():
         hr_name = name[len(statusbar_prefix):].replace("_", " ").capitalize()
         cb_contents.append([hr_name, name, name not in config["disabled_items"]])
-    cb_contents.append(["Notifications", "notifs", "notifs" not in config["disabled_items"]])
+    #cb_contents.append(["Notifications", "notifs", "notifs" not in config["disabled_items"]])
     cb = Checkbox(cb_contents, i, o, name="Statusbar app item toggles setting")
     result = cb.activate()
     if result:
@@ -78,23 +78,23 @@ def generate_markup():
     """
     # currently-dummy zone for status bar notifs
     # this will soon get moved into a "Notifications" service app
-    def draw_notifs(zone, value):
-        text_size = int(zone.canvas.height // 2.5)
-        zone.canvas.text("Notifications will go here", (zone.o_params["height"]-5, 4), font=("Mukta-SemiBold.ttf", text_size))
-        return crop(zone.canvas.get_image(), min_height=zone.o_params["height"], align="vcenter")
-    zones["notifs"] = Zone(lambda: True, draw_notifs, name="Notifications", trimmable=True)
-    added_providers = (name for name in zones if name!= "notifs")
+    #def draw_notifs(zone, value):
+    #    text_size = int(zone.canvas.height // 2.5)
+    #    zone.canvas.text("Notifications will go here", (zone.o_params["height"]-5, 4), font=("Mukta-SemiBold.ttf", text_size))
+    #    return crop(zone.canvas.get_image(), min_height=zone.o_params["height"], align="vcenter")
+    #zones["notifs"] = Zone(lambda: True, draw_notifs, name="Notifications", trimmable=True)
+    added_providers = (name for name in zones if name!= "statusbar_notifications")
     markup = [[]]
-    if "notifs" not in config["disabled_items"]:
+    if "statusbar_notifications" not in config["disabled_items"]:
         markup[0].append(ZS(5))
-        markup[0].append("notifs")
+        markup[0].append("statusbar_notifications")
     markup[0].append("...")
     for provider in added_providers:
         if provider not in config["disabled_items"]:
             markup[0].append(provider)
     markup[0].append(ZS(5))
     return markup
-    #markup = [[ZS(5), "notifs", "...", *added_providers, ZS(5)]]
+    #markup = [[ZS(5), "statusbar_notifications", "...", *added_providers, ZS(5)]]
 
 class StatusBar():
     zm = None
