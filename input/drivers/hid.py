@@ -98,8 +98,18 @@ class InputDevice(InputSkeleton):
             logger.info("Suspended - ungrabbing device {} {}".format(self.name, self.path))
             self.device.ungrab()
         else:
+            self.flush_unread()
             logger.info("Unsuspended - grabbing device {} {}".format(self.name, self.path))
             self.device.grab()
+            self.flush_unread()
+
+    def flush_unread(self):
+        """Dumps all unread keys after suspend."""
+        event = True
+        while event:
+            event = self.device.read_one()
+            if event:
+                logger.debug(f"Dumping unread {event}")
 
     def runner(self):
         """Blocking event loop which just calls supplied callbacks in the keymap."""
