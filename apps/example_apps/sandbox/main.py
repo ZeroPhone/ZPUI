@@ -1,11 +1,20 @@
 menu_name = "Python sandbox"
 
 from zpui_lib.ui import Canvas
+from zpui_lib.helpers import setup_logger
+
+logger = setup_logger(__name__)
 
 i = None
 o = None
 c = None
 context = None
+
+try:
+    from __main__ import zpui
+except:
+    logger.exception("Failure getting zpui object!")
+
 
 def init_app(input, output):
     global i, o, c
