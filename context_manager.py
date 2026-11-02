@@ -2,11 +2,12 @@ from input.input import InputProxy
 from output.output import OutputProxy
 from action_manager import ActionManager
 
+import json
 from functools import wraps
 from threading import Thread, Lock
 
 from zpui_lib.actions import ContextSwitchAction
-from zpui_lib.helpers import setup_logger
+from zpui_lib.helpers import setup_logger, rpc_api as api
 
 logger = setup_logger(__name__, "info")
 
@@ -306,6 +307,17 @@ class ContextManager(object):
         self.provider_providers = {}
         self.switching_contexts = Lock()
         self.am = ActionManager(self)
+
+    def api_forward_notify(self, data_str, parameters):
+        provider = self.get_provider("notifications_receiver")
+        if provider:
+            try:
+                data = json.loads(data_str)
+            except:
+                return api.RETURN_NOTIFY_FAIL_DESERIALIZE, f"failed to deserialize data {data_str}!"
+            return provider(data, parameters)
+        #return api.RETURN_NOTIFY_FAIL_NOPROVIDER, "Notifications provider not yet loaded, notification queued"
+        return api.RETURN_NOTIFY_FAIL_NOPROVIDER, "Notifications provider not yet loaded, notification lost"
 
     def init_io(self, input_processor, screen):
         """
