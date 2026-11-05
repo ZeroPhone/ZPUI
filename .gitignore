@@ -85,3 +85,7 @@ do_not_load
 *.patch
 
 .DS_Store
+
+# Files created by the failsafe backup mechanism?
+# probably worth keeping so that backed up files are noticeable in git.
+#*.old_*
