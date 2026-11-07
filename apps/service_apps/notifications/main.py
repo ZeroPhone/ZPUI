@@ -15,7 +15,7 @@ i = None; o = None
 
 local_path = local_path_gen(__name__)
 
-default_config = "history_file:history.log"
+default_config = "history_file: history.log"
 config = read_or_create_config(local_path("config.yaml"), default_config, menu_name+" app")
 save_config = save_config_gen(local_path("config.yaml"))
 
