@@ -79,6 +79,7 @@ class ScreensaverApp(ZeroApp):
         result = c.request_activity_cb()
         if not result:
             logger.error("Request activity cb context action refused!")
+        c.request_unable_to_be_previous()
 
     def execute_after_contexts(self):
         # let's only start the screensaver after all other apps are mostly-loaded

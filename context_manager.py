@@ -266,6 +266,13 @@ class Context(object):
         """
         return self.event_cb(self.name, "request_activity_cb")
 
+    def request_unable_to_be_previous(self):
+        """
+        Useful as a workaround for apps that "pop out of nowhere", so to say - ZeroMenu, screensaver, phone and so on.
+        Is a safeguard for a context switching bug I can't really pin down right now.
+        """
+        return self.event_cb(self.name, "request_unable_to_be_previous")
+
     def set_provider(self, provider_type, provider):
         """
         A function for apps to use to set themselves as providers for different roles.
@@ -317,6 +324,7 @@ class ContextManager(object):
         self.am = ActionManager(self)
         self.send_activity_to = []
         self.activity_hook_errors = [] # for error message throttling
+        self.unable_to_be_previous = []
 
     def api_forward_notify(self, data_str, parameters):
         provider = self.get_provider("notifications_receiver")
@@ -398,7 +406,10 @@ class ContextManager(object):
         """
         # Saving the current context alias in the "previous context" storage
         if context_alias != self.current_context:
-            self.previous_contexts[context_alias] = self.current_context
+            if self.current_context not in self.unable_to_be_previous:
+                self.previous_contexts[context_alias] = self.current_context
+            else:
+                self.previous_contexts[context_alias] = self.fallback_context
             with self.switching_contexts:
                 try:
                     self.unsafe_switch_to_context(context_alias, start_thread=start_thread, func=func)
@@ -543,6 +554,8 @@ class ContextManager(object):
         # If previous context is, by some chance, the same, let's fall back
         if prev_context == context_alias:
             prev_context = self.fallback_context
+        elif prev_context in self.unable_to_be_previous:
+            prev_context = self.fallback_context
         return prev_context
 
     def failsafe_left_handler(self, context_alias):
@@ -616,6 +629,9 @@ class ContextManager(object):
                 logger.error("Context {} requested activity monitoring - not allowed!".format(context_alias))
                 return False
             self.am.register_firstboot_action(action, context_alias)
+        elif event == "request_unable_to_be_previous":
+            if context_alias not in self.unable_to_be_previous:
+                self.unable_to_be_previous.append(context_alias)
         elif event == "request_zpui":
             if context_alias in self.allowed_zpui_contexts:
                 if not self.zpui:

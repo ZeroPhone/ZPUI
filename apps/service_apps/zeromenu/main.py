@@ -31,6 +31,7 @@ def set_context(received_context):
         context.request_global_keymap({"KEY_PROG2":context.request_switch})
     context.threaded = True
     context.set_target(zeromenu.activate)
+    context.request_unable_to_be_previous()
 
 def set_ordering():
     pass
