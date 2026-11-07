@@ -52,6 +52,16 @@ class InputProcessor(object):
             self.initial_drivers[name] = driver
         atexit.register(self.atexit)
         self.suspended = False
+        self.activity_hook = None
+
+    def call_activity_hook(self, **data):
+        if self.activity_hook and callable(self.activity_hook):
+            try:
+                self.activity_hook("input", **data)
+            except:
+                logger.exception("Input activity hook error!")
+        else:
+            logger.error("Input activity unset or not callable!")
 
     def suspend(self):
         self.suspended = True
@@ -263,6 +273,7 @@ class InputProcessor(object):
             global_cb = self.global_keymap[key]
             if not self.global_key_processed_by_proxy(key, state, global_cb):
                 self.handle_callback(global_cb, key, state, type="global")
+            if self.activity_hook: self.call_activity_hook(action="global", key=key)
             return
         # Now, all the callbacks are either proxy callbacks or backlight-related
         # Saving a reference to current_proxy, in case it changes during the lookup
@@ -270,6 +281,7 @@ class InputProcessor(object):
         if current_proxy and key in current_proxy.nonmaskable_keymap:
             callback = current_proxy.nonmaskable_keymap[key]
             self.handle_callback(callback, key, state, type="nonmaskable", context_name=current_proxy.context_alias)
+            if self.activity_hook: self.call_activity_hook(action="nonmaskable", key=key)
             return
         # Checking backlight state, turning it on if necessary
         if callable(self.backlight_cb):
@@ -281,22 +293,27 @@ class InputProcessor(object):
             else:
                 # If backlight was off, ignore the keypress
                 if backlight_was_off is True:
+                    if self.activity_hook: self.call_activity_hook(action="backlight_on", key=key)
                     return
         # Now, all the other callbacks of the proxy:
         # Simple callbacks
         if current_proxy and key in current_proxy.keymap:
             callback = current_proxy.keymap[key]
             self.handle_callback(callback, key, state, context_name=current_proxy.context_alias)
-        #Maskable callbacks
+            if self.activity_hook: self.call_activity_hook(action="regular", key=key)
+        # Maskable callbacks
         elif current_proxy and key in current_proxy.maskable_keymap:
             callback = current_proxy.maskable_keymap[key]
             self.handle_callback(callback, key, state, type="maskable", context_name=current_proxy.context_alias)
-        #Keycode streaming
+            if self.activity_hook: self.call_activity_hook(action="maskable", key=key)
+        # Keycode streaming
         elif current_proxy and callable(current_proxy.streaming):
             self.handle_callback(current_proxy.streaming, key, state, pass_key=True, type="streaming", context_name=current_proxy.context_alias)
+            if self.activity_hook: self.call_activity_hook(action="streaming", key=key)
         else:
             logger.debug("Key {} has no handlers - ignored!".format(key))
-            pass #No handler for the key
+            if self.activity_hook: self.call_activity_hook(action="unhandled", key=key)
+            pass # No handler for the key
 
     def handle_callback(self, callback, key, state, pass_key=False, type="simple", context_name=None):
         try:

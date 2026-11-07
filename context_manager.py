@@ -259,6 +259,13 @@ class Context(object):
         """
         return self.event_cb(self.name, "request_global_keymap", keymap)
 
+    def request_activity_cb(self):
+        """
+        A function for apps to request that their activity cb be executed.
+        Useful for the screensaver, as well as backlight control in the future.
+        """
+        return self.event_cb(self.name, "request_activity_cb")
+
     def set_provider(self, provider_type, provider):
         """
         A function for apps to use to set themselves as providers for different roles.
@@ -298,6 +305,7 @@ class ContextManager(object):
                              "apps.utils.minimize", # for suspend/unsuspend
                              #"apps.settings", # for getting the contextmanager (but currently request_zpui is a little tricky to weave into the code)
     ]
+    allowed_activity_contexts = ["apps.service_apps.screensaver"]
 
     def __init__(self, zpui=None):
         self.zpui = zpui
@@ -307,6 +315,8 @@ class ContextManager(object):
         self.provider_providers = {}
         self.switching_contexts = Lock()
         self.am = ActionManager(self)
+        self.send_activity_to = []
+        self.activity_hook_errors = [] # for error message throttling
 
     def api_forward_notify(self, data_str, parameters):
         provider = self.get_provider("notifications_receiver")
@@ -320,12 +330,25 @@ class ContextManager(object):
         return api.RETURN_NOTIFY_FAIL_NOPROVIDER, "Notifications provider not yet loaded, notification lost"
 
     def init_io(self, input_processor, screen):
-        """
-        Saves references to hardware IO objects and creates initial contexts.
-        """
+        """ Saves references to hardware IO objects and creates initial contexts. """
         self.input_processor = input_processor
         self.screen = screen
+        self.input_processor.activity_hook = self.activity_hook
+        self.screen.activity_hook = self.activity_hook
         self.create_initial_contexts()
+
+    def activity_hook(self, source_name, **data):
+        for context_alias in self.send_activity_to:
+            try:
+                context = self.contexts[context_alias]
+                context.activity_hook(source_name, **data)
+            except:
+                logger.exception(f"Activity hook failure for context {context_alias}, throttling further messages:")
+                self.activity_hook_errors.append(context_alias)
+            else:
+                if context_alias in self.activity_hook_errors:
+                    self.activity_hook_errors.remove(context_alias)
+                    logger.debug(f"Activity hook success after failures for context {context_alias}, messages unthrottled")
 
     def create_initial_contexts(self):
         """
@@ -581,15 +604,27 @@ class ContextManager(object):
         elif event == "register_firstboot_action":
             action = args[0]
             self.am.register_firstboot_action(action, context_alias)
+        elif event == "request_activity_cb":
+            if context_alias in self.allowed_activity_contexts:
+                if context_alias not in self.send_activity_to:
+                    self.send_activity_to.append(context_alias)
+                    logger.info("Context {} requested activity monitoring - allowed".format(context_alias))
+                else:
+                    logger.warning("Context {} requested activity monitoring - already registered".format(context_alias))
+                return True
+            else:
+                logger.error("Context {} requested activity monitoring - not allowed!".format(context_alias))
+                return False
+            self.am.register_firstboot_action(action, context_alias)
         elif event == "request_zpui":
             if context_alias in self.allowed_zpui_contexts:
                 if not self.zpui:
-                    logger.warning("Context {} requested ZPUI object but none was assigned!".format(context_alias))
+                    logger.error("Context {} requested ZPUI object but none was assigned!".format(context_alias))
                     return None
                 logger.info("Context {} requested ZPUI object, allowing".format(context_alias))
                 return self.zpui
             else:
-                logger.warning("Context {} requested ZPUI object - not allowed!".format(context_alias))
+                logger.error("Context {} requested ZPUI object - not allowed!".format(context_alias))
                 return None
         elif event == "request_exclusive":
             if self.exclusive_context and self.exclusive_context != context_alias:
@@ -601,7 +636,7 @@ class ContextManager(object):
                 self.switch_to_context(context_alias)
                 return True
             else:
-                logger.warning("Context {} requested exclusive switch - not allowed!".format(context_alias))
+                logger.error("Context {} requested exclusive switch - not allowed!".format(context_alias))
                 return False
         elif event == "rescind_exclusive":
             if self.exclusive_context == context_alias:
