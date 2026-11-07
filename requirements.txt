@@ -16,7 +16,7 @@ responses
 kmodpy
 PyRIC
 wpasupplicantconf==0.1.0
-zpui_lib>=1.5.0
+zpui_lib>=1.5.1
 pyyaml
 qrcode[pil]
 zpui_cli>=0.1.1
