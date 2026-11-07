@@ -86,7 +86,7 @@ class ScreensaverApp(ZeroApp):
     def activity_hook(self, source, **data):
         allowed_sources = self.config.get("allowed_sources", self.all_sources)
         if source in allowed_sources:
-            logger.debug("Screensaver activity: {source} {data}")
+            logger.debug(f"Screensaver activity: {source} {data}")
             self.activity_queue.put((source, data))
         else:
             logger.debug(f"Ignoring activity from disallowed source {source} {data}")
@@ -129,7 +129,7 @@ class ScreensaverApp(ZeroApp):
         self.process_images()
 
     def toggle_enabled(self):
-        self.config["enabled"] = not self.config.get("enabled", False)
+        self.config["enabled"] = not self.config.get("enabled", True)
         if self.config["enabled"]:
             # starting if it was stopped
             self.activate_screensaver_thread()
@@ -177,7 +177,7 @@ class ScreensaverApp(ZeroApp):
     def process_images(self):
         self.processed_images = {}
         for path, image in self.images.items():
-            if path in self.config["excluded_images"]:
+            if path in self.config.get("excluded_images", []):
                 continue
             try:
                 if "color" not in self.o.type:
@@ -185,13 +185,13 @@ class ScreensaverApp(ZeroApp):
                     image = image.convert(self.o.device_mode, dither=Image.Dither.FLOYDSTEINBERG)
                 else:
                     image = image.convert(self.o.device_mode)
-                if self.config["global_invert"]:
+                if self.config.get("global_invert", False):
                     try:
                         image = invert_image(image)
                     except:
                         logger.exception(f"Failed to invert image {path}!")
                         break
-                if path in self.config["inverted_images"]:
+                if path in self.config.get("inverted_images", []):
                     # this will double-invert some images during global invert, which is probably fine?
                     try:
                         image = invert_image(image)
@@ -221,7 +221,7 @@ class ScreensaverApp(ZeroApp):
         logger.info("Screensaver thread started")
         self.activated = BooleanEvent()
         self.last_activity_time = time()
-        while self.config["enabled"]:
+        while self.config.get("enabled", True):
             if do_stop: return
             item = None
             try:
