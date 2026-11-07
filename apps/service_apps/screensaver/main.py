@@ -1,7 +1,7 @@
 import os
 from time import sleep, time
 
-from zpui_lib.ui import Canvas, Menu, open_image, invert_image, fit_image_to_dims, IntegerAdjustInput, Checkbox
+from zpui_lib.ui import Canvas, Menu, open_image, invert_image, fit_image_to_dims, IntegerAdjustInput, Checkbox, TextReader
 from zpui_lib.apps import ZeroApp
 from zpui_lib.ui.base_ui import BaseUIElement
 from zpui_lib.actions import ContextSwitchAction
@@ -44,6 +44,7 @@ class ScreensaverApp(ZeroApp):
         self.screensaver_br = None # for tracking whether the screensaver backgroundrunner has been set
         self.activity_queue = Queue()
         self.do_stop = BooleanEvent()
+        self.inhibit_screensaver = BooleanEvent()
 
     def load_images(self, images_path=None):
         # default parameter to be able to run this function from a Menu
@@ -101,11 +102,19 @@ class ScreensaverApp(ZeroApp):
                 ["Exclude images", self.exclude_images_menu],
                 ["Invert images", self.invert_images_menu],
                 ["Global invert: {}".format("ON" if self.config.get("global_invert", False) else "OFF"), self.toggle_global_invert],
+                ["Attribution", self.show_attribution],
             ]
             return mc
+        self.inhibit_screensaver.set()
         Menu([], self.i, self.o, contents_hook=get_mc, name="Screensaver settings menu").activate()
+        self.inhibit_screensaver.clear()
 
     settings_screensaver.name = "Screensaver settings"
+
+    def show_attribution(self):
+        text = """# Credits
+        Images by WifiCable"""
+        TextReader(text, self.i, self.o, name="Screensaver credits textreader").activate()
 
     def configure_sources(self):
         current_sources = self.config.get("allowed_sources", self.all_sources)
@@ -253,10 +262,14 @@ class ScreensaverApp(ZeroApp):
                         pass
             # now we check if screensaver should be activated, and activate if activity timeout exceeded
             if time() - self.last_activity_time > self.config.get("timeout", 300) and not self.activated:
-                self.o.display_image(self.processed_images[list(self.processed_images.keys())[0]])
-                if not self.context.request_switch():
-                    logger.error("Can't switch to context!")
+                if not self.inhibit_screensaver:
+                    self.o.display_image(self.processed_images[list(self.processed_images.keys())[0]])
+                    if not self.context.request_switch():
+                        logger.error("Can't switch to context!")
+                    else:
+                        logger.debug("Context switched!")
+                        self.activated.set()
+                        logger.info("Screensaver activated")
                 else:
-                    logger.debug("Context switched!")
-                    self.activated.set()
-                    logger.info("Screensaver activated")
+                    # inhibited, we're probably in screensaver settings. which makes this simple code freak out lol
+                    sleep(1)
