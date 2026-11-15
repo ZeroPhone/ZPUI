@@ -9,7 +9,7 @@ import os
 from zpui_lib.apps import ZeroApp
 from zpui_lib.ui import Menu, Printer, PrettyPrinter, Canvas, IntegerAdjustInput
 from zpui_lib.helpers import ExitHelper, local_path_gen, setup_logger, remove_left_failsafe, BackgroundRunner, get_platform
-
+from zpui_lib.libs.hw import beepy as beepy_lib
 
 from smbus import SMBus
 
@@ -24,6 +24,7 @@ class BeepyApp(ZeroApp):
 
     menu_name = "Beepy control"
 
+    # a lot of this file read-write logic will be moved into beepy lib
     fw_dir = "/sys/firmware/beepy/"
     batt_per_path = "battery_percent"
     batt_raw_path = "battery_raw"
@@ -35,7 +36,9 @@ class BeepyApp(ZeroApp):
     charger_enable_path = "charger_enabled"
     charger_power_path = "charger_power"
     backlight_path = "keyboard_backlight"
+    display_backlight_path = "display_backlight"
     vibromotor_path = "vibromotor"
+    fw_version_path = "fw_version"
 
     """
     root@bepis:~# ls /sys/firmware/beepy/
@@ -50,8 +53,15 @@ class BeepyApp(ZeroApp):
         # dynamic menu name
         if "snowdive" in get_platform():
             self.menu_name = "Snowdive control"
+            beepy_lib.set_device("snowdive")
         elif "blepis" in get_platform():
             self.menu_name = "Blepis control"
+            beepy_lib.set_device("blepis")
+        elif "colorberry" in get_platform():
+            self.menu_name = "Colorberry control"
+            beepy_lib.set_device("colorberry")
+        else:
+            beepy_lib.set_device("beepy")
 
     def set_context(self, c):
         self.context = c
@@ -112,6 +122,18 @@ class BeepyApp(ZeroApp):
 
     def backlight_get(self):
         # not all driver versions support reading the backlight level
+        return self.try_read_file(self.backlight_path)
+
+    def display_backlight_set(self):
+        current_backlight_level = int(self.display_backlight_get())
+        number_input = IntegerAdjustInput(current_backlight_level, self.i, self.o, interval=10, max=255, min=0)
+        backlight_level =  number_input.activate()
+        if backlight_level != None:
+            logger.info("Setting backlight level to {}".format(backlight_level))
+            with open(os.path.join(self.fw_dir, self.backlight_path), "w") as f:
+                f.write(str(backlight_level))
+
+    def display_backlight_get(self):
         return self.try_read_file(self.backlight_path)
 
     def vibromotor_set(self):
@@ -214,6 +236,9 @@ class BeepyApp(ZeroApp):
     def charger_power_set(self, state):
         logger.info("Setting charger power state to {}".format(str(int(state))))
         self.set_file_binary(self.charger_power_path, state)
+
+    def fw_version(self):
+        return self.try_read_file(self.fw_version_path)
 
     def usb_input_mode_graphic(self):
         c = Canvas(self.o)
@@ -353,39 +378,50 @@ class BeepyApp(ZeroApp):
 
     def on_start(self):
         def ch():
+            # example capabilities from blepis-kbd 3.1 on Snowdive v0
+            #['usb_km', 'battery', 'display_backlight', 'keyboard_backlight',
+            #'led', 'mux_fusb', 'mux_usb', 'mux_uart', 'vibromotor', 'charger',
+            #'gpio', 'fw_version', 'keyboard_freq', 'rewake_timer', 'fw_update',
+            #'last_keypress', 'startup_reason']
+            mc = []
+            capabilities = beepy_lib.get_capabilities()
+            if "emulator" in get_platform():
+                capabilities = ["battery", "keyboard_backlight"]
+            # backlight is always present
+            # on older drivers, backlight can be present without keyboard_backlight, and in that case, it controls both backlights
             backlight = self.backlight_get()
-            backlight_str = "Backlight: {}".format(backlight) if backlight != None else "Backlight"
-            battery = self.get_battery()
-            battery_str = "Battery: {}V".format(battery) if battery != None else "Battery V: Unknown"
-            usb_keyboard = self.usb_keyboard_get() != None # (True if not None, since None means an exception has occured)
-            mux_fusb = self.mux_fusb_get()
-            mux_usb = self.mux_usb_get()
-            charger_enabled = self.charger_enable_get()
-            charger_power = self.charger_power_get()
-            vibromotor_value = self.vibromotor_get()
-            mc = [
-                  [backlight_str, self.backlight_set],
-                  [battery_str],
-            ]
-            if usb_keyboard != None:
+            if "display_backlight" in capabilities:
+                backlight_str = "Backlight: {}".format(backlight) # any driver supporting display_backlight also supports backlight fetch
+                display_backlight_str = "Display BL: {}".format(self.display_backlight_get())
+            else:
+                backlight_str = "Backlight: {}".format(backlight) if backlight != None else "Backlight"
+            if "display_backlight" in capabilities:
+                mc.append([display_backlight_str, self.display_backlight_set])
+            mc.append([backlight_str, self.backlight_set])
+            if "battery" in capabilities: # always present but why not make it a lil neater
+                battery = self.get_battery()
+                battery_str = "Battery: {}V".format(battery) if battery != None else "Battery V: Unknown"
+                mc.append([battery_str])
+            if "usb_keyboard_mouse" in capabilities:
                 mc.append(["USB input mode", self.usb_input_mode])
-            if charger_enabled != None:
-                state = "on" if charger_enabled == True else "off"
+            if "charger" in capabilities:
+                state = "on" if self.charger_enable_get() == True else "off"
                 mc.append(["Charging: {}".format(state), self.charger_enable_toggle])
-            if charger_power != None:
-                state = "high" if charger_power == True else "low"
+                state = "high" if self.charger_power_get() == True else "low"
                 mc.append(["Charger power: {}".format(state), self.charger_power_toggle])
-            if mux_fusb != None:
-                state = "Pi Zero" if mux_fusb == True else "RP2040"
+            if "mux_fusb" in capabilities:
+                state = "Pi Zero" if self.mux_fusb_get() == True else "RP2040"
                 mc.append(["FUSB302 mux: {}".format(state), self.mux_fusb_toggle])
-            if mux_usb != None: # snowdive: choice between passthru and hub
+            if "mux_usb" in capabilities: # snowdive: choice between passthru and hub
                 if "snowdive" in get_platform():
-                    state = "passthru" if mux_usb == True else "hub"
+                    state = "passthru" if self.mux_usb_get() == True else "hub"
                 else: # other option is blepis, choice between RP2040 interface and USB host mode
-                    state = "RP2040" if mux_usb == True else "host"
+                    state = "RP2040" if self.mux_usb_get() else "host"
                 mc.append(["USB mux: {}".format(state), self.mux_usb_toggle])
-            if vibromotor_value != None:
-                mc.append(["Vibromotor: {}".format(vibromotor_value), self.vibromotor_set])
+            if "vibromotor" in capabilities:
+                mc.append(["Vibromotor: {}".format(self.vibromotor_get()), self.vibromotor_set])
+            if "fw_version" in capabilities:
+                mc.append(["Firmware: {}".format(self.fw_version())])
             return mc
         if not hasattr(self, "m"):
             self.m = Menu([], self.i, self.o, contents_hook=ch, name="Beepy control app main menu")
