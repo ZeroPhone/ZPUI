@@ -130,11 +130,11 @@ class BeepyApp(ZeroApp):
         backlight_level =  number_input.activate()
         if backlight_level != None:
             logger.info("Setting backlight level to {}".format(backlight_level))
-            with open(os.path.join(self.fw_dir, self.backlight_path), "w") as f:
+            with open(os.path.join(self.fw_dir, self.display_backlight_path), "w") as f:
                 f.write(str(backlight_level))
 
     def display_backlight_get(self):
-        return self.try_read_file(self.backlight_path)
+        return self.try_read_file(self.display_backlight_path)
 
     def vibromotor_set(self):
         class VibromotorControl(IntegerAdjustInput):
@@ -391,7 +391,7 @@ class BeepyApp(ZeroApp):
             # on older drivers, backlight can be present without keyboard_backlight, and in that case, it controls both backlights
             backlight = self.backlight_get()
             if "display_backlight" in capabilities:
-                backlight_str = "Backlight: {}".format(backlight) # any driver supporting display_backlight also supports backlight fetch
+                backlight_str = "Keyboard BL: {}".format(backlight) # any driver supporting display_backlight also supports backlight fetch
                 display_backlight_str = "Display BL: {}".format(self.display_backlight_get())
             else:
                 backlight_str = "Backlight: {}".format(backlight) if backlight != None else "Backlight"
