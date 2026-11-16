@@ -98,7 +98,7 @@ def set_led(state):
             logger.error(f"Color {state} not found in beepy lib!")
             color_rgb = (10, 0, 0)
         if not is_emulator():
-            beepy_lib.write_led(*color_rgb, led_num)
+            beepy_lib.led_write(*color_rgb, led_num)
         else:
             logger.debug(f"Would display color {color} ({color_rgb})")
 
