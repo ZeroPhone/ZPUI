@@ -310,6 +310,7 @@ class ContextManager(object):
                              "apps.service_apps.firstboot_wizard", # for getting context_manager
                              "apps.hardware_apps.beepy", # for suspend/unsuspend in USB input mode
                              "apps.utils.minimize", # for suspend/unsuspend
+                             "apps.media.mpd", # because uh testing and default keybinds =D
                              #"apps.settings", # for getting the contextmanager (but currently request_zpui is a little tricky to weave into the code)
     ]
     allowed_activity_contexts = ["apps.service_apps.screensaver"]

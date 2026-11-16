@@ -2,13 +2,15 @@ menu_name = "MPD control (mpc)"
 
 import os
 import shlex
-
 from subprocess import call, CalledProcessError
+
 from zpui_lib.ui import Menu, PrettyPrinter as Printer, DialogBox, IntegerAdjustInput, IntegerAdjustInputOverlay, UniversalInput
-from zpui_lib.helpers import read_or_create_config, local_path_gen, save_config_gen
+from zpui_lib.helpers import read_or_create_config, local_path_gen, save_config_gen, setup_logger
 
 i = None
 o = None
+
+logger = setup_logger(__name__, "info")
 
 default_config = """command: mpc
 seek_amount: 60"""
@@ -31,8 +33,8 @@ def get_ia(*args, **kwargs):
 
 #mpc commands
 def mpc_command(*command, **options):
-    host = config.get("mpc_host", None)
-    port = config.get("mpc_port", None)
+    host = config.get("mpd_host", None)
+    port = config.get("mpd_port", None)
     env = {}
     if host != None and host != "":
         env["MPD_HOST"] = host
@@ -41,7 +43,9 @@ def mpc_command(*command, **options):
     try:
         mpc = config["command"]
         mpc = shlex.split(mpc) if not isinstance(mpc, list) else mpc
-        return call(mpc + list(command), env=env)
+        cmd = mpc + list(command)
+        logger.debug(f"Calling {repr(cmd)} with env {repr(env)}")
+        return call(cmd, env=env)
     except (IOError, CalledProcessError):
         #We shouldn't print anything to the screen if called from a non-maskable callback
         silent = options.get("silent", False)
@@ -73,7 +77,7 @@ def option_switch_dialog(option, options):
     option_list = options.split('/')
     option_list_db = [[opt.capitalize(), opt] for opt in option_list]
     answer = DialogBox(option_list_db, i, o, message=option.capitalize()+":", name="mpc {} option control dialog".format(option)).activate()
-    if answer: mpc_switch_option(answer, option)
+    if answer: mpc_switch_option(option, answer)
 
 def mpc_switch_option(switch_type, option):
     mpc_command(switch_type, option)
