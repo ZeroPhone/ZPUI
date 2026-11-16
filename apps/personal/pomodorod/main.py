@@ -5,7 +5,7 @@ from datetime import datetime
 from threading import Lock
 
 from zpui_lib.ui import Menu, MenuExitException, Refresher
-from zpui_lib.helpers import setup_logger, read_or_create_config, local_path_gen, save_config_gen, BackgroundRunner, BooleanEvent, is_emulator
+from zpui_lib.helpers import setup_logger, read_or_create_config, local_path_gen, save_config_gen, BackgroundRunner, BooleanEvent, is_emulator, get_platform()
 from zpui_lib.libs.hw import beepy as beepy_lib
 
 local_path = local_path_gen(__name__)
