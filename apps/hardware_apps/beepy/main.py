@@ -49,19 +49,10 @@ class BeepyApp(ZeroApp):
     """
 
     def init_app(self):
-        self.driver_found = self.try_detect_driver()
+        self.driver_found = beepy_lib.driver_loaded()
         # dynamic menu name
-        if "snowdive" in get_platform():
-            self.menu_name = "Snowdive control"
-            beepy_lib.set_device("snowdive")
-        elif "blepis" in get_platform():
-            self.menu_name = "Blepis control"
-            beepy_lib.set_device("blepis")
-        elif "colorberry" in get_platform():
-            self.menu_name = "Colorberry control"
-            beepy_lib.set_device("colorberry")
-        else:
-            beepy_lib.set_device("beepy")
+        device = beepy_lib.set_device_from_platform(get_platform())
+        menu_name = f"{device.capitalize()} control"
 
     def set_context(self, c):
         self.context = c
@@ -84,19 +75,9 @@ class BeepyApp(ZeroApp):
                 logger.debug("Error when reading file {}".format(file))
             return None
 
-    def try_detect_driver(self):
-        try:
-            self.try_read_file(self.batt_volt_path, quiet=False)
-        except:
-            if "emulator" in get_platform():
-                logger.info("Beepy driver not found but emulator detected, loading the app anyway")
-            else:
-                logger.info("Beepy driver is not loaded?")
-            return False
-        return True
-
     def can_load(self):
         if "emulator" in get_platform():
+            logger.info("Beepy driver not found but emulator detected, loading the app anyway")
             return True # for debug purposes
         else:
             if self.driver_found:
