@@ -86,26 +86,26 @@ def settings():
     Menu(mc, i, o, name="MOCP settings menu").activate()
 
 main_menu_contents = [
-["Toggle play/pause", mocp_toggle_play],
-["Next song", mocp_next],
-["Previous song", mocp_prev],
-["Seek forwards", mocp_seek_autof, mocp_seek_ui_f],
-["Seek backwards", mocp_seek_autob, mocp_seek_ui_b],
-["Shuffle", shuffle_dialog],
-["Repeat", repeat_dialog],
-["Autonext", autonext_dialog],
-["Settings", settings]
+  ["Toggle play/pause", mocp_toggle_play],
+  ["Next song", mocp_next],
+  ["Previous song", mocp_prev],
+  ["Seek forwards", mocp_seek_autof, mocp_seek_ui_f],
+  ["Seek backwards", mocp_seek_autob, mocp_seek_ui_b],
+  ["Shuffle", shuffle_dialog],
+  ["Repeat", repeat_dialog],
+  ["Autonext", autonext_dialog],
+  ["Settings", settings]
 ]
 
-def set_global_callbacks():
-    import __main__ #HHHHHAAAAAAAAAAAXXXX
-    __main__.zpui.input_processor.set_global_callback("KEY_PROG1", mocp_next)
-    __main__.zpui.input_processor.set_global_callback("KEY_CAMERA", mocp_prev)
+def set_global_callbacks(zpuo):
+    zpui.input_processor.set_global_callback("KEY_PROG1", mocp_next)
+    zpui.input_processor.set_global_callback("KEY_CAMERA", mocp_prev)
 
-def init_app(input, output):
-    global i, o
-    i = input; o = output
-    set_global_callbacks()
+def set_context(c):
+    return # not setting these for now. These should be KeyActions, and KeyAction juggling mechanism is not implemented yet
+    zpui = c.request_zpui()
+    if zpui:
+        set_global_callbacks(zpui)
 
 def callback():
     Menu(main_menu_contents, i, o, "MOCP menu").activate()
