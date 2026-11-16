@@ -10,9 +10,13 @@ from zpui_lib.helpers import setup_logger, BackgroundRunner, ExitHelper, Boolean
 
 from gi.repository import GLib
 
-import ModemWatcher
-
 logger = setup_logger(__name__, "warning")
+
+try:
+    import ModemWatcher
+except:
+    logger.error("ModemWatcher import fail, not loading the app!")
+    ModemWatcher = None
 
 default_config = """app_enabled: false"""
 config_filename = "config.yaml"
@@ -27,7 +31,7 @@ class PhoneApp(ZeroApp):
         # connect to phone interface here
         self.config = read_or_create_config(local_path(config_filename), default_config, self.menu_name+" app")
         self.save_config = save_config_method_gen(self, local_path(config_filename))
-        if self.config.get("app_enabled", False):
+        if self.config.get("app_enabled", False) and ModemWatcher != None:
             # activating the app for the purposes of showing up in the main menu
             self.callback = self.default_callback
         else:
