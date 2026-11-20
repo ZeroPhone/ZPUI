@@ -57,7 +57,7 @@ class App(ZeroApp):
     def pd_checker(self, stop_flag):
         # is ran as a thread
         self.fusb_state = (-1, -1)
-        i2c = smbus.SMBus(1)
+        i2c = smbus.SMBus(self.config.get("i2c_bus", 1))
         fusb = fusb302.FUSB302(i2c)
         # init!
         fusb.host_current = 0b01
@@ -69,33 +69,35 @@ class App(ZeroApp):
         def mask_all_except_toggle(): # a little in-place helper
             fusb.i2c_write(fusb.REG_MASK, bytes((0xfe,)) )
             fusb.i2c_write(fusb.REG_MASKA, bytes((0xbf,)) )
-            fusb.i2c_write(fusb.REG_MASKA, bytes((0x01,)) )
+            fusb.i2c_write(fusb.REG_MASKB, bytes((0x01,)) )
         mask_all_except_toggle()
-        self.fusb_state = (-1, -1)
+        fusb.set_toggle(True)
+        self.fusb_state = (0, 0)
         if stop_flag: return # checking for immediate exit
         while not stop_flag:
             inta = fusb.interrupt_a()
-            if (inta >> 6 & 0b1):
+            if ((inta >> 6) & 0b1):
                 logger.debug("FUSB int triggered")
                 polarity_tuple = fusb.str_pol()
                 self.fusb_state = polarity_tuple
                 #print(pol, fusb.polarity_names[polarity_tuple[1]])
-                if pol != (0, 0):
+                if polarity_tuple != (0, 0):
                     logger.debug("pol found; interrupts: " + str( list(map(bin, fusb.interrupts() )) ) )
                     fusb.set_toggle(False)
                     sleep(0.1)
                     # toggle restart
                     fusb.set_controls_sink()
-                    fusb.set_toggle(False)
+                    fusb.set_toggle(True)
                     mask_all_except_toggle() # might be unnecessary
             else:
-                pass # other int, somehow
-            sleep(1)
+                logger.debug("toggle found nothing")
+                self.fusb_state = (0, 0)
+            sleep(0.7)
 
     def pd_checker_thread_start(self):
         stop_flag = BooleanEvent()
         self.pd_checker_thread = BackgroundRunner(self.pd_checker, stop_flag)
-        self.pd_checher_thread.run()
+        self.pd_checker_thread.run()
         return stop_flag
 
     def get_pd_checker_state(self):
@@ -111,12 +113,14 @@ class App(ZeroApp):
         role_str = fusb302.FUSB302.polarity_names[role]
         if role_str == "unknown":
             role_str = "fault"
-        lines = [f"Role: '{role_str}'"]
+        lines = [f"Role: {role_str}"]
         if role_str in ["source", "sink"]:
+            opposite = "source" if role_str=="sink" else "sink"
+            lines.append(f"connected to: {opposite}")
             lines.append(f"CC: {cc}")
         if role_str == "audio":
-            lines.append("(audio adapter)")
-        lines = line.center(self.o.cols)
+            lines.append("(passive audio)")
+        lines = [line.center(self.o.cols) for line in lines]
         return lines
 
     def ui_pd_checker(self):
@@ -130,7 +134,7 @@ class App(ZeroApp):
             Printer("FUSB MUX read/write fail!", self.i, self.o, 2)
             return
         stop_flag = self.pd_checker_thread_start()
-        r = Refresher(self.get_pd_checker_state, self.i, self.o, 1, name="PD checker refresher")
+        r = Refresher(self.get_pd_checker_state, self.i, self.o, 0.6, name="PD checker refresher")
         r.activate()
         # PD checker Refresher finished, making sure we signal the thread to stop:
         stop_flag.set()
