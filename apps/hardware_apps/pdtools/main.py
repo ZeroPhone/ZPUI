@@ -1,5 +1,3 @@
-menu_name = "PD tools"
-
 from zpui_lib.ui import Menu, PrettyPrinter as Printer, Refresher, RefresherExitException
 from zpui_lib.helpers import setup_logger, read_or_create_config, local_path_gen, write_config, get_platform, is_emulator, BooleanEvent, BackgroundRunner
 from zpui_lib.apps import ZeroApp
@@ -20,8 +18,10 @@ import smbus
 
 class App(ZeroApp):
 
+    menu_name = "PD tools"
+
     def init_app(self):
-        self.config = read_or_create_config(config_path, default_config, menu_name+" app")
+        self.config = read_or_create_config(config_path, default_config, self.menu_name+" app")
         # PD checker thread variable
         self.fusb_state = (-1, -1)
 
@@ -126,6 +126,7 @@ class App(ZeroApp):
             if not initial_fusb_state or "blepis" in get_platform():
                 self.mux_fusb_set(True)
         except:
+            logger.error("FUSB MUX read/write fail!")
             Printer("FUSB MUX read/write fail!", self.i, self.o, 2)
             return
         stop_flag = self.pd_checker_thread_start()
