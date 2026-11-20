@@ -21,13 +21,13 @@ break_duration: 5
 """
 
 # possible states:
-# work, break, off, waiting_on_break, waiting_on_work
+# work, break, off, waiting_for_break, waiting_for_work
 
 state_to_colors = {
   "work": "sea",
-  "waiting_on_break":"yellow",
+  "waiting_for_break":"yellow",
   "break":"purple",
-  "waiting_on_work":"",
+  "waiting_for_work":"emerald",
   "off":"off"
 }
 
