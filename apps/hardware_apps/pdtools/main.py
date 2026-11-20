@@ -118,8 +118,15 @@ class App(ZeroApp):
             opposite = "source" if role_str=="sink" else "sink"
             lines.append(f"connected to: {opposite}")
             lines.append(f"CC: {cc}")
-        if role_str == "audio":
+        elif role_str == "audio":
             lines.append("(passive audio)")
+        else:
+            lines.append("Plug something in!")
+            lines.append("")
+            lines.append("Device not detected:")
+            lines.append("*Are USB-C resistors missing?")
+            lines.append("*Try flipping the cable.")
+            lines.append("*Try a different cable.")
         lines = [line.center(self.o.cols) for line in lines]
         return lines
 
